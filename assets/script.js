@@ -20,28 +20,28 @@ const demoData = {
   characters: [
     {
       id: "demo-character-1",
-      name: "Baron Velk",
-      role: "Disgraced noble",
-      faction: "Iron Egrets",
-      notes: "Lost public power after the party revealed his pact, but still controls smugglers.",
+      name: "Mira Voss",
+      role: "Smuggler Queen",
+      faction: "The Gilded Fang",
+      notes: "Controls the safest Blackfen routes and knows who moved the Ember Sigil.",
       createdAt: "Demo",
     },
   ],
   items: [
     {
       id: "demo-item-1",
-      name: "Ruby Key of Emberfen",
+      name: "Moonlit Dagger",
       type: "Magic Item",
-      description: "Warm near sealed shrines. It may unlock an oath, not a door.",
+      description: "A silvered blade that glows near drowned gates and forgotten oaths.",
       createdAt: "Demo",
     },
   ],
   events: [
     {
       id: "demo-event-1",
-      title: "Treaty Moon Council",
-      date: "12th Bloomwane, 1492 DR",
-      description: "Marsh clans vote on whether to protect the city after the baron scandal.",
+      title: "Session 12: The Sunken Gate",
+      date: "Tonight",
+      description: "Blackfen Marsh route, broken bridge ambush, and first reveal of the oath gate.",
       createdAt: "Demo",
     },
   ],
@@ -79,6 +79,22 @@ function readableDate() {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date());
 }
 
+function textForSearch(values) {
+  return values.filter(Boolean).join(" ").toLowerCase();
+}
+
+function cardVisualLabel(value) {
+  return escapeHtml(
+    String(value || "DM")
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+  );
+}
+
 function initMobileNavigation() {
   const toggle = document.querySelector(".mobile-menu-toggle");
   const nav = document.querySelector(".topnav");
@@ -87,6 +103,50 @@ function initMobileNavigation() {
   toggle.addEventListener("click", () => {
     const isOpen = nav.classList.toggle("is-open");
     toggle.setAttribute("aria-expanded", String(isOpen));
+  });
+}
+
+function initCommandInterface() {
+  const search = document.getElementById("global-search");
+  const filterToggle = document.getElementById("filter-toggle");
+  const filterPanel = document.getElementById("filter-panel");
+  const statusButtons = document.querySelectorAll("[data-status-filter]");
+  let activeStatus = "all";
+
+  function applyFilters() {
+    const query = search ? search.value.trim().toLowerCase() : "";
+    document.querySelectorAll("[data-searchable]").forEach((card) => {
+      const cardStatus = card.dataset.status || "active";
+      const matchesStatus = activeStatus === "all" || cardStatus === activeStatus;
+      const matchesQuery = !query || (card.dataset.searchable || "").includes(query);
+      card.classList.toggle("is-filtered-out", !matchesStatus || !matchesQuery);
+    });
+  }
+
+  if (search) search.addEventListener("input", applyFilters);
+  document.addEventListener("dashboard:rendered", applyFilters);
+
+  statusButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      activeStatus = button.dataset.statusFilter || "all";
+      statusButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+      applyFilters();
+    });
+  });
+
+  if (filterToggle && filterPanel) {
+    filterToggle.addEventListener("click", () => {
+      const isHidden = filterPanel.hasAttribute("hidden");
+      filterPanel.toggleAttribute("hidden", !isHidden);
+      filterToggle.setAttribute("aria-expanded", String(isHidden));
+    });
+  }
+
+  document.querySelectorAll(".category-pill").forEach((link) => {
+    link.addEventListener("click", () => {
+      document.querySelectorAll(".category-pill").forEach((item) => item.classList.remove("is-active"));
+      link.classList.add("is-active");
+    });
   });
 }
 
@@ -100,9 +160,7 @@ function renderCollection({ key, listId, emptyText, template }) {
     return;
   }
 
-  list.innerHTML = collection
-    .map((entry) => template(entry))
-    .join("");
+  list.innerHTML = collection.map((entry) => template(entry)).join("");
 
   list.querySelectorAll("[data-delete-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -118,59 +176,87 @@ function renderDashboard() {
     key: "notes",
     listId: "notes-list",
     emptyText: "No saved notes yet. Add one above to begin your campaign wiki.",
-    template: (note) => `
-      <article class="card entry-card">
-        <p class="eyebrow">${escapeHtml(note.category)}</p>
-        <h3>${escapeHtml(note.title)}</h3>
-        <div class="entry-meta"><span class="tag">${escapeHtml(note.createdAt)}</span><span class="tag">Future backlinks</span></div>
-        <p>${escapeHtml(note.content)}</p>
-        <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(note.id)}">Delete note</button>
-      </article>`,
+    template: (note) => {
+      const searchable = textForSearch([note.title, note.category, note.content, note.createdAt, "note campaign wiki"]);
+      return `
+        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+          <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
+          <h3>${escapeHtml(note.title)}</h3>
+          <div class="entry-meta"><span class="tag">${escapeHtml(note.createdAt)}</span><span class="tag">Backlinks soon</span></div>
+          <p>${escapeHtml(note.content)}</p>
+          <div class="entry-actions">
+            <span class="tag">The Ashen Crown</span>
+            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(note.id)}">Delete note</button>
+          </div>
+        </article>`;
+    },
   });
 
   renderCollection({
     key: "characters",
     listId: "characters-list",
     emptyText: "No saved characters yet. Add an NPC, ally, villain, or faction contact.",
-    template: (character) => `
-      <article class="card entry-card">
-        <p class="eyebrow">${escapeHtml(character.role)}</p>
-        <h3>${escapeHtml(character.name)}</h3>
-        <div class="entry-meta"><span class="tag">Faction: ${escapeHtml(character.faction || "Unaligned")}</span><span class="tag">${escapeHtml(character.createdAt)}</span></div>
-        <p>${escapeHtml(character.notes)}</p>
-        <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(character.id)}">Delete character</button>
-      </article>`,
+    template: (character) => {
+      const searchable = textForSearch([character.name, character.role, character.faction, character.notes, "npc character"]);
+      return `
+        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="hidden">
+          <div class="card-visual visual-fang" aria-hidden="true"><span>${cardVisualLabel(character.name)}</span></div>
+          <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>${escapeHtml(character.role)}</span></div>
+          <h3>${escapeHtml(character.name)}</h3>
+          <div class="entry-meta"><span class="tag">Faction: ${escapeHtml(character.faction || "Unaligned")}</span><span class="tag">${escapeHtml(character.createdAt)}</span></div>
+          <p>${escapeHtml(character.notes)}</p>
+          <div class="entry-actions">
+            <span class="tag">NPC</span>
+            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(character.id)}">Delete NPC</button>
+          </div>
+        </article>`;
+    },
   });
 
   renderCollection({
     key: "items",
     listId: "items-list",
     emptyText: "No saved homebrew yet. Add a weapon, spell, monster, rule, or magic item.",
-    template: (item) => `
-      <article class="card entry-card">
-        <p class="eyebrow">${escapeHtml(item.type)}</p>
-        <h3>${escapeHtml(item.name)}</h3>
-        <div class="entry-meta"><span class="tag">${escapeHtml(item.createdAt)}</span></div>
-        <p>${escapeHtml(item.description)}</p>
-        <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(item.id)}">Delete item</button>
-      </article>`,
+    template: (item) => {
+      const status = item.type === "Monster" ? "prepared" : "active";
+      const statusLabel = item.type === "Monster" ? "Prepared" : "Active";
+      const searchable = textForSearch([item.name, item.type, item.description, "item homebrew monster loot"]);
+      return `
+        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="${status}">
+          <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
+          <h3>${escapeHtml(item.name)}</h3>
+          <div class="entry-meta"><span class="tag">${escapeHtml(item.createdAt)}</span><span class="tag">Loot & rules</span></div>
+          <p>${escapeHtml(item.description)}</p>
+          <div class="entry-actions">
+            <span class="tag">The Ashen Crown</span>
+            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(item.id)}">Delete item</button>
+          </div>
+        </article>`;
+    },
   });
 
   renderCollection({
     key: "events",
     listId: "events-list",
     emptyText: "No saved calendar events yet. Add an in-world date to keep pressure on the party.",
-    template: (event) => `
-      <article class="card entry-card">
-        <p class="eyebrow">${escapeHtml(event.date)}</p>
-        <h3>${escapeHtml(event.title)}</h3>
-        <div class="entry-meta"><span class="tag">${escapeHtml(event.createdAt)}</span></div>
-        <p>${escapeHtml(event.description)}</p>
-        <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(event.id)}">Delete event</button>
-      </article>`,
+    template: (event) => {
+      const searchable = textForSearch([event.title, event.date, event.description, "session calendar event"]);
+      return `
+        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="prepared">
+          <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(event.date)}</span></div>
+          <h3>${escapeHtml(event.title)}</h3>
+          <div class="entry-meta"><span class="tag">${escapeHtml(event.createdAt)}</span><span class="tag">Session timeline</span></div>
+          <p>${escapeHtml(event.description)}</p>
+          <div class="entry-actions">
+            <span class="tag">Calendar</span>
+            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(event.id)}">Delete event</button>
+          </div>
+        </article>`;
+    },
   });
 
   updateSummaryCards();
+  document.dispatchEvent(new Event("dashboard:rendered"));
 }
 
 function updateSummaryCards() {
@@ -180,8 +266,6 @@ function updateSummaryCards() {
 
   const noteTitle = document.getElementById("recent-note-title");
   const noteSummary = document.getElementById("recent-note-summary");
-  const npcTitle = document.getElementById("important-npc-title");
-  const npcSummary = document.getElementById("important-npc-summary");
   const eventTitle = document.getElementById("next-event-title");
   const eventSummary = document.getElementById("next-event-summary");
   const statNotes = document.getElementById("stat-notes");
@@ -190,10 +274,6 @@ function updateSummaryCards() {
   if (notes[0] && noteTitle && noteSummary) {
     noteTitle.textContent = notes[0].title;
     noteSummary.textContent = notes[0].content.slice(0, 120);
-  }
-  if (characters[0] && npcTitle && npcSummary) {
-    npcTitle.textContent = characters[0].name;
-    npcSummary.textContent = `${characters[0].role} · ${characters[0].faction || "Unaligned"}`;
   }
   if (events[0] && eventTitle && eventSummary) {
     eventTitle.textContent = events[0].title;
@@ -291,7 +371,7 @@ function initAiPlaceholder() {
         <li>A calendar event might move forward as enemies act before the party can rest.</li>
         <li>Relevant notes should be linked to NPCs, locations, and unresolved quests.</li>
       </ul>
-      <p class="muted">Question received: “${escapeHtml(asked)}”</p>
+      <p class="muted">Question received: "${escapeHtml(asked)}"</p>
     `;
   });
 }
@@ -312,7 +392,7 @@ function initContactForm() {
     const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     if (!name || !email || !subject || !message) {
-      status.textContent = "Please fill out every field before sending your raven.";
+      status.textContent = "Please fill out every field before sending.";
       status.classList.add("error");
       return;
     }
@@ -328,6 +408,7 @@ function initContactForm() {
 }
 
 initMobileNavigation();
+initCommandInterface();
 initDashboardForms();
 initFilesPlaceholder();
 initAiPlaceholder();
@@ -337,7 +418,7 @@ renderDashboard();
 /*
 Backend roadmap summary:
 Phase 2: add user accounts with React/Next.js, Node/Express or API routes, PostgreSQL/Supabase, and managed auth.
-Phase 3: add database tables for users, campaigns, notes, characters, locations, factions, quests, items, maps, calendar_events, files, document_links, and ai_suggestions.
+Phase 3: add database tables for users, campaigns, sessions, notes, characters, locations, factions, quests, items, maps, calendar_events, files, document_links, and ai_suggestions.
 Phase 4: add persistent file uploads with Supabase Storage, Firebase Storage, AWS S3, or Cloudinary.
 Phase 5: add a markdown/rich text editor, autosave, tags, search, and backlinks.
 Phase 6: add AI with embeddings, vector search, RAG, contradiction detection, summaries, and user-controlled context access.

@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="DnDucks is a fantasy campaign dashboard prototype for Dungeon Masters to organize notes, NPCs, items, calendars, files, and AI-assisted consequences."
+      content="DnDucks is a polished Dungeon Master command center for campaigns, sessions, NPCs, encounters, notes, maps, items, and live play."
     />
-    <title>DnDucks | Dungeon Master Campaign Dashboard</title>
+    <title>DnDucks | Dungeon Master Command Center</title>
     <link rel="stylesheet" href="assets/styles.css" />
     <script src="assets/script.js" defer></script>
   </head>
   <body data-page="dashboard">
     <header class="topbar">
       <a class="brand" href="index.html" aria-label="DnDucks home">
-        <span class="brand-mark">🦆</span>
-        <span><strong>DnDucks</strong><small>DM Command Roost</small></span>
+        <span class="brand-mark" aria-hidden="true">20</span>
+        <span><strong>DnDucks</strong><small>DM Command Center</small></span>
       </a>
       <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
         <span></span><span></span><span></span>
@@ -31,86 +31,259 @@
     <main>
       <section class="hero section-shell" id="top">
         <div class="hero-copy">
-          <p class="eyebrow">Phase 1 Static Prototype</p>
-          <h1>Keep every campaign thread from flying the coop.</h1>
+          <p class="eyebrow">Premium campaign workspace</p>
+          <h1>Run the table from one focused command center.</h1>
           <p>
-            DnDucks gives Dungeon Masters a polished command center for campaign notes, NPCs,
-            homebrew, items, maps, calendar events, files, and future AI-assisted consequence tracking.
+            Browse campaign material, prepare encounters, track story threads, and keep live-session references close
+            without burying your table in tabs.
           </p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#notes">Start Campaign</a>
-            <a class="btn btn-secondary" href="#dashboard">View Demo Dashboard</a>
+            <a class="btn btn-primary" href="#live-session">Run Session</a>
+            <a class="btn btn-secondary" href="#notes">Add Campaign Note</a>
           </div>
         </div>
-        <aside class="hero-panel" aria-label="Demo campaign overview">
-          <span class="status-pill">Active campaign</span>
-          <h2>The Emberfen Compact</h2>
-          <p>The party has exposed a baron, angered a river spirit, and misplaced a suspicious ruby key.</p>
-          <dl class="hero-stats">
-            <div><dt>Notes</dt><dd id="stat-notes">0</dd></div>
-            <div><dt>NPCs</dt><dd id="stat-characters">0</dd></div>
-            <div><dt>Threads</dt><dd>7</dd></div>
-          </dl>
+        <aside class="campaign-feature-card" aria-label="Active campaign overview">
+          <div class="feature-art feature-art-crown" aria-hidden="true">
+            <span class="feature-rune">AC</span>
+          </div>
+          <div class="feature-card-body">
+            <div class="card-kicker">
+              <span class="status-badge status-active">Active</span>
+              <span>Updated today</span>
+            </div>
+            <h2>The Ashen Crown</h2>
+            <p>
+              A royal succession thriller where a drowned gate, a missing sigil, and a dangerous faction keep pulling
+              the party deeper.
+            </p>
+            <dl class="hero-stats">
+              <div><dt>Notes</dt><dd id="stat-notes">0</dd></div>
+              <div><dt>NPCs</dt><dd id="stat-characters">0</dd></div>
+              <div><dt>Open quests</dt><dd>6</dd></div>
+            </dl>
+          </div>
         </aside>
       </section>
 
+      <section class="command-bar section-shell" aria-label="Campaign controls">
+        <label class="search-control" for="global-search">
+          <span aria-hidden="true">Search</span>
+          <input id="global-search" type="search" placeholder="Search notes, NPCs, items, sessions..." />
+        </label>
+        <label class="select-control" for="campaign-select">
+          <span class="sr-only">Current campaign</span>
+          <select id="campaign-select">
+            <option>The Ashen Crown</option>
+            <option>Blackfen Marsh</option>
+            <option>The Gilded Fang</option>
+          </select>
+        </label>
+        <button class="chip-button is-active" type="button" data-status-filter="all">All</button>
+        <button class="chip-button" type="button" data-status-filter="prepared">Prepared</button>
+        <button class="chip-button" type="button" data-status-filter="hidden">DM-only</button>
+        <button class="btn btn-secondary" type="button" id="filter-toggle" aria-expanded="false" aria-controls="filter-panel">Filters</button>
+        <a class="btn btn-ghost" href="#notes">New</a>
+        <a class="btn btn-primary" href="#live-session">Run Session</a>
+      </section>
+
+      <nav class="category-scroller section-shell" aria-label="Campaign categories">
+        <a href="#campaigns" class="category-pill is-active"><span>C</span>Campaigns</a>
+        <a href="#live-session" class="category-pill"><span>S</span>Sessions</a>
+        <a href="#encounters" class="category-pill"><span>E</span>Encounters</a>
+        <a href="#characters" class="category-pill"><span>N</span>NPCs</a>
+        <a href="#locations" class="category-pill"><span>L</span>Locations</a>
+        <a href="#quests" class="category-pill"><span>Q</span>Quests</a>
+        <a href="#items" class="category-pill"><span>I</span>Items</a>
+        <a href="#items" class="category-pill"><span>M</span>Monsters</a>
+        <a href="#notes" class="category-pill"><span>R</span>Notes</a>
+        <a href="#maps" class="category-pill"><span>P</span>Maps</a>
+      </nav>
+
       <div class="app-shell section-shell" id="dashboard">
         <aside class="sidebar" aria-label="Dashboard sections">
-          <div class="sidebar-title">Campaign Vault</div>
+          <div class="sidebar-title">Table Tools</div>
           <nav class="sidebar-nav">
-            <a href="#campaigns">Campaigns</a>
+            <a href="#campaigns">Overview</a>
+            <a href="#live-session">Live Session</a>
+            <a href="#encounters">Encounters</a>
+            <a href="#quests">Quests</a>
+            <a href="#locations">Locations</a>
             <a href="#notes">Notes</a>
-            <a href="#characters">Characters</a>
-            <a href="#items">Homebrew</a>
-            <a href="#items">Items &amp; Equipment</a>
+            <a href="#characters">NPCs</a>
+            <a href="#items">Items</a>
             <a href="#maps">Maps</a>
-            <a href="#calendar">Calendar</a>
-            <a href="#files">Files</a>
-            <a href="#assistant">AI Assistant</a>
+            <a href="#assistant">Assistant</a>
           </nav>
         </aside>
 
         <div class="dashboard-content">
-          <section class="dashboard-grid" id="campaigns" aria-label="Campaign summary cards">
-            <article class="card span-2">
-              <p class="eyebrow">Active campaign</p>
-              <h2>The Emberfen Compact</h2>
-              <p>
-                A swamp kingdom balancing noble intrigue, ancient bargains, and consequences from every choice the party makes.
-              </p>
-              <div class="tag-row">
-                <span class="tag">Level 5</span><span class="tag">Political intrigue</span><span class="tag">Open threads: 7</span>
+          <section class="dashboard-grid" id="campaigns" aria-label="Campaign overview cards">
+            <article class="content-card campaign-card span-2" data-searchable="the ashen crown active campaign sunken gate gilded fang ember sigil" data-status="active">
+              <div class="card-visual visual-ember" aria-hidden="true"><span>AC</span></div>
+              <div class="content-card-body">
+                <div class="card-kicker"><span class="status-badge status-active">Active</span><span>Campaign</span></div>
+                <h2>The Ashen Crown</h2>
+                <p>
+                  Royal intrigue, sealed ruins, and faction pressure around Session 12: The Sunken Gate.
+                </p>
+                <div class="tag-row">
+                  <span class="tag">Level 6</span>
+                  <span class="tag">Arcane mystery</span>
+                  <span class="tag">The Gilded Fang</span>
+                </div>
+                <div class="quick-actions">
+                  <a class="quick-action" href="#live-session" aria-label="Open run session tools">Run</a>
+                  <a class="quick-action" href="#notes" aria-label="Open campaign notes">Notes</a>
+                </div>
               </div>
             </article>
-            <article class="card">
-              <p class="eyebrow">Recent notes</p>
+            <article class="content-card" data-searchable="session 12 the sunken gate upcoming prepared" data-status="prepared">
+              <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Upcoming session</span></div>
+              <h3>Session 12: The Sunken Gate</h3>
+              <p>Start in Blackfen Marsh, reveal the gate mechanism, and surface the cost of opening it.</p>
+              <div class="mini-metric"><strong>Tonight</strong><span>4 key scenes ready</span></div>
+            </article>
+            <article class="content-card" data-searchable="recover the ember sigil open quest gilded fang" data-status="active">
+              <div class="card-kicker"><span class="status-badge status-active">In Progress</span><span>Quest</span></div>
+              <h3>Recover the Ember Sigil</h3>
+              <p>The party knows the sigil exists, but not which faction currently holds it.</p>
+              <div class="tag-row"><span class="tag">Quest</span><span class="tag">Hidden clue</span></div>
+            </article>
+            <article class="content-card" data-searchable="mira voss smuggler queen npc blackfen" data-status="hidden">
+              <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>Important NPC</span></div>
+              <h3>Mira Voss, Smuggler Queen</h3>
+              <p>Controls the safer routes through Blackfen Marsh and knows who moved the sigil.</p>
+              <div class="tag-row"><span class="tag">Faction contact</span><span class="tag">Blackfen</span></div>
+            </article>
+            <article class="content-card" data-searchable="recent notes local campaign notes" data-status="active">
+              <div class="card-kicker"><span class="status-badge status-active">Recent</span><span>Note</span></div>
               <h3 id="recent-note-title">No notes yet</h3>
               <p id="recent-note-summary">Create your first note below to populate this card.</p>
             </article>
-            <article class="card">
-              <p class="eyebrow">Upcoming in-world events</p>
-              <h3 id="next-event-title">Treaty moon</h3>
-              <p id="next-event-summary">The marsh clans gather in three nights to choose whether the city is protected or cursed.</p>
+            <article class="content-card" data-searchable="prepared encounters ambush broken bridge monsters" data-status="prepared">
+              <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Encounter</span></div>
+              <h3>Ambush at the Broken Bridge</h3>
+              <p>Two waves, one environmental hazard, and a hidden archer with a message.</p>
+              <div class="tag-row"><span class="tag">Medium</span><span class="tag">Level 6</span></div>
             </article>
-            <article class="card">
-              <p class="eyebrow">Important NPCs</p>
-              <h3 id="important-npc-title">Baron Velk</h3>
-              <p id="important-npc-summary">Publicly disgraced, privately dangerous, and still connected to the Iron Egrets faction.</p>
-            </article>
-            <article class="card warning-card">
-              <p class="eyebrow">Unresolved consequences</p>
-              <h3>3 major ripples</h3>
-              <ul class="compact-list">
-                <li>River spirit demands restitution.</li>
-                <li>Baron’s heir has vanished.</li>
-                <li>Ruby key hums near old shrines.</li>
-              </ul>
-            </article>
-            <article class="card">
-              <p class="eyebrow">Uploaded files</p>
-              <h3 id="file-count">0 selected</h3>
-              <p>Maps, PDFs, handouts, and images will persist when backend storage is added.</p>
-            </article>
+          </section>
+
+          <aside class="filter-panel" id="filter-panel" aria-label="Advanced filters" hidden>
+            <div>
+              <p class="eyebrow">Filters</p>
+              <h2>Refine campaign content</h2>
+            </div>
+            <div class="filter-grid">
+              <label>Content type<select><option>Any type</option><option>Session</option><option>Encounter</option><option>NPC</option><option>Quest</option><option>Item</option><option>Map</option></select></label>
+              <label>Status<select><option>Any status</option><option>Active</option><option>Prepared</option><option>Hidden from Players</option><option>Completed</option></select></label>
+              <label>Visibility<select><option>All visibility</option><option>DM-only</option><option>Player-visible</option></select></label>
+              <label>Location<select><option>Any location</option><option>Blackfen Marsh</option><option>The Sunken Gate</option><option>Broken Bridge</option></select></label>
+            </div>
+          </aside>
+
+          <section class="workspace-section" id="live-session">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Live table view</p>
+                <h2>Session 12: The Sunken Gate</h2>
+              </div>
+              <a class="btn btn-primary" href="#encounters">Open Encounter</a>
+            </div>
+            <div class="session-grid">
+              <article class="panel session-panel">
+                <div class="card-kicker"><span class="status-badge status-active">Live-ready</span><span>Initiative</span></div>
+                <ol class="initiative-list">
+                  <li><strong>Kael</strong><span>18</span></li>
+                  <li><strong>Mira Voss</strong><span>15</span></li>
+                  <li><strong>Bridge Warden</strong><span>12</span></li>
+                  <li><strong>Hidden Archer</strong><span>9</span></li>
+                </ol>
+              </article>
+              <article class="panel session-panel">
+                <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>Secret notes</span></div>
+                <h3>Reveal only if the party opens the lower lock.</h3>
+                <p>The gate does not open into a room. It opens into an oath the city broke.</p>
+              </article>
+              <article class="panel session-panel">
+                <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Quick references</span></div>
+                <div class="quick-link-grid">
+                  <a href="#characters">NPC cards</a>
+                  <a href="#items">Monster notes</a>
+                  <a href="#maps">Map pins</a>
+                  <a href="#assistant">Consequences</a>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="workspace-section" id="encounters">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Prepared scenes</p>
+                <h2>Encounters</h2>
+              </div>
+              <p>Static examples for fast browsing while the saved homebrew and monster model evolves.</p>
+            </div>
+            <div class="collection-grid">
+              <article class="content-card encounter-card" data-searchable="ambush at the broken bridge encounter prepared level 6 blackfen" data-status="prepared">
+                <div class="card-visual visual-bridge" aria-hidden="true"><span>BR</span></div>
+                <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Encounter</span></div>
+                <h3>Ambush at the Broken Bridge</h3>
+                <p>Bandit scouts, a collapsing span, and a clue stitched into a red sash.</p>
+                <div class="tag-row"><span class="tag">Level 6</span><span class="tag">Medium</span><span class="tag">Blackfen</span></div>
+              </article>
+              <article class="content-card encounter-card" data-searchable="gate chamber puzzle monster hidden from players" data-status="hidden">
+                <div class="card-visual visual-gate" aria-hidden="true"><span>SG</span></div>
+                <div class="card-kicker"><span class="status-badge status-hidden">Hidden from Players</span><span>Set piece</span></div>
+                <h3>The Sunken Gate Chamber</h3>
+                <p>Environmental puzzle with rising water, oath runes, and one optional guardian.</p>
+                <div class="tag-row"><span class="tag">Puzzle</span><span class="tag">Guardian</span></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="workspace-section" id="quests">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Open threads</p>
+                <h2>Quests</h2>
+              </div>
+            </div>
+            <div class="collection-grid">
+              <article class="content-card" data-searchable="recover the ember sigil quest in progress" data-status="active">
+                <div class="card-kicker"><span class="status-badge status-active">In Progress</span><span>Main quest</span></div>
+                <h3>Recover the Ember Sigil</h3>
+                <p>Find who stole the sigil before the next council bell rings.</p>
+              </article>
+              <article class="content-card" data-searchable="blackfen marsh faction completed quest" data-status="completed">
+                <div class="card-kicker"><span class="status-badge status-completed">Completed</span><span>Side quest</span></div>
+                <h3>Win Passage Through Blackfen</h3>
+                <p>The safe route is secured, but Mira Voss expects a favor later.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="workspace-section" id="locations">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">World atlas</p>
+                <h2>Locations</h2>
+              </div>
+            </div>
+            <div class="collection-grid">
+              <article class="content-card" data-searchable="blackfen marsh location faction routes" data-status="active">
+                <div class="card-visual visual-marsh" aria-hidden="true"><span>BM</span></div>
+                <div class="card-kicker"><span class="status-badge status-active">Active</span><span>Location</span></div>
+                <h3>Blackfen Marsh</h3>
+                <p>Treacherous channels, lantern markers, and smugglers who know every dry path.</p>
+              </article>
+              <article class="content-card" data-searchable="the gilded fang faction hideout location hidden" data-status="hidden">
+                <div class="card-visual visual-fang" aria-hidden="true"><span>GF</span></div>
+                <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>Faction site</span></div>
+                <h3>The Gilded Fang Den</h3>
+                <p>A hidden counting house beneath a shuttered theater.</p>
+              </article>
+            </div>
           </section>
 
           <section class="workspace-section" id="notes">
@@ -119,32 +292,32 @@
                 <p class="eyebrow">Campaign wiki</p>
                 <h2>Local Campaign Notes</h2>
               </div>
-              <p>Saved in this browser with localStorage. Future versions will sync notes per account and campaign.</p>
+              <p>Saved in this browser with localStorage. Future versions can sync notes per account and campaign.</p>
             </div>
             <form class="panel form-grid" id="note-form">
-              <label>Note title<input id="note-title" name="title" type="text" placeholder="The baron’s hidden pact" required /></label>
+              <label>Note title<input id="note-title" name="title" type="text" placeholder="The baron's hidden pact" required /></label>
               <label>Category<select id="note-category" name="category" required><option>Session Note</option><option>NPC</option><option>Location</option><option>Quest</option><option>Lore</option><option>Consequence</option></select></label>
               <label class="full-width">Note content<textarea id="note-content" name="content" rows="4" placeholder="Record clues, decisions, loose threads, and future consequences..." required></textarea></label>
               <button class="btn btn-primary" type="submit">Save Note</button>
             </form>
             <div class="linking-concept panel">
-              <h3>Internal linking concept</h3>
-              <p>Future versions will connect notes to NPCs, locations, maps, items, events, files, and quests with backlinks.</p>
+              <h3>Linked campaign context</h3>
+              <p>Future versions can connect notes to NPCs, locations, maps, items, events, files, and quests with backlinks.</p>
               <div class="tag-row">
-                <button class="btn btn-disabled" disabled>Link to Character</button>
-                <button class="btn btn-disabled" disabled>Link to Location</button>
-                <button class="btn btn-disabled" disabled>Link to Event</button>
+                <button class="btn btn-disabled" disabled>Link NPC</button>
+                <button class="btn btn-disabled" disabled>Link Location</button>
+                <button class="btn btn-disabled" disabled>Link Session</button>
               </div>
             </div>
             <div class="collection-grid" id="notes-list" aria-live="polite"></div>
           </section>
 
           <section class="workspace-section" id="characters">
-            <div class="section-heading"><div><p class="eyebrow">Cast ledger</p><h2>Characters &amp; NPCs</h2></div></div>
+            <div class="section-heading"><div><p class="eyebrow">Cast ledger</p><h2>NPCs &amp; Characters</h2></div></div>
             <form class="panel form-grid" id="character-form">
-              <label>Character name<input id="character-name" type="text" placeholder="Captain Mirela" required /></label>
-              <label>Role<input id="character-role" type="text" placeholder="Harbor guard captain" required /></label>
-              <label>Faction<input id="character-faction" type="text" placeholder="The Iron Egrets" /></label>
+              <label>Character name<input id="character-name" type="text" placeholder="Mira Voss" required /></label>
+              <label>Role<input id="character-role" type="text" placeholder="Smuggler Queen" required /></label>
+              <label>Faction<input id="character-faction" type="text" placeholder="The Gilded Fang" /></label>
               <label class="full-width">Notes<textarea id="character-notes" rows="3" placeholder="Motives, secrets, relationship to the party..." required></textarea></label>
               <button class="btn btn-primary" type="submit">Save Character</button>
             </form>
@@ -152,9 +325,9 @@
           </section>
 
           <section class="workspace-section" id="items">
-            <div class="section-heading"><div><p class="eyebrow">Homebrew shelf</p><h2>Homebrew / Items</h2></div></div>
+            <div class="section-heading"><div><p class="eyebrow">Loot, monsters, rules</p><h2>Items &amp; Homebrew</h2></div></div>
             <form class="panel form-grid" id="item-form">
-              <label>Item or rule name<input id="item-name" type="text" placeholder="Ruby Key of Emberfen" required /></label>
+              <label>Item or rule name<input id="item-name" type="text" placeholder="Moonlit Dagger" required /></label>
               <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
               <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Mechanical effects, lore, rarity, hooks..." required></textarea></label>
               <button class="btn btn-primary" type="submit">Save Item</button>
@@ -167,7 +340,8 @@
             <div class="panel map-placeholder">
               <div class="map-grid" aria-hidden="true"></div>
               <div>
-                <h3>Map annotations coming next</h3>
+                <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Map pins soon</span></div>
+                <h3>Blackfen Marsh route map</h3>
                 <p>Upload maps later, add pins, and link pins to notes, NPCs, locations, quests, or encounters.</p>
               </div>
             </div>
@@ -188,22 +362,22 @@
             <div class="section-heading"><div><p class="eyebrow">Archives</p><h2>Files Placeholder</h2></div></div>
             <div class="panel">
               <label class="file-picker">Select maps, PDFs, handouts, or images<input id="file-input" type="file" multiple /></label>
-              <p class="muted">Selected file names display here only. Real persistent uploads require backend storage such as Supabase Storage, Firebase Storage, AWS S3, or Cloudinary.</p>
+              <p class="muted">Selected file names display here only. Persistent uploads require backend storage.</p>
               <ul class="file-list" id="selected-files"></ul>
             </div>
           </section>
 
           <section class="workspace-section" id="assistant">
-            <div class="section-heading"><div><p class="eyebrow">Oracle rookery</p><h2>AI Assistant Placeholder</h2></div></div>
+            <div class="section-heading"><div><p class="eyebrow">Campaign assistant</p><h2>AI Assistant Placeholder</h2></div></div>
             <div class="assistant-panel panel">
               <form id="ai-form" class="assistant-form">
                 <label for="ai-question">Ask a campaign consequence question</label>
-                <textarea id="ai-question" rows="4" placeholder="What consequences might happen because the party killed the baron?" required></textarea>
+                <textarea id="ai-question" rows="4" placeholder="What consequences might follow if the party exposes Mira Voss?" required></textarea>
                 <button class="btn btn-primary" type="submit">Ask Assistant</button>
               </form>
               <div class="ai-response" id="ai-response">
                 <h3>Potential linked consequences</h3>
-                <p>Ask a question to generate a mock response. Future AI integration will analyze notes, characters, items, maps, calendar events, and uploaded documents.</p>
+                <p>Ask a question to generate a mock response. Future AI integration can analyze approved campaign notes, NPCs, items, maps, and calendar events.</p>
               </div>
             </div>
           </section>
@@ -211,22 +385,25 @@
           <section class="workspace-section roadmap" id="roadmap">
             <div class="section-heading"><div><p class="eyebrow">Build plan</p><h2>Future Backend Roadmap</h2></div></div>
             <div class="panel roadmap-grid">
-              <article><h3>Phase 1 — Static frontend prototype</h3><p>HTML/CSS/JS, localStorage, demo dashboard, notes, characters, items, calendar, files placeholder, and AI placeholder.</p></article>
-              <article><h3>Phase 2 — User accounts</h3><p>Recommended stack: React or Next.js, Node.js/Express or Next.js API routes, PostgreSQL or Supabase, and Supabase Auth, Clerk, Firebase Auth, or Auth.js.</p></article>
-              <article><h3>Phase 3 — Database models</h3><p>Tables: users, campaigns, notes, characters, locations, factions, quests, items, maps, calendar_events, files, document_links, and ai_suggestions.</p></article>
-              <article><h3>Phase 4 — File uploads</h3><p>Add storage, map image support, PDFs/documents, and attachments for notes, NPCs, locations, and campaigns.</p></article>
-              <article><h3>Phase 5 — Rich document editor</h3><p>Add markdown or rich text, autosave, document links, tags, search, and backlinks like a campaign wiki.</p></article>
-              <article><h3>Phase 6 — AI assistant</h3><p>Use embeddings, vector search, and RAG while limiting model access to user-approved campaign data.</p></article>
-              <article><h3>Phase 7 — Maps</h3><p>Upload maps, add pins, link pins to notes, NPCs, locations, quests, and encounters, then save annotations.</p></article>
-              <article><h3>Phase 8 — Collaboration</h3><p>Support multiple users per campaign with Dungeon Master, Player, and Viewer roles plus private DM notes.</p></article>
+              <article><h3>Phase 1: Static prototype</h3><p>HTML/CSS/JS, localStorage, dashboard, notes, NPCs, items, calendar, files placeholder, and AI placeholder.</p></article>
+              <article><h3>Phase 2: User accounts</h3><p>Add authenticated campaigns, roles, and per-user storage.</p></article>
+              <article><h3>Phase 3: Campaign database</h3><p>Model campaigns, sessions, notes, NPCs, locations, factions, quests, items, maps, files, and suggestions.</p></article>
+              <article><h3>Phase 4: Live-session tools</h3><p>Add persistent initiative, encounter state, player visibility controls, and map pins.</p></article>
             </div>
           </section>
         </div>
       </div>
     </main>
 
+    <nav class="bottom-nav" aria-label="Mobile quick navigation">
+      <a href="#campaigns">Home</a>
+      <a href="#live-session">Run</a>
+      <a href="#notes">Notes</a>
+      <a href="#characters">NPCs</a>
+    </nav>
+
     <footer class="site-footer">
-      <p>DnDucks Phase 1 prototype. Built for brave Dungeon Masters and suspiciously organized ducks.</p>
+      <p>DnDucks Phase 1 prototype. A focused command center for Dungeon Masters preparing the next great session.</p>
     </footer>
   </body>
 </html>
