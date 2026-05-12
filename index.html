@@ -1,266 +1,232 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>8.BIT.BLOG - Nostalgic Gaming Experience</title>
+    <meta
+      name="description"
+      content="DnDucks is a fantasy campaign dashboard prototype for Dungeon Masters to organize notes, NPCs, items, calendars, files, and AI-assisted consequences."
+    />
+    <title>DnDucks | Dungeon Master Campaign Dashboard</title>
     <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/script.js" defer></script>
   </head>
-  <body>
-    <nav class="navbar">
-      <div class="nav-container">
-        <a href="index.html" class="nav-logo">8.BIT.BLOG</a>
-        <ul class="nav-links">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </div>
-    </nav>
+  <body data-page="dashboard">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="DnDucks home">
+        <span class="brand-mark">🦆</span>
+        <span><strong>DnDucks</strong><small>DM Command Roost</small></span>
+      </a>
+      <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Toggle navigation</span>
+      </button>
+      <nav class="topnav" id="site-navigation" aria-label="Primary navigation">
+        <a href="index.html" aria-current="page">Dashboard</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
 
-    <div class="content">
-      <div class="main-layout">
-        <!-- Left Column - Blog Content -->
-        <div class="blog-section">
-          <h1>Welcome.</h1>
+    <main>
+      <section class="hero section-shell" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow">Phase 1 Static Prototype</p>
+          <h1>Keep every campaign thread from flying the coop.</h1>
           <p>
-            Welcome to the ultimate retro gaming destination! Lorem ipsum, dolor
-            sit amet consectetur adipisicing elit. Ipsam asperiores impedit
-            cumque cupiditate doloremque animi necessitatibus repudiandae omnis
-            consectetur perspiciatis, hic ab velit natus, aliquam laboriosam!
-            Quo consequatur obcaecati a, eveniet commodi dicta minima recusandae
-            maxime ex impedit?
+            DnDucks gives Dungeon Masters a polished command center for campaign notes, NPCs,
+            homebrew, items, maps, calendar events, files, and future AI-assisted consequence tracking.
           </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#notes">Start Campaign</a>
+            <a class="btn btn-secondary" href="#dashboard">View Demo Dashboard</a>
+          </div>
+        </div>
+        <aside class="hero-panel" aria-label="Demo campaign overview">
+          <span class="status-pill">Active campaign</span>
+          <h2>The Emberfen Compact</h2>
+          <p>The party has exposed a baron, angered a river spirit, and misplaced a suspicious ruby key.</p>
+          <dl class="hero-stats">
+            <div><dt>Notes</dt><dd id="stat-notes">0</dd></div>
+            <div><dt>NPCs</dt><dd id="stat-characters">0</dd></div>
+            <div><dt>Threads</dt><dd>7</dd></div>
+          </dl>
+        </aside>
+      </section>
 
-          <!-- NES Gamepad Card Template -->
-          <div class="gamepad-card">
-            <div class="card-left">
-              <div class="dpad">
-                <div class="dpad-vertical"></div>
-                <div class="dpad-horizontal"></div>
-              </div>
-            </div>
+      <div class="app-shell section-shell" id="dashboard">
+        <aside class="sidebar" aria-label="Dashboard sections">
+          <div class="sidebar-title">Campaign Vault</div>
+          <nav class="sidebar-nav">
+            <a href="#campaigns">Campaigns</a>
+            <a href="#notes">Notes</a>
+            <a href="#characters">Characters</a>
+            <a href="#items">Homebrew</a>
+            <a href="#items">Items &amp; Equipment</a>
+            <a href="#maps">Maps</a>
+            <a href="#calendar">Calendar</a>
+            <a href="#files">Files</a>
+            <a href="#assistant">AI Assistant</a>
+          </nav>
+        </aside>
 
-            <div class="card-content">
-              <h3>The Evolution of Gaming Controllers</h3>
+        <div class="dashboard-content">
+          <section class="dashboard-grid" id="campaigns" aria-label="Campaign summary cards">
+            <article class="card span-2">
+              <p class="eyebrow">Active campaign</p>
+              <h2>The Emberfen Compact</h2>
               <p>
-                Explore how gaming controllers have transformed from simple
-                joysticks to sophisticated input devices that define modern
-                gaming experiences.
+                A swamp kingdom balancing noble intrigue, ancient bargains, and consequences from every choice the party makes.
               </p>
-            </div>
+              <div class="tag-row">
+                <span class="tag">Level 5</span><span class="tag">Political intrigue</span><span class="tag">Open threads: 7</span>
+              </div>
+            </article>
+            <article class="card">
+              <p class="eyebrow">Recent notes</p>
+              <h3 id="recent-note-title">No notes yet</h3>
+              <p id="recent-note-summary">Create your first note below to populate this card.</p>
+            </article>
+            <article class="card">
+              <p class="eyebrow">Upcoming in-world events</p>
+              <h3 id="next-event-title">Treaty moon</h3>
+              <p id="next-event-summary">The marsh clans gather in three nights to choose whether the city is protected or cursed.</p>
+            </article>
+            <article class="card">
+              <p class="eyebrow">Important NPCs</p>
+              <h3 id="important-npc-title">Baron Velk</h3>
+              <p id="important-npc-summary">Publicly disgraced, privately dangerous, and still connected to the Iron Egrets faction.</p>
+            </article>
+            <article class="card warning-card">
+              <p class="eyebrow">Unresolved consequences</p>
+              <h3>3 major ripples</h3>
+              <ul class="compact-list">
+                <li>River spirit demands restitution.</li>
+                <li>Baron’s heir has vanished.</li>
+                <li>Ruby key hums near old shrines.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <p class="eyebrow">Uploaded files</p>
+              <h3 id="file-count">0 selected</h3>
+              <p>Maps, PDFs, handouts, and images will persist when backend storage is added.</p>
+            </article>
+          </section>
 
-            <div class="card-right">
-              <div class="action-buttons">
-                <button class="action-btn read-more" title="Read More">
-                  <span class="arrow">→</span>
-                </button>
-                <button class="action-btn author-btn" title="Author">
-                  <span class="initials">NN</span>
-                </button>
+          <section class="workspace-section" id="notes">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Campaign wiki</p>
+                <h2>Local Campaign Notes</h2>
+              </div>
+              <p>Saved in this browser with localStorage. Future versions will sync notes per account and campaign.</p>
+            </div>
+            <form class="panel form-grid" id="note-form">
+              <label>Note title<input id="note-title" name="title" type="text" placeholder="The baron’s hidden pact" required /></label>
+              <label>Category<select id="note-category" name="category" required><option>Session Note</option><option>NPC</option><option>Location</option><option>Quest</option><option>Lore</option><option>Consequence</option></select></label>
+              <label class="full-width">Note content<textarea id="note-content" name="content" rows="4" placeholder="Record clues, decisions, loose threads, and future consequences..." required></textarea></label>
+              <button class="btn btn-primary" type="submit">Save Note</button>
+            </form>
+            <div class="linking-concept panel">
+              <h3>Internal linking concept</h3>
+              <p>Future versions will connect notes to NPCs, locations, maps, items, events, files, and quests with backlinks.</p>
+              <div class="tag-row">
+                <button class="btn btn-disabled" disabled>Link to Character</button>
+                <button class="btn btn-disabled" disabled>Link to Location</button>
+                <button class="btn btn-disabled" disabled>Link to Event</button>
               </div>
             </div>
-          </div>
+            <div class="collection-grid" id="notes-list" aria-live="polite"></div>
+          </section>
 
-          <!-- Second Card -->
-          <div class="gamepad-card">
-            <div class="card-left">
-              <div class="dpad">
-                <div class="dpad-vertical"></div>
-                <div class="dpad-horizontal"></div>
+          <section class="workspace-section" id="characters">
+            <div class="section-heading"><div><p class="eyebrow">Cast ledger</p><h2>Characters &amp; NPCs</h2></div></div>
+            <form class="panel form-grid" id="character-form">
+              <label>Character name<input id="character-name" type="text" placeholder="Captain Mirela" required /></label>
+              <label>Role<input id="character-role" type="text" placeholder="Harbor guard captain" required /></label>
+              <label>Faction<input id="character-faction" type="text" placeholder="The Iron Egrets" /></label>
+              <label class="full-width">Notes<textarea id="character-notes" rows="3" placeholder="Motives, secrets, relationship to the party..." required></textarea></label>
+              <button class="btn btn-primary" type="submit">Save Character</button>
+            </form>
+            <div class="collection-grid" id="characters-list" aria-live="polite"></div>
+          </section>
+
+          <section class="workspace-section" id="items">
+            <div class="section-heading"><div><p class="eyebrow">Homebrew shelf</p><h2>Homebrew / Items</h2></div></div>
+            <form class="panel form-grid" id="item-form">
+              <label>Item or rule name<input id="item-name" type="text" placeholder="Ruby Key of Emberfen" required /></label>
+              <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
+              <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Mechanical effects, lore, rarity, hooks..." required></textarea></label>
+              <button class="btn btn-primary" type="submit">Save Item</button>
+            </form>
+            <div class="collection-grid" id="items-list" aria-live="polite"></div>
+          </section>
+
+          <section class="workspace-section" id="maps">
+            <div class="section-heading"><div><p class="eyebrow">Cartography</p><h2>Maps</h2></div></div>
+            <div class="panel map-placeholder">
+              <div class="map-grid" aria-hidden="true"></div>
+              <div>
+                <h3>Map annotations coming next</h3>
+                <p>Upload maps later, add pins, and link pins to notes, NPCs, locations, quests, or encounters.</p>
               </div>
             </div>
+          </section>
 
-            <div class="card-content">
-              <h3>Retro Gaming Renaissance</h3>
-              <p>
-                Discover why classic games are experiencing a massive revival
-                and how they continue to influence modern game design
-                principles.
-              </p>
+          <section class="workspace-section" id="calendar">
+            <div class="section-heading"><div><p class="eyebrow">Chronicle</p><h2>Calendar Events</h2></div></div>
+            <form class="panel form-grid" id="event-form">
+              <label>Event title<input id="event-title" type="text" placeholder="Treaty Moon Council" required /></label>
+              <label>In-world date<input id="event-date" type="text" placeholder="12th Bloomwane, 1492 DR" required /></label>
+              <label class="full-width">Description<textarea id="event-description" rows="3" placeholder="What happens, who attends, and what might change..." required></textarea></label>
+              <button class="btn btn-primary" type="submit">Save Event</button>
+            </form>
+            <div class="collection-grid" id="events-list" aria-live="polite"></div>
+          </section>
+
+          <section class="workspace-section" id="files">
+            <div class="section-heading"><div><p class="eyebrow">Archives</p><h2>Files Placeholder</h2></div></div>
+            <div class="panel">
+              <label class="file-picker">Select maps, PDFs, handouts, or images<input id="file-input" type="file" multiple /></label>
+              <p class="muted">Selected file names display here only. Real persistent uploads require backend storage such as Supabase Storage, Firebase Storage, AWS S3, or Cloudinary.</p>
+              <ul class="file-list" id="selected-files"></ul>
             </div>
+          </section>
 
-            <div class="card-right">
-              <div class="action-buttons">
-                <button class="action-btn read-more" title="Read More">
-                  <span class="arrow">→</span>
-                </button>
-                <button class="action-btn author-btn" title="Author">
-                  <span class="initials">JS</span>
-                </button>
+          <section class="workspace-section" id="assistant">
+            <div class="section-heading"><div><p class="eyebrow">Oracle rookery</p><h2>AI Assistant Placeholder</h2></div></div>
+            <div class="assistant-panel panel">
+              <form id="ai-form" class="assistant-form">
+                <label for="ai-question">Ask a campaign consequence question</label>
+                <textarea id="ai-question" rows="4" placeholder="What consequences might happen because the party killed the baron?" required></textarea>
+                <button class="btn btn-primary" type="submit">Ask Assistant</button>
+              </form>
+              <div class="ai-response" id="ai-response">
+                <h3>Potential linked consequences</h3>
+                <p>Ask a question to generate a mock response. Future AI integration will analyze notes, characters, items, maps, calendar events, and uploaded documents.</p>
               </div>
             </div>
-          </div>
-        </div>
-        <!-- End of Left Column -->
+          </section>
 
-        <!-- Right Column - Tags and Categories -->
-        <div class="sidebar-section">
-          <!-- Categories -->
-          <div class="sidebar-widget">
-            <h3>Categories</h3>
-            <ul class="category-list">
-              <li><a href="#" class="category-item">Retro Gaming <span class="count">(12)</span></a></li>
-              <li><a href="#" class="category-item">Hardware Reviews <span class="count">(8)</span></a></li>
-              <li><a href="#" class="category-item">Gaming News <span class="count">(15)</span></a></li>
-              <li><a href="#" class="category-item">Indie Games <span class="count">(6)</span></a></li>
-              <li><a href="#" class="category-item">Tutorials <span class="count">(9)</span></a></li>
-              <li><a href="#" class="category-item">Game Reviews <span class="count">(11)</span></a></li>
-            </ul>
-          </div>
-
-          <!-- Tags -->
-          <div class="sidebar-widget">
-            <h3>Popular Tags</h3>
-            <div class="tag-cloud">
-              <a href="#" class="tag">NES</a>
-              <a href="#" class="tag">Controllers</a>
-              <a href="#" class="tag">Speedrun</a>
-              <a href="#" class="tag">8-bit</a>
-              <a href="#" class="tag">Vintage</a>
-              <a href="#" class="tag">Nintendo</a>
-              <a href="#" class="tag">Arcade</a>
-              <a href="#" class="tag">PlayStation</a>
-              <a href="#" class="tag">Xbox</a>
-              <a href="#" class="tag">PC Gaming</a>
-              <a href="#" class="tag">Emulation</a>
-              <a href="#" class="tag">Pixel Art</a>
-              <a href="#" class="tag">Chiptune</a>
-              <a href="#" class="tag">Homebrew</a>
+          <section class="workspace-section roadmap" id="roadmap">
+            <div class="section-heading"><div><p class="eyebrow">Build plan</p><h2>Future Backend Roadmap</h2></div></div>
+            <div class="panel roadmap-grid">
+              <article><h3>Phase 1 — Static frontend prototype</h3><p>HTML/CSS/JS, localStorage, demo dashboard, notes, characters, items, calendar, files placeholder, and AI placeholder.</p></article>
+              <article><h3>Phase 2 — User accounts</h3><p>Recommended stack: React or Next.js, Node.js/Express or Next.js API routes, PostgreSQL or Supabase, and Supabase Auth, Clerk, Firebase Auth, or Auth.js.</p></article>
+              <article><h3>Phase 3 — Database models</h3><p>Tables: users, campaigns, notes, characters, locations, factions, quests, items, maps, calendar_events, files, document_links, and ai_suggestions.</p></article>
+              <article><h3>Phase 4 — File uploads</h3><p>Add storage, map image support, PDFs/documents, and attachments for notes, NPCs, locations, and campaigns.</p></article>
+              <article><h3>Phase 5 — Rich document editor</h3><p>Add markdown or rich text, autosave, document links, tags, search, and backlinks like a campaign wiki.</p></article>
+              <article><h3>Phase 6 — AI assistant</h3><p>Use embeddings, vector search, and RAG while limiting model access to user-approved campaign data.</p></article>
+              <article><h3>Phase 7 — Maps</h3><p>Upload maps, add pins, link pins to notes, NPCs, locations, quests, and encounters, then save annotations.</p></article>
+              <article><h3>Phase 8 — Collaboration</h3><p>Support multiple users per campaign with Dungeon Master, Player, and Viewer roles plus private DM notes.</p></article>
             </div>
-          </div>
-
+          </section>
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Gaming Hints Section - Full Width -->
-    <div class="hints-section">
-      <div class="hints-container">
-        <h2>Gaming Hints & Tips</h2>
-        <p class="hints-subtitle">
-          Master your favorite games with these pro tips and hidden secrets
-        </p>
-
-        <div class="hints-grid">
-          <div class="hint-card">
-            <div class="hint-icon">🎮</div>
-            <h3>Controller Mastery</h3>
-            <p>
-              Learn advanced controller techniques that will give you the edge
-              in competitive gaming.
-            </p>
-          </div>
-
-          <div class="hint-card">
-            <div class="hint-icon">⚡</div>
-            <h3>Speed Run Secrets</h3>
-            <p>
-              Discover the shortcuts and glitches that speedrunners use to
-              achieve record times.
-            </p>
-          </div>
-
-          <div class="hint-card">
-            <div class="hint-icon">🏆</div>
-            <h3>Achievement Hunter</h3>
-            <p>
-              Unlock those elusive achievements with our comprehensive guides
-              and strategies.
-            </p>
-          </div>
-
-          <div class="hint-card">
-            <div class="hint-icon">🔧</div>
-            <h3>Optimization Tips</h3>
-            <p>
-              Maximize your gaming performance with hardware tweaks and software
-              optimizations.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Up and Coming Events Section -->
-    <div class="events-section">
-      <div class="events-container">
-        <h2>Up and Coming Events</h2>
-        <p class="events-subtitle">Don't miss these exciting gaming events and releases</p>
-        
-        <div class="events-timeline">
-          <div class="event-item">
-            <div class="event-date">
-              <span class="month">DEC</span>
-              <span class="day">15</span>
-            </div>
-            <div class="event-content">
-              <h3>Retro Gaming Convention 2024</h3>
-              <p>Join thousands of retro gaming enthusiasts for the biggest celebration of classic games.</p>
-              <span class="event-location">📍 London, UK</span>
-            </div>
-          </div>
-          
-          <div class="event-item">
-            <div class="event-date">
-              <span class="month">JAN</span>
-              <span class="day">08</span>
-            </div>
-            <div class="event-content">
-              <h3>Gaming Technology Expo</h3>
-              <p>Experience the latest in gaming technology and hardware innovations at Europe's premier gaming expo.</p>
-              <span class="event-location">📍 Berlin, Germany</span>
-            </div>
-          </div>
-          
-          <div class="event-item">
-            <div class="event-date">
-              <span class="month">FEB</span>
-              <span class="day">22</span>
-            </div>
-            <div class="event-content">
-              <h3>Indie Game Developer Summit</h3>
-              <p>Discover the most promising indie games and meet the developers behind them.</p>
-              <span class="event-location">📍 Amsterdam, Netherlands</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <footer class="footer">
-      <div class="footer-container">
-        <div class="footer-brand">
-          <h3>8.BIT.BLOG</h3>
-          <p>
-            Your ultimate destination for retro gaming content and modern gaming
-            insights.
-          </p>
-        </div>
-
-        <div class="footer-links">
-          <div class="footer-section">
-            <h4>Explore</h4>
-            <ul>
-              <li><a href="index.html">Home</a></li>
-              <li><a href="about.html">About</a></li>
-              <li><a href="contact.html">Contact</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-section">
-            <h4>Topics</h4>
-            <ul>
-              <li><a href="#">Retro Gaming</a></li>
-              <li><a href="#">Modern Gaming</a></li>
-              <li><a href="#">Hardware Reviews</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <p>&copy; 2024 8.BIT.BLOG. All rights reserved.</p>
-      </div>
+    <footer class="site-footer">
+      <p>DnDucks Phase 1 prototype. Built for brave Dungeon Masters and suspiciously organized ducks.</p>
     </footer>
   </body>
 </html>
