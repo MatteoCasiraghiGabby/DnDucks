@@ -103,3 +103,36 @@ test("metadata persists when a new store reads the same upload directory", async
     await fs.rm(uploadDir, { recursive: true, force: true });
   }
 });
+
+test("concurrent uploads preserve every metadata record", async () => {
+  const uploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-materials-concurrent-"));
+  try {
+    const store = new MaterialStore(uploadDir);
+    const uploads = Array.from({ length: 12 }, (_, index) =>
+      store.create({
+        file: {
+          originalFilename: `material-${index}.txt`,
+          mimeType: "text/plain",
+          buffer: Buffer.from(`content ${index}`),
+        },
+        fields: { title: `Material ${index}` },
+      }),
+    );
+
+    const created = await Promise.all(uploads);
+    const listed = await store.list();
+
+    assert.equal(listed.length, created.length);
+    assert.deepEqual(
+      new Set(listed.map((material) => material.id)),
+      new Set(created.map((material) => material.id)),
+    );
+    await Promise.all(created.map((material, index) =>
+      fs.readFile(path.join(uploadDir, material.storedFilename), "utf8").then((content) => {
+        assert.equal(content, `content ${index}`);
+      }),
+    ));
+  } finally {
+    await fs.rm(uploadDir, { recursive: true, force: true });
+  }
+});

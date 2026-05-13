@@ -58,6 +58,13 @@ class MaterialStore {
   constructor(uploadDir = resolveUploadDir()) {
     this.uploadDir = uploadDir;
     this.indexPath = path.join(uploadDir, "index.json");
+    this.metadataQueue = Promise.resolve();
+  }
+
+  async withMetadataLock(operation) {
+    const run = this.metadataQueue.then(operation, operation);
+    this.metadataQueue = run.catch(() => {});
+    return run;
   }
 
   async ensureReady() {
@@ -130,9 +137,20 @@ class MaterialStore {
       category: cleanOptional(fields.category) || inferCategory(file.mimeType, extension),
     };
 
-    const materials = await this.readAll();
-    materials.unshift(material);
-    await this.writeAll(materials);
+    try {
+      await this.withMetadataLock(async () => {
+        const materials = await this.readAll();
+        materials.unshift(material);
+        await this.writeAll(materials);
+      });
+    } catch (error) {
+      try {
+        await fs.unlink(destination);
+      } catch (unlinkError) {
+        if (unlinkError.code !== "ENOENT") throw unlinkError;
+      }
+      throw error;
+    }
     return material;
   }
 
@@ -152,17 +170,19 @@ class MaterialStore {
   }
 
   async delete(id) {
-    const materials = await this.readAll();
-    const material = materials.find((item) => item.id === id);
-    if (!material) return false;
-    const remaining = materials.filter((item) => item.id !== id);
-    await this.writeAll(remaining);
-    try {
-      await fs.unlink(this.resolveStoredPath(material.storedFilename));
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-    }
-    return true;
+    return this.withMetadataLock(async () => {
+      const materials = await this.readAll();
+      const material = materials.find((item) => item.id === id);
+      if (!material) return false;
+      const remaining = materials.filter((item) => item.id !== id);
+      await this.writeAll(remaining);
+      try {
+        await fs.unlink(this.resolveStoredPath(material.storedFilename));
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
+      return true;
+    });
   }
 }
 
