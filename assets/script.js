@@ -83,6 +83,32 @@ function textForSearch(values) {
   return values.filter(Boolean).join(" ").toLowerCase();
 }
 
+function formatBytes(bytes) {
+  const value = Number(bytes) || 0;
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatUploadedAt(value) {
+  if (!value) return "Unknown date";
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+}
+
+function isPreviewableImage(material) {
+  return String(material.mimeType || "").startsWith("image/");
+}
+
+async function fetchJson(url, options = {}) {
+  const response = await fetch(url, options);
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    throw new Error(payload?.error || "Request failed.");
+  }
+  return payload;
+}
+
 function cardVisualLabel(value) {
   return escapeHtml(
     String(value || "DM")
@@ -336,19 +362,92 @@ function initDashboardForms() {
   }));
 }
 
-function initFilesPlaceholder() {
-  const input = document.getElementById("file-input");
-  const list = document.getElementById("selected-files");
-  const count = document.getElementById("file-count");
-  if (!input || !list) return;
+async function loadMaterials() {
+  const list = document.getElementById("materials-list");
+  const count = document.getElementById("material-count");
+  if (!list) return;
 
-  input.addEventListener("change", () => {
-    const files = Array.from(input.files);
-    list.innerHTML = files.length
-      ? files.map((file) => `<li>${escapeHtml(file.name)} <span class="muted">(${Math.ceil(file.size / 1024)} KB)</span></li>`).join("")
-      : "";
-    if (count) count.textContent = `${files.length} selected`;
+  try {
+    const materials = await fetchJson("/api/materials");
+    if (count) count.textContent = `${materials.length} saved material${materials.length === 1 ? "" : "s"}`;
+    if (!materials.length) {
+      list.innerHTML = `<div class="empty-state">No uploaded materials yet. Upload a map, NPC portrait, PDF handout, or campaign note to persist it locally.</div>`;
+      return;
+    }
+
+    list.innerHTML = materials.map((material) => {
+      const searchable = textForSearch([material.title, material.originalFilename, material.category, material.description, material.tags?.join(" "), "material file map handout"]);
+      const preview = isPreviewableImage(material)
+        ? `<a class="material-preview" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(material.downloadUrl)}" alt="Preview of ${escapeHtml(material.title || material.originalFilename)}" loading="lazy" /></a>`
+        : `<a class="material-preview material-preview-file" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><span>${escapeHtml((material.originalFilename || "file").split(".").pop().toUpperCase())}</span></a>`;
+      return `
+        <article class="content-card entry-card material-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+          ${preview}
+          <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(material.category || "other")}</span><span>${escapeHtml(material.mimeType)}</span></div>
+          <h3>${escapeHtml(material.title || material.originalFilename)}</h3>
+          <div class="entry-meta"><span class="tag">${escapeHtml(formatBytes(material.fileSize))}</span><span class="tag">${escapeHtml(formatUploadedAt(material.uploadedAt))}</span></div>
+          <p>${escapeHtml(material.description || material.originalFilename)}</p>
+          <div class="entry-actions">
+            <a class="btn btn-secondary" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener">Open / Download</a>
+            <button class="btn btn-danger" type="button" data-delete-material="${escapeHtml(material.id)}">Delete file</button>
+          </div>
+        </article>`;
+    }).join("");
+
+    list.querySelectorAll("[data-delete-material]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        if (!confirm("Delete this material and remove the stored file from disk?")) return;
+        try {
+          await fetchJson(`/api/materials/${button.dataset.deleteMaterial}`, { method: "DELETE" });
+          await loadMaterials();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+    });
+    document.dispatchEvent(new Event("dashboard:rendered"));
+  } catch (error) {
+    list.innerHTML = `<div class="empty-state">Materials API unavailable. Start the local backend with <code>npm start</code> to upload and view persistent files.</div>`;
+    if (count) count.textContent = "Backend offline";
+  }
+}
+
+function initMaterials() {
+  const form = document.getElementById("material-form");
+  const fileInput = document.getElementById("material-file");
+  const status = document.getElementById("material-status");
+  if (!form || !fileInput) return;
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (status) status.textContent = file ? `Ready to upload ${file.name} (${formatBytes(file.size)}).` : "";
   });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const formData = new FormData(form);
+    if (status) {
+      status.textContent = "Uploading material...";
+      status.classList.remove("error");
+    }
+    try {
+      const material = await fetchJson("/api/materials/upload", { method: "POST", body: formData });
+      form.reset();
+      if (status) status.textContent = `Uploaded ${material.originalFilename}.`;
+      await loadMaterials();
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+        status.classList.add("error");
+      }
+    }
+  });
+
+  loadMaterials();
 }
 
 function initAiPlaceholder() {
@@ -410,7 +509,7 @@ function initContactForm() {
 initMobileNavigation();
 initCommandInterface();
 initDashboardForms();
-initFilesPlaceholder();
+initMaterials();
 initAiPlaceholder();
 initContactForm();
 renderDashboard();
@@ -419,7 +518,7 @@ renderDashboard();
 Backend roadmap summary:
 Phase 2: add user accounts with React/Next.js, Node/Express or API routes, PostgreSQL/Supabase, and managed auth.
 Phase 3: add database tables for users, campaigns, sessions, notes, characters, locations, factions, quests, items, maps, calendar_events, files, document_links, and ai_suggestions.
-Phase 4: add persistent file uploads with Supabase Storage, Firebase Storage, AWS S3, or Cloudinary.
+Phase 4: add local backend-managed uploads for draft persistence, then Supabase Storage, Firebase Storage, AWS S3, or Cloudinary for production.
 Phase 5: add a markdown/rich text editor, autosave, tags, search, and backlinks.
 Phase 6: add AI with embeddings, vector search, RAG, contradiction detection, summaries, and user-controlled context access.
 Phase 7: add uploaded maps, pins, linked annotations, and saved map state.
