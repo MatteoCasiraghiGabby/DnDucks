@@ -97,6 +97,7 @@
         <a href="#items" class="category-pill"><span>M</span>Monsters</a>
         <a href="#notes" class="category-pill"><span>R</span>Notes</a>
         <a href="#maps" class="category-pill"><span>P</span>Maps</a>
+        <a href="#files" class="category-pill"><span>F</span>Materials</a>
       </nav>
 
       <div class="app-shell section-shell" id="dashboard">
@@ -112,6 +113,7 @@
             <a href="#characters">NPCs</a>
             <a href="#items">Items</a>
             <a href="#maps">Maps</a>
+            <a href="#files">Materials</a>
             <a href="#assistant">Assistant</a>
           </nav>
         </aside>
@@ -359,12 +361,32 @@
           </section>
 
           <section class="workspace-section" id="files">
-            <div class="section-heading"><div><p class="eyebrow">Archives</p><h2>Files Placeholder</h2></div></div>
-            <div class="panel">
-              <label class="file-picker">Select maps, PDFs, handouts, or images<input id="file-input" type="file" multiple /></label>
-              <p class="muted">Selected file names display here only. Persistent uploads require backend storage.</p>
-              <ul class="file-list" id="selected-files"></ul>
+            <div class="section-heading">
+              <div><p class="eyebrow">Campaign archive</p><h2>Materials</h2></div>
+              <span class="tag" id="material-count">Loading files...</span>
             </div>
+            <form class="panel form-grid" id="material-form">
+              <label class="file-picker full-width">Upload map, portrait, handout, note, or data file
+                <input id="material-file" name="file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,.md,.json,.csv,image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,text/markdown,application/json,text/csv" required />
+              </label>
+              <label>Title<input id="material-title" name="title" type="text" placeholder="Blackfen route map" /></label>
+              <label>Category
+                <select id="material-category" name="category">
+                  <option value="map">Map</option>
+                  <option value="handout">Handout</option>
+                  <option value="npc_image">NPC image</option>
+                  <option value="note">Note</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label>Campaign ID<input id="material-campaign" name="campaignId" type="text" value="ashen-crown" /></label>
+              <label>Session ID<input id="material-session" name="sessionId" type="text" placeholder="session-12" /></label>
+              <label class="full-width">Description<textarea id="material-description" name="description" rows="2" placeholder="How this file should be used at the table..."></textarea></label>
+              <label class="full-width">Tags<input id="material-tags" name="tags" type="text" placeholder="blackfen, travel, clue" /></label>
+              <button class="btn btn-primary" type="submit">Upload Material</button>
+              <p class="form-message full-width" id="material-status" aria-live="polite"></p>
+            </form>
+            <div class="collection-grid materials-grid" id="materials-list" aria-live="polite"></div>
           </section>
 
           <section class="workspace-section" id="assistant">

@@ -607,3 +607,32 @@ textarea { resize: vertical; }
   .quick-link-grid { grid-template-columns: 1fr; }
   .bottom-nav { display: grid; }
 }
+.materials-grid { align-items: start; }
+.material-card { overflow: hidden; }
+.material-preview {
+  display: grid;
+  place-items: center;
+  min-height: 190px;
+  margin: -1px -1px 18px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 1px);
+  background: rgba(15, 17, 21, 0.34);
+  overflow: hidden;
+}
+.material-preview img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+.material-preview-file span {
+  display: grid;
+  place-items: center;
+  width: 86px;
+  height: 86px;
+  border: 1px solid rgba(255, 179, 92, 0.4);
+  border-radius: 24px;
+  color: var(--ember-2);
+  font-weight: 900;
+  background: rgba(232, 111, 58, 0.12);
+}
+code { color: var(--ember-2); }

@@ -1,0 +1,13 @@
+{
+  "name": "dnducks",
+  "version": "0.1.0",
+  "description": "Draft D&D campaign management platform for Dungeon Masters.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
