@@ -388,10 +388,6 @@ select:focus-visible {
 .content-card-body { padding: 8px 8px 8px 0; }
 .card-visual { min-height: 100%; }
 .visual-ember { background: radial-gradient(circle at 22% 24%, rgba(255,179,92,.9), transparent 7rem), linear-gradient(135deg, #422318, #1c2430 70%); }
-.visual-bridge { background: radial-gradient(circle at 35% 25%, rgba(216,91,106,.68), transparent 7rem), linear-gradient(135deg, #2d2028, #192b32); }
-.visual-gate { background: radial-gradient(circle at 70% 22%, rgba(104,184,255,.74), transparent 8rem), linear-gradient(135deg, #132231, #2b2532); }
-.visual-marsh { background: radial-gradient(circle at 28% 24%, rgba(120,197,143,.68), transparent 7rem), linear-gradient(135deg, #17251e, #202733); }
-.visual-fang { background: radial-gradient(circle at 72% 28%, rgba(214,182,106,.74), transparent 7rem), linear-gradient(135deg, #352719, #171b23); }
 .span-2 { grid-column: span 2; }
 .mini-metric {
   display: grid;
@@ -501,6 +497,38 @@ textarea { resize: vertical; }
   background-size: auto, auto, 34px 34px;
 }
 .file-picker { border: 1px dashed var(--line-strong); border-radius: 18px; padding: 18px; background: rgba(15, 17, 21, 0.30); }
+.image-picker {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.image-picker > label {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.image-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.image-picker-status {
+  color: var(--muted);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.image-picker-preview {
+  grid-column: 1 / -1;
+  width: min(240px, 100%);
+  max-height: 160px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  object-fit: cover;
+}
 .muted { color: var(--muted); }
 .file-list { margin: 14px 0 0; padding-left: 20px; color: var(--muted-2); }
 .assistant-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -690,4 +718,3 @@ code { color: var(--ember-2); }
 }
 .widget-tags { margin-top: auto; }
 .widget-card .entry-actions { justify-content: flex-end; }
-.static-widget-actions { justify-content: flex-end; }

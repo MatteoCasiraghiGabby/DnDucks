@@ -3,8 +3,9 @@ const STORAGE_KEYS = {
   notes: "dnducks.notes",
   characters: "dnducks.characters",
   items: "dnducks.items",
+  encounters: "dnducks.encounters",
+  locations: "dnducks.locations",
   events: "dnducks.events",
-  hiddenWidgets: "dnducks.hiddenWidgets",
 };
 
 const demoData = {
@@ -34,6 +35,46 @@ const demoData = {
       name: "Moonlit Dagger",
       type: "Magic Item",
       description: "A silvered blade that glows near drowned gates and forgotten oaths.",
+      createdAt: "Demo",
+    },
+  ],
+  encounters: [
+    {
+      id: "demo-encounter-1",
+      title: "Ambush at the Broken Bridge",
+      tier: "Level 6",
+      status: "prepared",
+      description: "Bandit scouts, a collapsing span, and a clue stitched into a red sash.",
+      tags: ["Medium", "Blackfen"],
+      createdAt: "Demo",
+    },
+    {
+      id: "demo-encounter-2",
+      title: "The Sunken Gate Chamber",
+      tier: "Set piece",
+      status: "hidden",
+      description: "Environmental puzzle with rising water, oath runes, and one optional guardian.",
+      tags: ["Puzzle", "Guardian"],
+      createdAt: "Demo",
+    },
+  ],
+  locations: [
+    {
+      id: "demo-location-1",
+      name: "Blackfen Marsh",
+      type: "Location",
+      status: "active",
+      description: "Treacherous channels, lantern markers, and smugglers who know every dry path.",
+      tags: ["Routes", "Faction pressure"],
+      createdAt: "Demo",
+    },
+    {
+      id: "demo-location-2",
+      name: "The Gilded Fang Den",
+      type: "Faction site",
+      status: "hidden",
+      description: "A hidden counting house beneath a shuttered theater.",
+      tags: ["DM-only", "Hideout"],
       createdAt: "Demo",
     },
   ],
@@ -70,29 +111,6 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-
-function getHiddenWidgets() {
-  const raw = localStorage.getItem(STORAGE_KEYS.hiddenWidgets);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch (error) {
-    console.warn("Could not parse hidden widgets from localStorage", error);
-    return [];
-  }
-}
-
-function saveHiddenWidgets(ids) {
-  localStorage.setItem(STORAGE_KEYS.hiddenWidgets, JSON.stringify(ids));
-}
-
-function slugifyWidgetId(value) {
-  return String(value || "widget")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "widget";
 }
 
 function imageToDataUrl(fileInput) {
@@ -132,6 +150,23 @@ function widgetTagsMarkup(tags) {
   return `<div class="tag-row widget-tags">${tags.filter(Boolean).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>`;
 }
 
+function isUserProducedEntry(entry) {
+  return Boolean(entry?.id) && !String(entry.id).startsWith("demo-");
+}
+
+function widgetOriginAttribute(entry) {
+  return `data-widget-origin="${isUserProducedEntry(entry) ? "user" : "permanent"}"`;
+}
+
+function widgetDeleteActionMarkup(entry, label) {
+  if (!isUserProducedEntry(entry)) return "";
+
+  return `
+          <div class="entry-actions">
+            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(entry.id)}">${escapeHtml(label)}</button>
+          </div>`;
+}
+
 function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -158,6 +193,69 @@ function formatUploadedAt(value) {
 
 function isPreviewableImage(material) {
   return String(material.mimeType || "").startsWith("image/");
+}
+
+function statusBadgeClass(status) {
+  return {
+    active: "status-active",
+    prepared: "status-prepared",
+    hidden: "status-hidden",
+    completed: "status-completed",
+  }[status] || "status-active";
+}
+
+function statusLabel(status) {
+  return {
+    active: "Active",
+    prepared: "Prepared",
+    hidden: "DM-only",
+    completed: "Completed",
+  }[status] || "Active";
+}
+
+function resetImagePickers(root) {
+  root.querySelectorAll("[data-image-picker]").forEach((picker) => {
+    const status = picker.querySelector("[data-image-status]");
+    const preview = picker.querySelector("[data-image-preview]");
+    if (status) status.textContent = "No image chosen";
+    if (preview) {
+      preview.removeAttribute("src");
+      preview.hidden = true;
+    }
+  });
+}
+
+function initImagePickers() {
+  document.querySelectorAll("[data-image-picker]").forEach((picker) => {
+    const input = picker.querySelector('input[type="file"]');
+    const trigger = picker.querySelector("[data-image-trigger]");
+    const status = picker.querySelector("[data-image-status]");
+    const preview = picker.querySelector("[data-image-preview]");
+    if (!input || !trigger) return;
+
+    trigger.addEventListener("click", () => input.click());
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      if (!file) {
+        if (status) status.textContent = "No image chosen";
+        if (preview) {
+          preview.removeAttribute("src");
+          preview.hidden = true;
+        }
+        return;
+      }
+
+      if (status) status.textContent = file.name;
+      if (preview && file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          preview.src = reader.result;
+          preview.hidden = false;
+        });
+        reader.readAsDataURL(file);
+      }
+    });
+  });
 }
 
 async function fetchJson(url, options = {}) {
@@ -260,21 +358,57 @@ function renderCollection({ key, listId, emptyText, template }) {
 
 function renderDashboard() {
   renderCollection({
+    key: "encounters",
+    listId: "encounters-list",
+    emptyText: "No encounters yet. Add one to prepare a scene, hazard, or combat card.",
+    template: (encounter) => {
+      const status = encounter.status || "prepared";
+      const searchable = textForSearch([encounter.title, encounter.tier, encounter.description, encounter.tags?.join(" "), "encounter scene combat"]);
+      return `
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(encounter)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
+          ${widgetImageMarkup(encounter, encounter.title)}
+          <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(encounter.tier || "Encounter")}</span></div>
+          <h3>${escapeHtml(encounter.title)}</h3>
+          ${widgetDescriptionMarkup(encounter.description)}
+          ${widgetTagsMarkup([encounter.createdAt, ...(encounter.tags || [])])}
+${widgetDeleteActionMarkup(encounter, "Delete encounter")}
+        </article>`;
+    },
+  });
+
+  renderCollection({
+    key: "locations",
+    listId: "locations-list",
+    emptyText: "No locations yet. Add a place, faction site, region, or route.",
+    template: (location) => {
+      const status = location.status || "active";
+      const searchable = textForSearch([location.name, location.type, location.description, location.tags?.join(" "), "location atlas place faction"]);
+      return `
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(location)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
+          ${widgetImageMarkup(location, location.name)}
+          <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(location.type || "Location")}</span></div>
+          <h3>${escapeHtml(location.name)}</h3>
+          ${widgetDescriptionMarkup(location.description)}
+          ${widgetTagsMarkup([location.createdAt, ...(location.tags || [])])}
+${widgetDeleteActionMarkup(location, "Delete location")}
+        </article>`;
+    },
+  });
+
+  renderCollection({
     key: "notes",
     listId: "notes-list",
     emptyText: "No saved notes yet. Add one above to begin your campaign wiki.",
     template: (note) => {
       const searchable = textForSearch([note.title, note.category, note.content, note.createdAt, "note campaign wiki"]);
       return `
-        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
           ${widgetImageMarkup(note, note.title)}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
           ${widgetTagsMarkup([note.createdAt, "Backlinks soon", "The Ashen Crown"])}
-          <div class="entry-actions">
-            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(note.id)}">Delete note</button>
-          </div>
+${widgetDeleteActionMarkup(note, "Delete note")}
         </article>`;
     },
   });
@@ -286,15 +420,13 @@ function renderDashboard() {
     template: (character) => {
       const searchable = textForSearch([character.name, character.role, character.faction, character.notes, "npc character"]);
       return `
-        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="hidden">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(character)} data-searchable="${escapeHtml(searchable)}" data-status="hidden">
           ${widgetImageMarkup(character, character.name)}
           <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>${escapeHtml(character.role)}</span></div>
           <h3>${escapeHtml(character.name)}</h3>
           ${widgetDescriptionMarkup(character.notes)}
           ${widgetTagsMarkup([`Faction: ${character.faction || "Unaligned"}`, character.createdAt, "NPC"])}
-          <div class="entry-actions">
-            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(character.id)}">Delete NPC</button>
-          </div>
+${widgetDeleteActionMarkup(character, "Delete NPC")}
         </article>`;
     },
   });
@@ -308,15 +440,13 @@ function renderDashboard() {
       const statusLabel = item.type === "Monster" ? "Prepared" : "Active";
       const searchable = textForSearch([item.name, item.type, item.description, "item homebrew monster loot"]);
       return `
-        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="${status}">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
           ${widgetImageMarkup(item, item.name)}
           <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
           <h3>${escapeHtml(item.name)}</h3>
           ${widgetDescriptionMarkup(item.description)}
           ${widgetTagsMarkup([item.createdAt, "Loot & rules", "The Ashen Crown"])}
-          <div class="entry-actions">
-            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(item.id)}">Delete item</button>
-          </div>
+${widgetDeleteActionMarkup(item, "Delete item")}
         </article>`;
     },
   });
@@ -328,15 +458,13 @@ function renderDashboard() {
     template: (event) => {
       const searchable = textForSearch([event.title, event.date, event.description, "session calendar event"]);
       return `
-        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="prepared">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
           ${widgetImageMarkup(event, event.title)}
           <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(event.date)}</span></div>
           <h3>${escapeHtml(event.title)}</h3>
           ${widgetDescriptionMarkup(event.description)}
           ${widgetTagsMarkup([event.createdAt, "Session timeline", "Calendar"])}
-          <div class="entry-actions">
-            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(event.id)}">Delete event</button>
-          </div>
+${widgetDeleteActionMarkup(event, "Delete event")}
         </article>`;
     },
   });
@@ -384,6 +512,7 @@ function wireForm(formId, key, buildEntry) {
       collection.unshift(await buildEntry());
       saveCollection(key, collection);
       form.reset();
+      resetImagePickers(form);
       renderDashboard();
     } catch (error) {
       alert(error.message);
@@ -392,6 +521,28 @@ function wireForm(formId, key, buildEntry) {
 }
 
 function initDashboardForms() {
+  wireForm("encounter-form", "encounters", async () => ({
+    id: createId("encounter"),
+    title: document.getElementById("encounter-title").value.trim(),
+    tier: document.getElementById("encounter-tier").value.trim(),
+    status: document.getElementById("encounter-status").value,
+    description: document.getElementById("encounter-description").value.trim(),
+    tags: document.getElementById("encounter-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
+    imageDataUrl: await imageToDataUrl(document.getElementById("encounter-image")),
+    createdAt: readableDate(),
+  }));
+
+  wireForm("location-form", "locations", async () => ({
+    id: createId("location"),
+    name: document.getElementById("location-name").value.trim(),
+    type: document.getElementById("location-type").value.trim(),
+    status: document.getElementById("location-status").value,
+    description: document.getElementById("location-description").value.trim(),
+    tags: document.getElementById("location-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
+    imageDataUrl: await imageToDataUrl(document.getElementById("location-image")),
+    createdAt: readableDate(),
+  }));
+
   wireForm("note-form", "notes", async () => ({
     id: createId("note"),
     title: document.getElementById("note-title").value.trim(),
@@ -449,7 +600,7 @@ async function loadMaterials() {
         ? `<a class="material-preview" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(material.downloadUrl)}" alt="Preview of ${escapeHtml(material.title || material.originalFilename)}" loading="lazy" /></a>`
         : `<a class="material-preview material-preview-file" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><span>${escapeHtml((material.originalFilename || "file").split(".").pop().toUpperCase())}</span></a>`;
       return `
-        <article class="content-card entry-card material-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+        <article class="content-card entry-card material-card" data-widget-origin="user" data-searchable="${escapeHtml(searchable)}" data-status="active">
           ${preview}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(material.category || "other")}</span><span>${escapeHtml(material.mimeType)}</span></div>
           <h3>${escapeHtml(material.title || material.originalFilename)}</h3>
@@ -543,41 +694,6 @@ function initAiPlaceholder() {
   });
 }
 
-function initRemovableStaticWidgets() {
-  const hiddenWidgets = new Set(getHiddenWidgets());
-
-  document.querySelectorAll(".content-card").forEach((card, index) => {
-    if (card.querySelector("[data-delete-id], [data-delete-material], [data-delete-widget]")) return;
-
-    const title = card.querySelector("h2, h3")?.textContent || card.dataset.searchable || `static-${index}`;
-    const widgetId = card.dataset.widgetId || `static-${slugifyWidgetId(title)}-${index}`;
-    card.dataset.widgetId = widgetId;
-
-    if (hiddenWidgets.has(widgetId)) {
-      card.remove();
-      return;
-    }
-
-    const actions = card.querySelector(".entry-actions") || document.createElement("div");
-    actions.classList.add("entry-actions", "static-widget-actions");
-
-    const button = document.createElement("button");
-    button.className = "btn btn-danger";
-    button.type = "button";
-    button.dataset.deleteWidget = widgetId;
-    button.textContent = "Delete widget";
-    button.addEventListener("click", () => {
-      const nextHiddenWidgets = new Set(getHiddenWidgets());
-      nextHiddenWidgets.add(widgetId);
-      saveHiddenWidgets([...nextHiddenWidgets]);
-      card.remove();
-      document.dispatchEvent(new Event("dashboard:rendered"));
-    });
-
-    actions.append(button);
-    if (!actions.parentElement) card.append(actions);
-  });
-}
 
 function initContactForm() {
   const form = document.getElementById("contact-form");
@@ -612,12 +728,12 @@ function initContactForm() {
 
 initMobileNavigation();
 initCommandInterface();
+initImagePickers();
 initDashboardForms();
 initMaterials();
 initAiPlaceholder();
 initContactForm();
 renderDashboard();
-initRemovableStaticWidgets();
 
 /*
 Backend roadmap summary:
