@@ -120,7 +120,7 @@
 
         <div class="dashboard-content">
           <section class="dashboard-grid" id="campaigns" aria-label="Campaign overview cards">
-            <article class="content-card campaign-card span-2" data-searchable="the ashen crown active campaign sunken gate gilded fang ember sigil" data-status="active">
+            <article data-widget-origin="permanent" class="content-card campaign-card span-2" data-searchable="the ashen crown active campaign sunken gate gilded fang ember sigil" data-status="active">
               <div class="card-visual visual-ember" aria-hidden="true"><span>AC</span></div>
               <div class="content-card-body">
                 <div class="card-kicker"><span class="status-badge status-active">Active</span><span>Campaign</span></div>
@@ -139,30 +139,30 @@
                 </div>
               </div>
             </article>
-            <article class="content-card" data-searchable="session 12 the sunken gate upcoming prepared" data-status="prepared">
+            <article data-widget-origin="permanent" class="content-card" data-searchable="session 12 the sunken gate upcoming prepared" data-status="prepared">
               <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Upcoming session</span></div>
               <h3>Session 12: The Sunken Gate</h3>
               <p>Start in Blackfen Marsh, reveal the gate mechanism, and surface the cost of opening it.</p>
               <div class="mini-metric"><strong>Tonight</strong><span>4 key scenes ready</span></div>
             </article>
-            <article class="content-card" data-searchable="recover the ember sigil open quest gilded fang" data-status="active">
+            <article data-widget-origin="permanent" class="content-card" data-searchable="recover the ember sigil open quest gilded fang" data-status="active">
               <div class="card-kicker"><span class="status-badge status-active">In Progress</span><span>Quest</span></div>
               <h3>Recover the Ember Sigil</h3>
               <p>The party knows the sigil exists, but not which faction currently holds it.</p>
               <div class="tag-row"><span class="tag">Quest</span><span class="tag">Hidden clue</span></div>
             </article>
-            <article class="content-card" data-searchable="mira voss smuggler queen npc blackfen" data-status="hidden">
+            <article data-widget-origin="permanent" class="content-card" data-searchable="mira voss smuggler queen npc blackfen" data-status="hidden">
               <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>Important NPC</span></div>
               <h3>Mira Voss, Smuggler Queen</h3>
               <p>Controls the safer routes through Blackfen Marsh and knows who moved the sigil.</p>
               <div class="tag-row"><span class="tag">Faction contact</span><span class="tag">Blackfen</span></div>
             </article>
-            <article class="content-card" data-searchable="recent notes local campaign notes" data-status="active">
+            <article data-widget-origin="permanent" class="content-card" data-searchable="recent notes local campaign notes" data-status="active">
               <div class="card-kicker"><span class="status-badge status-active">Recent</span><span>Note</span></div>
               <h3 id="recent-note-title">No notes yet</h3>
               <p id="recent-note-summary">Create your first note below to populate this card.</p>
             </article>
-            <article class="content-card" data-searchable="prepared encounters ambush broken bridge monsters" data-status="prepared">
+            <article data-widget-origin="permanent" class="content-card" data-searchable="prepared encounters ambush broken bridge monsters" data-status="prepared">
               <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Encounter</span></div>
               <h3>Ambush at the Broken Bridge</h3>
               <p>Two waves, one environmental hazard, and a hidden archer with a message.</p>
@@ -224,24 +224,24 @@
                 <p class="eyebrow">Prepared scenes</p>
                 <h2>Encounters</h2>
               </div>
-              <p>Static examples for fast browsing while the saved homebrew and monster model evolves.</p>
+              <p>Add encounter cards here. Built-in examples are permanent, while encounters you create can be deleted.</p>
             </div>
-            <div class="collection-grid">
-              <article class="content-card encounter-card" data-searchable="ambush at the broken bridge encounter prepared level 6 blackfen" data-status="prepared">
-                <div class="card-visual visual-bridge" aria-hidden="true"><span>BR</span></div>
-                <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Encounter</span></div>
-                <h3>Ambush at the Broken Bridge</h3>
-                <p>Bandit scouts, a collapsing span, and a clue stitched into a red sash.</p>
-                <div class="tag-row"><span class="tag">Level 6</span><span class="tag">Medium</span><span class="tag">Blackfen</span></div>
-              </article>
-              <article class="content-card encounter-card" data-searchable="gate chamber puzzle monster hidden from players" data-status="hidden">
-                <div class="card-visual visual-gate" aria-hidden="true"><span>SG</span></div>
-                <div class="card-kicker"><span class="status-badge status-hidden">Hidden from Players</span><span>Set piece</span></div>
-                <h3>The Sunken Gate Chamber</h3>
-                <p>Environmental puzzle with rising water, oath runes, and one optional guardian.</p>
-                <div class="tag-row"><span class="tag">Puzzle</span><span class="tag">Guardian</span></div>
-              </article>
-            </div>
+            <form class="panel form-grid" id="encounter-form">
+              <label>Encounter title<input id="encounter-title" type="text" placeholder="Ambush at the Broken Bridge" required /></label>
+              <label>Tier or scene type<input id="encounter-tier" type="text" placeholder="Level 6 / Set piece" required /></label>
+              <label>Status<select id="encounter-status" required><option value="prepared">Prepared</option><option value="active">Active</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
+              <label>Tags<input id="encounter-tags" type="text" placeholder="Medium, Blackfen, Puzzle" /></label>
+              <label class="full-width">Description<textarea id="encounter-description" rows="3" placeholder="Creatures, hazards, clues, terrain, and rewards..." required></textarea></label>
+              <div class="file-picker image-picker full-width" data-image-picker>
+                <label for="encounter-image">Optional encounter image</label>
+                <input id="encounter-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="encounter-image">Choose image</button>
+                <span class="image-picker-status" data-image-status>No image chosen</span>
+                <img class="image-picker-preview" data-image-preview alt="Selected encounter image preview" hidden />
+              </div>
+              <button class="btn btn-primary" type="submit">Save Encounter</button>
+            </form>
+            <div class="collection-grid" id="encounters-list" aria-live="polite"></div>
           </section>
 
           <section class="workspace-section" id="quests">
@@ -252,12 +252,12 @@
               </div>
             </div>
             <div class="collection-grid">
-              <article class="content-card" data-searchable="recover the ember sigil quest in progress" data-status="active">
+              <article data-widget-origin="permanent" class="content-card" data-searchable="recover the ember sigil quest in progress" data-status="active">
                 <div class="card-kicker"><span class="status-badge status-active">In Progress</span><span>Main quest</span></div>
                 <h3>Recover the Ember Sigil</h3>
                 <p>Find who stole the sigil before the next council bell rings.</p>
               </article>
-              <article class="content-card" data-searchable="blackfen marsh faction completed quest" data-status="completed">
+              <article data-widget-origin="permanent" class="content-card" data-searchable="blackfen marsh faction completed quest" data-status="completed">
                 <div class="card-kicker"><span class="status-badge status-completed">Completed</span><span>Side quest</span></div>
                 <h3>Win Passage Through Blackfen</h3>
                 <p>The safe route is secured, but Mira Voss expects a favor later.</p>
@@ -271,21 +271,24 @@
                 <p class="eyebrow">World atlas</p>
                 <h2>Locations</h2>
               </div>
+              <p>Add atlas cards for places, faction sites, routes, and regions. Your new location widgets can be deleted.</p>
             </div>
-            <div class="collection-grid">
-              <article class="content-card" data-searchable="blackfen marsh location faction routes" data-status="active">
-                <div class="card-visual visual-marsh" aria-hidden="true"><span>BM</span></div>
-                <div class="card-kicker"><span class="status-badge status-active">Active</span><span>Location</span></div>
-                <h3>Blackfen Marsh</h3>
-                <p>Treacherous channels, lantern markers, and smugglers who know every dry path.</p>
-              </article>
-              <article class="content-card" data-searchable="the gilded fang faction hideout location hidden" data-status="hidden">
-                <div class="card-visual visual-fang" aria-hidden="true"><span>GF</span></div>
-                <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>Faction site</span></div>
-                <h3>The Gilded Fang Den</h3>
-                <p>A hidden counting house beneath a shuttered theater.</p>
-              </article>
-            </div>
+            <form class="panel form-grid" id="location-form">
+              <label>Location name<input id="location-name" type="text" placeholder="Blackfen Marsh" required /></label>
+              <label>Type<input id="location-type" type="text" placeholder="Location / Faction site" required /></label>
+              <label>Status<select id="location-status" required><option value="active">Active</option><option value="prepared">Prepared</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
+              <label>Tags<input id="location-tags" type="text" placeholder="Routes, Hideout, Marsh" /></label>
+              <label class="full-width">Description<textarea id="location-description" rows="3" placeholder="Terrain, factions, secrets, routes, and hooks..." required></textarea></label>
+              <div class="file-picker image-picker full-width" data-image-picker>
+                <label for="location-image">Optional location image</label>
+                <input id="location-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="location-image">Choose image</button>
+                <span class="image-picker-status" data-image-status>No image chosen</span>
+                <img class="image-picker-preview" data-image-preview alt="Selected location image preview" hidden />
+              </div>
+              <button class="btn btn-primary" type="submit">Save Location</button>
+            </form>
+            <div class="collection-grid" id="locations-list" aria-live="polite"></div>
           </section>
 
           <section class="workspace-section" id="notes">
@@ -300,9 +303,13 @@
               <label>Note title<input id="note-title" name="title" type="text" placeholder="The baron's hidden pact" required /></label>
               <label>Category<select id="note-category" name="category" required><option>Session Note</option><option>NPC</option><option>Location</option><option>Quest</option><option>Lore</option><option>Consequence</option></select></label>
               <label class="full-width">Note content<textarea id="note-content" name="content" rows="4" placeholder="Record clues, decisions, loose threads, and future consequences..." required></textarea></label>
-              <label class="file-picker full-width">Optional widget image
-                <input id="note-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-              </label>
+              <div class="file-picker image-picker full-width" data-image-picker>
+                <label for="note-image">Optional widget image</label>
+                <input id="note-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="note-image">Choose image</button>
+                <span class="image-picker-status" data-image-status>No image chosen</span>
+                <img class="image-picker-preview" data-image-preview alt="Selected note image preview" hidden />
+              </div>
               <button class="btn btn-primary" type="submit">Save Note</button>
             </form>
             <div class="linking-concept panel">
@@ -324,9 +331,13 @@
               <label>Role<input id="character-role" type="text" placeholder="Smuggler Queen" required /></label>
               <label>Faction<input id="character-faction" type="text" placeholder="The Gilded Fang" /></label>
               <label class="full-width">Notes<textarea id="character-notes" rows="3" placeholder="Motives, secrets, relationship to the party..." required></textarea></label>
-              <label class="file-picker full-width">Optional portrait or symbol
-                <input id="character-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-              </label>
+              <div class="file-picker image-picker full-width" data-image-picker>
+                <label for="character-image">Optional portrait or symbol</label>
+                <input id="character-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="character-image">Choose image</button>
+                <span class="image-picker-status" data-image-status>No image chosen</span>
+                <img class="image-picker-preview" data-image-preview alt="Selected character image preview" hidden />
+              </div>
               <button class="btn btn-primary" type="submit">Save Character</button>
             </form>
             <div class="collection-grid" id="characters-list" aria-live="polite"></div>
@@ -338,9 +349,13 @@
               <label>Item or rule name<input id="item-name" type="text" placeholder="Moonlit Dagger" required /></label>
               <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
               <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Mechanical effects, lore, rarity, hooks..." required></textarea></label>
-              <label class="file-picker full-width">Optional item or monster image
-                <input id="item-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-              </label>
+              <div class="file-picker image-picker full-width" data-image-picker>
+                <label for="item-image">Optional item or monster image</label>
+                <input id="item-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="item-image">Choose image</button>
+                <span class="image-picker-status" data-image-status>No image chosen</span>
+                <img class="image-picker-preview" data-image-preview alt="Selected item image preview" hidden />
+              </div>
               <button class="btn btn-primary" type="submit">Save Item</button>
             </form>
             <div class="collection-grid" id="items-list" aria-live="polite"></div>
@@ -364,9 +379,13 @@
               <label>Event title<input id="event-title" type="text" placeholder="Treaty Moon Council" required /></label>
               <label>In-world date<input id="event-date" type="text" placeholder="12th Bloomwane, 1492 DR" required /></label>
               <label class="full-width">Description<textarea id="event-description" rows="3" placeholder="What happens, who attends, and what might change..." required></textarea></label>
-              <label class="file-picker full-width">Optional calendar image
-                <input id="event-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-              </label>
+              <div class="file-picker image-picker full-width" data-image-picker>
+                <label for="event-image">Optional calendar image</label>
+                <input id="event-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="event-image">Choose image</button>
+                <span class="image-picker-status" data-image-status>No image chosen</span>
+                <img class="image-picker-preview" data-image-preview alt="Selected calendar image preview" hidden />
+              </div>
               <button class="btn btn-primary" type="submit">Save Event</button>
             </form>
             <div class="collection-grid" id="events-list" aria-live="polite"></div>
