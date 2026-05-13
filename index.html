@@ -300,6 +300,9 @@
               <label>Note title<input id="note-title" name="title" type="text" placeholder="The baron's hidden pact" required /></label>
               <label>Category<select id="note-category" name="category" required><option>Session Note</option><option>NPC</option><option>Location</option><option>Quest</option><option>Lore</option><option>Consequence</option></select></label>
               <label class="full-width">Note content<textarea id="note-content" name="content" rows="4" placeholder="Record clues, decisions, loose threads, and future consequences..." required></textarea></label>
+              <label class="file-picker full-width">Optional widget image
+                <input id="note-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+              </label>
               <button class="btn btn-primary" type="submit">Save Note</button>
             </form>
             <div class="linking-concept panel">
@@ -321,6 +324,9 @@
               <label>Role<input id="character-role" type="text" placeholder="Smuggler Queen" required /></label>
               <label>Faction<input id="character-faction" type="text" placeholder="The Gilded Fang" /></label>
               <label class="full-width">Notes<textarea id="character-notes" rows="3" placeholder="Motives, secrets, relationship to the party..." required></textarea></label>
+              <label class="file-picker full-width">Optional portrait or symbol
+                <input id="character-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+              </label>
               <button class="btn btn-primary" type="submit">Save Character</button>
             </form>
             <div class="collection-grid" id="characters-list" aria-live="polite"></div>
@@ -332,6 +338,9 @@
               <label>Item or rule name<input id="item-name" type="text" placeholder="Moonlit Dagger" required /></label>
               <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
               <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Mechanical effects, lore, rarity, hooks..." required></textarea></label>
+              <label class="file-picker full-width">Optional item or monster image
+                <input id="item-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+              </label>
               <button class="btn btn-primary" type="submit">Save Item</button>
             </form>
             <div class="collection-grid" id="items-list" aria-live="polite"></div>
@@ -355,6 +364,9 @@
               <label>Event title<input id="event-title" type="text" placeholder="Treaty Moon Council" required /></label>
               <label>In-world date<input id="event-date" type="text" placeholder="12th Bloomwane, 1492 DR" required /></label>
               <label class="full-width">Description<textarea id="event-description" rows="3" placeholder="What happens, who attends, and what might change..." required></textarea></label>
+              <label class="file-picker full-width">Optional calendar image
+                <input id="event-image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+              </label>
               <button class="btn btn-primary" type="submit">Save Event</button>
             </form>
             <div class="collection-grid" id="events-list" aria-live="polite"></div>

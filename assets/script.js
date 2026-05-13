@@ -4,6 +4,7 @@ const STORAGE_KEYS = {
   characters: "dnducks.characters",
   items: "dnducks.items",
   events: "dnducks.events",
+  hiddenWidgets: "dnducks.hiddenWidgets",
 };
 
 const demoData = {
@@ -69,6 +70,66 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+
+function getHiddenWidgets() {
+  const raw = localStorage.getItem(STORAGE_KEYS.hiddenWidgets);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn("Could not parse hidden widgets from localStorage", error);
+    return [];
+  }
+}
+
+function saveHiddenWidgets(ids) {
+  localStorage.setItem(STORAGE_KEYS.hiddenWidgets, JSON.stringify(ids));
+}
+
+function slugifyWidgetId(value) {
+  return String(value || "widget")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "widget";
+}
+
+function imageToDataUrl(fileInput) {
+  const file = fileInput?.files?.[0];
+  if (!file) return Promise.resolve("");
+  if (!file.type.startsWith("image/")) {
+    return Promise.reject(new Error("Widget images must be image files."));
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result));
+    reader.addEventListener("error", () => reject(new Error("Could not read the selected image.")));
+    reader.readAsDataURL(file);
+  });
+}
+
+function widgetImageMarkup(entry, label) {
+  const alt = escapeHtml(label ? `${label} image` : "Widget image");
+  if (entry.imageDataUrl) {
+    return `<div class="widget-media"><img src="${escapeHtml(entry.imageDataUrl)}" alt="${alt}" loading="lazy" /></div>`;
+  }
+
+  return `
+    <div class="widget-media widget-media-empty" aria-label="No image uploaded yet">
+      <span aria-hidden="true">＋</span>
+      <small>Image slot</small>
+    </div>`;
+}
+
+function widgetDescriptionMarkup(value) {
+  const text = String(value || "").trim();
+  return text ? `<p class="widget-description">${escapeHtml(text)}</p>` : "";
+}
+
+function widgetTagsMarkup(tags) {
+  return `<div class="tag-row widget-tags">${tags.filter(Boolean).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>`;
 }
 
 function createId(prefix) {
@@ -205,13 +266,13 @@ function renderDashboard() {
     template: (note) => {
       const searchable = textForSearch([note.title, note.category, note.content, note.createdAt, "note campaign wiki"]);
       return `
-        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+          ${widgetImageMarkup(note, note.title)}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
-          <div class="entry-meta"><span class="tag">${escapeHtml(note.createdAt)}</span><span class="tag">Backlinks soon</span></div>
-          <p>${escapeHtml(note.content)}</p>
+          ${widgetDescriptionMarkup(note.content)}
+          ${widgetTagsMarkup([note.createdAt, "Backlinks soon", "The Ashen Crown"])}
           <div class="entry-actions">
-            <span class="tag">The Ashen Crown</span>
             <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(note.id)}">Delete note</button>
           </div>
         </article>`;
@@ -225,14 +286,13 @@ function renderDashboard() {
     template: (character) => {
       const searchable = textForSearch([character.name, character.role, character.faction, character.notes, "npc character"]);
       return `
-        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="hidden">
-          <div class="card-visual visual-fang" aria-hidden="true"><span>${cardVisualLabel(character.name)}</span></div>
+        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="hidden">
+          ${widgetImageMarkup(character, character.name)}
           <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>${escapeHtml(character.role)}</span></div>
           <h3>${escapeHtml(character.name)}</h3>
-          <div class="entry-meta"><span class="tag">Faction: ${escapeHtml(character.faction || "Unaligned")}</span><span class="tag">${escapeHtml(character.createdAt)}</span></div>
-          <p>${escapeHtml(character.notes)}</p>
+          ${widgetDescriptionMarkup(character.notes)}
+          ${widgetTagsMarkup([`Faction: ${character.faction || "Unaligned"}`, character.createdAt, "NPC"])}
           <div class="entry-actions">
-            <span class="tag">NPC</span>
             <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(character.id)}">Delete NPC</button>
           </div>
         </article>`;
@@ -248,13 +308,13 @@ function renderDashboard() {
       const statusLabel = item.type === "Monster" ? "Prepared" : "Active";
       const searchable = textForSearch([item.name, item.type, item.description, "item homebrew monster loot"]);
       return `
-        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="${status}">
+        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="${status}">
+          ${widgetImageMarkup(item, item.name)}
           <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
           <h3>${escapeHtml(item.name)}</h3>
-          <div class="entry-meta"><span class="tag">${escapeHtml(item.createdAt)}</span><span class="tag">Loot & rules</span></div>
-          <p>${escapeHtml(item.description)}</p>
+          ${widgetDescriptionMarkup(item.description)}
+          ${widgetTagsMarkup([item.createdAt, "Loot & rules", "The Ashen Crown"])}
           <div class="entry-actions">
-            <span class="tag">The Ashen Crown</span>
             <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(item.id)}">Delete item</button>
           </div>
         </article>`;
@@ -268,13 +328,13 @@ function renderDashboard() {
     template: (event) => {
       const searchable = textForSearch([event.title, event.date, event.description, "session calendar event"]);
       return `
-        <article class="content-card entry-card" data-searchable="${escapeHtml(searchable)}" data-status="prepared">
+        <article class="content-card entry-card widget-card" data-searchable="${escapeHtml(searchable)}" data-status="prepared">
+          ${widgetImageMarkup(event, event.title)}
           <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(event.date)}</span></div>
           <h3>${escapeHtml(event.title)}</h3>
-          <div class="entry-meta"><span class="tag">${escapeHtml(event.createdAt)}</span><span class="tag">Session timeline</span></div>
-          <p>${escapeHtml(event.description)}</p>
+          ${widgetDescriptionMarkup(event.description)}
+          ${widgetTagsMarkup([event.createdAt, "Session timeline", "Calendar"])}
           <div class="entry-actions">
-            <span class="tag">Calendar</span>
             <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(event.id)}">Delete event</button>
           </div>
         </article>`;
@@ -313,51 +373,59 @@ function wireForm(formId, key, buildEntry) {
   const form = document.getElementById(formId);
   if (!form) return;
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
-    const collection = getStoredCollection(key);
-    collection.unshift(buildEntry());
-    saveCollection(key, collection);
-    form.reset();
-    renderDashboard();
+    try {
+      const collection = getStoredCollection(key);
+      collection.unshift(await buildEntry());
+      saveCollection(key, collection);
+      form.reset();
+      renderDashboard();
+    } catch (error) {
+      alert(error.message);
+    }
   });
 }
 
 function initDashboardForms() {
-  wireForm("note-form", "notes", () => ({
+  wireForm("note-form", "notes", async () => ({
     id: createId("note"),
     title: document.getElementById("note-title").value.trim(),
     category: document.getElementById("note-category").value,
     content: document.getElementById("note-content").value.trim(),
+    imageDataUrl: await imageToDataUrl(document.getElementById("note-image")),
     createdAt: readableDate(),
   }));
 
-  wireForm("character-form", "characters", () => ({
+  wireForm("character-form", "characters", async () => ({
     id: createId("character"),
     name: document.getElementById("character-name").value.trim(),
     role: document.getElementById("character-role").value.trim(),
     faction: document.getElementById("character-faction").value.trim(),
     notes: document.getElementById("character-notes").value.trim(),
+    imageDataUrl: await imageToDataUrl(document.getElementById("character-image")),
     createdAt: readableDate(),
   }));
 
-  wireForm("item-form", "items", () => ({
+  wireForm("item-form", "items", async () => ({
     id: createId("item"),
     name: document.getElementById("item-name").value.trim(),
     type: document.getElementById("item-type").value,
     description: document.getElementById("item-description").value.trim(),
+    imageDataUrl: await imageToDataUrl(document.getElementById("item-image")),
     createdAt: readableDate(),
   }));
 
-  wireForm("event-form", "events", () => ({
+  wireForm("event-form", "events", async () => ({
     id: createId("event"),
     title: document.getElementById("event-title").value.trim(),
     date: document.getElementById("event-date").value.trim(),
     description: document.getElementById("event-description").value.trim(),
+    imageDataUrl: await imageToDataUrl(document.getElementById("event-image")),
     createdAt: readableDate(),
   }));
 }
@@ -385,8 +453,8 @@ async function loadMaterials() {
           ${preview}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(material.category || "other")}</span><span>${escapeHtml(material.mimeType)}</span></div>
           <h3>${escapeHtml(material.title || material.originalFilename)}</h3>
-          <div class="entry-meta"><span class="tag">${escapeHtml(formatBytes(material.fileSize))}</span><span class="tag">${escapeHtml(formatUploadedAt(material.uploadedAt))}</span></div>
-          <p>${escapeHtml(material.description || material.originalFilename)}</p>
+          ${widgetDescriptionMarkup(material.description)}
+          ${widgetTagsMarkup([formatBytes(material.fileSize), formatUploadedAt(material.uploadedAt), ...(material.tags || [])])}
           <div class="entry-actions">
             <a class="btn btn-secondary" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener">Open / Download</a>
             <button class="btn btn-danger" type="button" data-delete-material="${escapeHtml(material.id)}">Delete file</button>
@@ -475,6 +543,42 @@ function initAiPlaceholder() {
   });
 }
 
+function initRemovableStaticWidgets() {
+  const hiddenWidgets = new Set(getHiddenWidgets());
+
+  document.querySelectorAll(".content-card").forEach((card, index) => {
+    if (card.querySelector("[data-delete-id], [data-delete-material], [data-delete-widget]")) return;
+
+    const title = card.querySelector("h2, h3")?.textContent || card.dataset.searchable || `static-${index}`;
+    const widgetId = card.dataset.widgetId || `static-${slugifyWidgetId(title)}-${index}`;
+    card.dataset.widgetId = widgetId;
+
+    if (hiddenWidgets.has(widgetId)) {
+      card.remove();
+      return;
+    }
+
+    const actions = card.querySelector(".entry-actions") || document.createElement("div");
+    actions.classList.add("entry-actions", "static-widget-actions");
+
+    const button = document.createElement("button");
+    button.className = "btn btn-danger";
+    button.type = "button";
+    button.dataset.deleteWidget = widgetId;
+    button.textContent = "Delete widget";
+    button.addEventListener("click", () => {
+      const nextHiddenWidgets = new Set(getHiddenWidgets());
+      nextHiddenWidgets.add(widgetId);
+      saveHiddenWidgets([...nextHiddenWidgets]);
+      card.remove();
+      document.dispatchEvent(new Event("dashboard:rendered"));
+    });
+
+    actions.append(button);
+    if (!actions.parentElement) card.append(actions);
+  });
+}
+
 function initContactForm() {
   const form = document.getElementById("contact-form");
   const status = document.getElementById("contact-message-status");
@@ -513,6 +617,7 @@ initMaterials();
 initAiPlaceholder();
 initContactForm();
 renderDashboard();
+initRemovableStaticWidgets();
 
 /*
 Backend roadmap summary:
