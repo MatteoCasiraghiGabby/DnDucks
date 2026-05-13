@@ -128,17 +128,38 @@ function imageToDataUrl(fileInput) {
   });
 }
 
+function displayText(value, fallback) {
+  const text = String(value ?? "").trim();
+  return text || fallback;
+}
+
+function firstDisplayText(values, fallback) {
+  const found = values.find((value) => String(value ?? "").trim());
+  return displayText(found, fallback);
+}
+
 function widgetImageMarkup(entry, label) {
-  const alt = escapeHtml(label ? `${label} image` : "Widget image");
+  const title = displayText(label, "Widget");
+  const alt = escapeHtml(`${title} image`);
+  const imageActionLabel = entry.imageDataUrl ? `Change image for ${title}` : `Add image for ${title}`;
+  const actionAttributes = entry.id
+    ? `button type="button" data-image-upload-id="${escapeHtml(entry.id)}" aria-label="${escapeHtml(imageActionLabel)}" title="${escapeHtml(imageActionLabel)}"`
+    : `div aria-label="No image upload target available"`;
+  const closeTag = entry.id ? "button" : "div";
+
   if (entry.imageDataUrl) {
-    return `<div class="widget-media"><img src="${escapeHtml(entry.imageDataUrl)}" alt="${alt}" loading="lazy" /></div>`;
+    return `
+    <${actionAttributes} class="widget-media widget-media-action widget-media-filled">
+      <img src="${escapeHtml(entry.imageDataUrl)}" alt="${alt}" loading="lazy" />
+      <span class="widget-media-overlay">Change image</span>
+    </${closeTag}>`;
   }
 
   return `
-    <div class="widget-media widget-media-empty" aria-label="No image uploaded yet">
+    <${actionAttributes} class="widget-media widget-media-empty widget-media-action">
       <span aria-hidden="true">＋</span>
-      <small>Image slot</small>
-    </div>`;
+      <small>Add image</small>
+    </${closeTag}>`;
 }
 
 function widgetDescriptionMarkup(value) {
@@ -146,8 +167,19 @@ function widgetDescriptionMarkup(value) {
   return text ? `<p class="widget-description">${escapeHtml(text)}</p>` : "";
 }
 
+function entryTags(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") return value.split(",").map((tag) => tag.trim());
+  return [];
+}
+
 function widgetTagsMarkup(tags) {
-  return `<div class="tag-row widget-tags">${tags.filter(Boolean).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>`;
+  const tagMarkup = tags
+    .map((tag) => String(tag ?? "").trim())
+    .filter(Boolean)
+    .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
+    .join("");
+  return tagMarkup ? `<div class="tag-row widget-tags">${tagMarkup}</div>` : "";
 }
 
 function isUserProducedEntry(entry) {
@@ -335,17 +367,49 @@ function initCommandInterface() {
   });
 }
 
+function chooseWidgetImage() {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/webp,image/gif";
+    input.addEventListener("change", async () => {
+      try {
+        resolve(await imageToDataUrl(input));
+      } catch (error) {
+        reject(error);
+      }
+    }, { once: true });
+    input.click();
+  });
+}
+
 function renderCollection({ key, listId, emptyText, template }) {
   const list = document.getElementById(listId);
   if (!list) return;
 
-  const collection = getStoredCollection(key);
+  const collection = getStoredCollection(key).filter(Boolean);
   if (!collection.length) {
     list.innerHTML = `<div class="empty-state">${emptyText}</div>`;
     return;
   }
 
   list.innerHTML = collection.map((entry) => template(entry)).join("");
+
+  list.querySelectorAll("[data-image-upload-id]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        const imageDataUrl = await chooseWidgetImage();
+        if (!imageDataUrl) return;
+        const nextCollection = getStoredCollection(key).map((entry) => (
+          entry.id === button.dataset.imageUploadId ? { ...entry, imageDataUrl } : entry
+        ));
+        saveCollection(key, nextCollection);
+        renderDashboard();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  });
 
   list.querySelectorAll("[data-delete-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -363,14 +427,18 @@ function renderDashboard() {
     emptyText: "No encounters yet. Add one to prepare a scene, hazard, or combat card.",
     template: (encounter) => {
       const status = encounter.status || "prepared";
-      const searchable = textForSearch([encounter.title, encounter.tier, encounter.description, encounter.tags?.join(" "), "encounter scene combat"]);
+      const title = firstDisplayText([encounter.title, encounter.name], "Untitled encounter");
+      const tier = firstDisplayText([encounter.tier, encounter.type, encounter.sceneType], "Encounter");
+      const description = firstDisplayText([encounter.description, encounter.notes, encounter.content], "Add creatures, hazards, clues, terrain, and rewards for this encounter.");
+      const tags = entryTags(encounter.tags);
+      const searchable = textForSearch([title, tier, description, tags.join(" "), "encounter scene combat"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(encounter)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
-          ${widgetImageMarkup(encounter, encounter.title)}
-          <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(encounter.tier || "Encounter")}</span></div>
-          <h3>${escapeHtml(encounter.title)}</h3>
-          ${widgetDescriptionMarkup(encounter.description)}
-          ${widgetTagsMarkup([encounter.createdAt, ...(encounter.tags || [])])}
+          ${widgetImageMarkup(encounter, title)}
+          <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(tier)}</span></div>
+          <h3>${escapeHtml(title)}</h3>
+          ${widgetDescriptionMarkup(description)}
+          ${widgetTagsMarkup([encounter.createdAt, ...tags])}
 ${widgetDeleteActionMarkup(encounter, "Delete encounter")}
         </article>`;
     },
@@ -382,14 +450,18 @@ ${widgetDeleteActionMarkup(encounter, "Delete encounter")}
     emptyText: "No locations yet. Add a place, faction site, region, or route.",
     template: (location) => {
       const status = location.status || "active";
-      const searchable = textForSearch([location.name, location.type, location.description, location.tags?.join(" "), "location atlas place faction"]);
+      const name = firstDisplayText([location.name, location.title], "Untitled location");
+      const type = firstDisplayText([location.type, location.regionType], "Location");
+      const description = firstDisplayText([location.description, location.notes, location.content], "Add terrain, factions, secrets, routes, and hooks for this location.");
+      const tags = entryTags(location.tags);
+      const searchable = textForSearch([name, type, description, tags.join(" "), "location atlas place faction"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(location)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
-          ${widgetImageMarkup(location, location.name)}
-          <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(location.type || "Location")}</span></div>
-          <h3>${escapeHtml(location.name)}</h3>
-          ${widgetDescriptionMarkup(location.description)}
-          ${widgetTagsMarkup([location.createdAt, ...(location.tags || [])])}
+          ${widgetImageMarkup(location, name)}
+          <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(type)}</span></div>
+          <h3>${escapeHtml(name)}</h3>
+          ${widgetDescriptionMarkup(description)}
+          ${widgetTagsMarkup([location.createdAt, ...tags])}
 ${widgetDeleteActionMarkup(location, "Delete location")}
         </article>`;
     },
