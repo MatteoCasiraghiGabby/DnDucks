@@ -210,7 +210,13 @@ function populateCalendarFormDefaults() {
     select.innerHTML = settings.months.map((month, index) => `<option value="${index}">${escapeHtml(month)}</option>`).join("");
     select.value = selected;
   });
-  document.querySelectorAll("#event-year").forEach((input) => { if (!input.value) input.value = settings.currentYear; });
+  document.querySelectorAll("#event-year").forEach((input) => {
+    const currentYear = String(settings.currentYear);
+    const previousDefault = input.dataset.calendarDefaultYear;
+    const shouldUseActiveYear = !input.value || input.value === previousDefault || input.value === input.defaultValue;
+    if (shouldUseActiveYear) input.value = currentYear;
+    input.dataset.calendarDefaultYear = currentYear;
+  });
   document.querySelectorAll("#event-day").forEach((input) => { input.max = settings.daysPerMonth; });
 }
 
