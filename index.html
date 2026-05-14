@@ -23,6 +23,7 @@
       </button>
       <nav class="topnav" id="site-navigation" aria-label="Primary navigation">
         <a href="index.html" aria-current="page">Dashboard</a>
+        <a href="calendar.html">Calendar</a>
         <a href="about.html">About</a>
       </nav>
     </header>
@@ -112,6 +113,7 @@
             <a href="#characters">NPCs</a>
             <a href="#items">Items</a>
             <a href="#maps">Maps</a>
+            <a href="#calendar-preview">Calendar</a>
             <a href="#files">Materials</a>
             <a href="#assistant">Assistant</a>
           </nav>
@@ -135,14 +137,15 @@
                 <div class="quick-actions">
                   <a class="quick-action" href="#live-session" aria-label="Open run session tools">Run</a>
                   <a class="quick-action" href="#notes" aria-label="Open campaign notes">Notes</a>
+                  <a class="quick-action" href="calendar.html" aria-label="Open full campaign calendar">Calendar</a>
                 </div>
               </div>
             </article>
-            <article data-widget-origin="permanent" class="content-card" data-searchable="session 12 the sunken gate upcoming prepared" data-status="prepared">
-              <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Upcoming session</span></div>
-              <h3>Session 12: The Sunken Gate</h3>
-              <p>Start in Blackfen Marsh, reveal the gate mechanism, and surface the cost of opening it.</p>
-              <div class="mini-metric"><strong>Tonight</strong><span>4 key scenes ready</span></div>
+            <article data-widget-origin="permanent" class="content-card next-event-card" data-searchable="next imminent calendar event upcoming prepared" data-status="prepared">
+              <div class="card-kicker"><span class="status-badge status-prepared">Next</span><span>Imminent event</span></div>
+              <h3 id="next-event-title">No events yet</h3>
+              <p id="next-event-summary">Add an event in the calendar preview below to schedule the campaign timeline.</p>
+              <div class="mini-metric"><strong id="next-event-date">Calendar</strong><span id="next-event-weather">Weather pending</span></div>
             </article>
             <article data-widget-origin="permanent" class="content-card" data-searchable="recover the ember sigil open quest gilded fang" data-status="active">
               <div class="card-kicker"><span class="status-badge status-active">In Progress</span><span>Quest</span></div>
@@ -372,22 +375,30 @@
             </div>
           </section>
 
-          <section class="workspace-section" id="calendar">
-            <div class="section-heading"><div><p class="eyebrow">Chronicle</p><h2>Calendar Events</h2></div></div>
-            <form class="panel form-grid" id="event-form">
-              <label>Event title<input id="event-title" type="text" placeholder="Treaty Moon Council" required /></label>
-              <label>In-world date<input id="event-date" type="text" placeholder="12th Bloomwane, 1492 DR" required /></label>
-              <label class="full-width">Description<textarea id="event-description" rows="3" placeholder="What happens, who attends, and what might change..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="event-image">Optional calendar image</label>
-                <input id="event-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="event-image">Choose image</button>
-                <span class="image-picker-status" data-image-status>No image chosen</span>
-                <img class="image-picker-preview" data-image-preview alt="Selected calendar image preview" hidden />
-              </div>
-              <button class="btn btn-primary" type="submit">Save Event</button>
-            </form>
-            <div class="collection-grid" id="events-list" aria-live="polite"></div>
+          <section class="workspace-section" id="calendar-preview">
+            <div class="section-heading">
+              <div><p class="eyebrow">Calendar preview</p><h2>Schedule the next event</h2></div>
+              <a class="btn btn-secondary" href="calendar.html">Open Full Calendar</a>
+            </div>
+            <div class="dashboard-calendar-preview">
+              <article class="panel next-event-panel">
+                <div class="card-kicker"><span class="status-badge status-prepared">Next</span><span>Campaign clock</span></div>
+                <h3 id="preview-next-event-title">No upcoming event</h3>
+                <p id="preview-next-event-summary">Saved events appear on the full calendar page and update this dashboard preview.</p>
+                <div class="tag-row">
+                  <span class="tag" id="preview-next-event-date">No date set</span>
+                  <span class="tag" id="preview-next-event-weather">Weather unknown</span>
+                </div>
+              </article>
+              <form class="panel form-grid compact-event-form" id="event-form">
+                <label>Event title<input id="event-title" type="text" placeholder="Treaty Moon Council" required /></label>
+                <label>Month<select id="event-month" required></select></label>
+                <label>Day<input id="event-day" type="number" min="1" value="1" required /></label>
+                <label>Year<input id="event-year" type="number" value="1492" required /></label>
+                <label class="full-width">Description<textarea id="event-description" rows="3" placeholder="What happens, who attends, and what might change..." required></textarea></label>
+                <button class="btn btn-primary" type="submit">Save Event</button>
+              </form>
+            </div>
           </section>
 
           <section class="workspace-section" id="files">

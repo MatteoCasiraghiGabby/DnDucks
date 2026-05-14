@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="DnDucks campaign calendar for custom fantasy dates, event scheduling, descriptions, and generated weather."
+    />
+    <title>DnDucks | Campaign Calendar</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/script.js" defer></script>
+  </head>
+  <body data-page="calendar">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="DnDucks home">
+        <span class="brand-mark" aria-hidden="true">20</span>
+        <span><strong>DnDucks</strong><small>DM Command Center</small></span>
+      </a>
+      <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Toggle navigation</span>
+      </button>
+      <nav class="topnav" id="site-navigation" aria-label="Primary navigation">
+        <a href="index.html">Dashboard</a>
+        <a href="calendar.html" aria-current="page">Calendar</a>
+        <a href="about.html">About</a>
+      </nav>
+    </header>
+
+    <main class="page-layout section-shell calendar-page">
+      <section class="page-hero">
+        <p class="eyebrow">Campaign chronicle</p>
+        <h1>Build the world’s calendar around your table.</h1>
+        <p>
+          Define custom weeks, month names, and year labels, then schedule events that also appear in the dashboard
+          preview. Generate fantasy weather for the current month to enrich travel, downtime, and omens.
+        </p>
+      </section>
+
+      <section class="calendar-tools-grid" aria-label="Calendar setup and new event tools">
+        <form class="panel form-grid" id="calendar-settings-form">
+          <div class="full-width">
+            <p class="eyebrow">Calendar structure</p>
+            <h2>Campaign time system</h2>
+          </div>
+          <label>Days per week<input id="calendar-week-length" type="number" min="1" max="12" required /></label>
+          <label>Days per month<input id="calendar-days-per-month" type="number" min="1" max="60" required /></label>
+          <label>Year name<input id="calendar-year-name" type="text" placeholder="DR" required /></label>
+          <label>Active year<input id="calendar-active-year" type="number" required /></label>
+          <label class="full-width">Weekday names, comma-separated<input id="calendar-weekdays" type="text" placeholder="Moonday, Tirsday, Windsday" required /></label>
+          <label class="full-width">Month names<textarea id="calendar-months" rows="4" placeholder="Bloomwane&#10;Highsun&#10;Goldleaf" required></textarea></label>
+          <button class="btn btn-primary" type="submit">Save Calendar Structure</button>
+        </form>
+
+        <form class="panel form-grid" id="event-form">
+          <div class="full-width">
+            <p class="eyebrow">New event</p>
+            <h2>Schedule an event</h2>
+          </div>
+          <label>Event title<input id="event-title" type="text" placeholder="Treaty Moon Council" required /></label>
+          <label>Month<select id="event-month" required></select></label>
+          <label>Day<input id="event-day" type="number" min="1" value="1" required /></label>
+          <label>Year<input id="event-year" type="number" value="1492" required /></label>
+          <label class="full-width">Description<textarea id="event-description" rows="4" placeholder="What happens, who attends, and what might change..." required></textarea></label>
+          <div class="file-picker image-picker full-width" data-image-picker>
+            <label for="event-image">Optional calendar image</label>
+            <input id="event-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+            <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="event-image">Choose image</button>
+            <span class="image-picker-status" data-image-status>No image chosen</span>
+            <img class="image-picker-preview" data-image-preview alt="Selected calendar image preview" hidden />
+          </div>
+          <button class="btn btn-primary" type="submit">Save Event</button>
+        </form>
+      </section>
+
+      <section class="workspace-section">
+        <div class="section-heading calendar-heading">
+          <div>
+            <p class="eyebrow">Calendar board</p>
+            <h2 id="calendar-current-title">Campaign month</h2>
+          </div>
+          <div class="calendar-actions">
+            <button class="btn btn-secondary" type="button" id="calendar-prev">Previous Month</button>
+            <button class="btn btn-secondary" type="button" id="calendar-next">Next Month</button>
+            <button class="btn btn-primary" type="button" id="weather-generate">Generate Weather</button>
+          </div>
+        </div>
+        <div class="campaign-calendar-grid" id="calendar-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="workspace-section">
+        <div class="section-heading"><div><p class="eyebrow">Event archive</p><h2>All saved events</h2></div></div>
+        <div class="collection-grid" id="events-list" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="event-detail-modal" hidden>
+      <article class="panel event-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="event-detail-title">
+        <button class="modal-close" type="button" data-close-modal aria-label="Close event details">×</button>
+        <div id="event-detail-body"></div>
+      </article>
+    </div>
+  </body>
+</html>
