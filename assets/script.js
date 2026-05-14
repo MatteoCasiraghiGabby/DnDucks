@@ -152,8 +152,25 @@ function completeCampaignSetup(campaignId) {
   return upsertCampaign({ ...campaign, setupCompleted: true, campaignStartNoteId: noteId });
 }
 
+function campaignSetupHref(campaignId) {
+  return `index.html#/campaigns/${encodeURIComponent(campaignId)}/setup`;
+}
+
+function playerCharacterHref(campaignId, playerId) {
+  return `index.html#/campaigns/${encodeURIComponent(campaignId)}/players/${encodeURIComponent(playerId)}`;
+}
+
+function goToDashboard() {
+  window.location.href = "index.html#dashboard";
+  window.location.reload();
+}
+
 function routeParts() {
-  return window.location.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+  const hashPath = window.location.hash && window.location.hash.startsWith("#/")
+    ? window.location.hash.slice(1)
+    : "";
+  const routePath = hashPath || window.location.pathname;
+  return routePath.split("/").filter(Boolean).map(decodeURIComponent);
 }
 
 
@@ -652,7 +669,7 @@ function campaignOverviewCard(campaign) {
   const characters = getStoredCollection("characters");
   const events = getStoredCollection("events");
   const players = campaign.players || [];
-  const actionHref = campaign.setupCompleted ? "#dashboard" : `/campaigns/${encodeURIComponent(campaign.id)}/setup`;
+  const actionHref = campaign.setupCompleted ? "#dashboard" : campaignSetupHref(campaign.id);
   const actionLabel = campaign.setupCompleted ? "OPEN CAMPAIGN" : "START CAMPAIGN";
   const searchable = textForSearch([campaign.name, campaign.description, "campaign local workspace players party"]);
   return `
@@ -680,7 +697,7 @@ function playerCharacterCard(player) {
   const searchable = textForSearch([player.playerName, player.characterName, player.classRole, player.race, "player character party"]);
   const imageEntry = { imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl };
   return `
-    <a class="content-card entry-card widget-card player-card" href="/campaigns/${encodeURIComponent(player.campaignId || DEFAULT_CAMPAIGN_ID)}/players/${encodeURIComponent(player.id)}" data-searchable="${escapeHtml(searchable)}" data-status="active">
+    <a class="content-card entry-card widget-card player-card" href="${escapeHtml(playerCharacterHref(player.campaignId || DEFAULT_CAMPAIGN_ID, player.id))}" data-searchable="${escapeHtml(searchable)}" data-status="active">
       ${widgetImageDisplayMarkup(imageEntry, title)}
       <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
       <h3>${escapeHtml(title)}</h3>
@@ -959,7 +976,7 @@ function updateSummaryCards() {
   if (statPlayers) statPlayers.textContent = campaign.players.length;
   const startButton = document.getElementById("start-campaign-button");
   if (startButton) {
-    startButton.href = campaign.setupCompleted ? "#dashboard" : `/campaigns/${encodeURIComponent(campaign.id)}/setup`;
+    startButton.href = campaign.setupCompleted ? "#dashboard" : campaignSetupHref(campaign.id);
     startButton.textContent = campaign.setupCompleted ? "OPEN CAMPAIGN" : "START CAMPAIGN";
     startButton.classList.toggle("btn-secondary", campaign.setupCompleted);
     startButton.classList.toggle("btn-primary", !campaign.setupCompleted);
@@ -1184,7 +1201,7 @@ function renderNotFoundPage(message) {
         <p class="eyebrow">Not found</p>
         <h1>We could not find that campaign page.</h1>
         <p>${escapeHtml(message)}</p>
-        <a class="btn btn-primary" href="/">Back to dashboard</a>
+        <a class="btn btn-primary" href="index.html">Back to dashboard</a>
       </div>
     </section>`;
 }
@@ -1263,7 +1280,7 @@ function renderCampaignSetupPage(campaignId) {
     return;
   }
   if (campaign.setupCompleted) {
-    window.location.href = "/#dashboard";
+    goToDashboard();
     return;
   }
   document.querySelector("main").innerHTML = `
@@ -1305,7 +1322,7 @@ function renderCampaignSetupPage(campaignId) {
       return;
     }
     completeCampaignSetup(campaign.id);
-    window.location.href = "/#dashboard";
+    goToDashboard();
   });
 }
 
@@ -1327,7 +1344,7 @@ function renderPlayerCharacterPage(campaignId, playerId) {
           <p class="eyebrow">Player character</p>
           <h1>${escapeHtml(player.characterName)}</h1>
           <p>Played by ${escapeHtml(player.playerName)} in ${escapeHtml(campaign.name)}.</p>
-          <a class="btn btn-secondary" href="/#campaigns">Back to campaign dashboard</a>
+          <a class="btn btn-secondary" href="index.html#campaigns">Back to campaign dashboard</a>
         </div>
         ${player.avatarUrl ? `<img class="character-avatar" src="${escapeHtml(player.avatarUrl)}" alt="${escapeHtml(player.characterName)} avatar" />` : `<div class="card-visual character-avatar-placeholder" aria-hidden="true"><span>${cardVisualLabel(player.characterName)}</span></div>`}
       </div>
@@ -1487,6 +1504,9 @@ if (!initCampaignRoutes()) {
   initAiPlaceholder();
   renderDashboard();
 }
+window.addEventListener("hashchange", () => {
+  if (window.location.hash.startsWith("#/campaigns")) initCampaignRoutes();
+});
 
 /*
 Backend roadmap summary:

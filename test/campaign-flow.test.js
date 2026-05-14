@@ -30,7 +30,7 @@ function createFrontendSandbox() {
       removeItem: (key) => storage.delete(key),
     },
     document: documentStub,
-    window: { location: { pathname: "/", href: "/" } },
+    window: { location: { pathname: "/", href: "/", hash: "", reload: () => {} }, addEventListener: () => {} },
     Event: class Event { constructor(type) { this.type = type; } },
     fetch: async () => { throw new Error("fetch should not be called in campaign flow unit tests"); },
     alert: () => {},
@@ -102,4 +102,16 @@ test("completing setup creates the Campaign Start note only once", () => {
   app.completeCampaignSetup("local");
   notes = app.getStoredCollection("notes");
   assert.equal(notes.length, 1);
+});
+
+test("campaign setup links use hash routes that static servers can serve", () => {
+  const app = createFrontendSandbox();
+
+  assert.equal(app.campaignSetupHref("local"), "index.html#/campaigns/local/setup");
+  app.window.location.hash = "#/campaigns/local/setup";
+  assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "setup"]);
+
+  const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
+  assert.match(html, /href="index\.html#\/campaigns\/local\/setup"/);
+  assert.doesNotMatch(html, /href="\/campaigns\/local\/setup"/);
 });
