@@ -223,19 +223,92 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function imageToDataUrl(fileInput) {
-  const file = fileInput?.files?.[0];
-  if (!file) return Promise.resolve("");
+const IMAGE_POSITION_OPTIONS = [
+  { value: "center center", label: "Center" },
+  { value: "center top", label: "Top" },
+  { value: "center bottom", label: "Bottom" },
+  { value: "left center", label: "Left" },
+  { value: "right center", label: "Right" },
+];
+const FALLBACK_IMAGE_MAX_SIDE = 1200;
+const FALLBACK_IMAGE_QUALITY = 0.82;
+
+function imagePositionOptionsMarkup(selected = "center center") {
+  return IMAGE_POSITION_OPTIONS.map((option) => (
+    `<option value="${escapeHtml(option.value)}"${option.value === selected ? " selected" : ""}>${escapeHtml(option.label)}</option>`
+  )).join("");
+}
+
+function selectedImagePosition(root) {
+  return root?.querySelector?.("[data-image-position]")?.value || "center center";
+}
+
+function imageSource(entry = {}) {
+  return entry.imageUrl || entry.imageDataUrl || "";
+}
+
+function imageStyle(entry = {}) {
+  return `object-position: ${escapeHtml(entry.imageObjectPosition || "center center")};`;
+}
+
+function imageMetadataFromInput(fileInput) {
+  return {
+    imageObjectPosition: selectedImagePosition(fileInput?.closest?.("[data-image-picker]")),
+  };
+}
+
+async function uploadImageFile(file, title = "Widget image") {
+  if (!file) return { imageUrl: "", imageStorage: "none" };
   if (!file.type.startsWith("image/")) {
-    return Promise.reject(new Error("Widget images must be image files."));
+    throw new Error("Widget images must be image files.");
   }
 
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", title || file.name);
+    formData.append("category", "image");
+    const material = await fetchJson("/api/materials/upload", { method: "POST", body: formData });
+    return {
+      imageUrl: material.publicUrl || material.downloadUrl,
+      imageMaterialId: material.id,
+      imageStorage: "local-file",
+    };
+  } catch (error) {
+    console.warn("Local image upload failed; using compressed browser fallback.", error);
+    const imageDataUrl = await compressImageToDataUrl(file);
+    return { imageDataUrl, imageStorage: "browser-fallback" };
+  }
+}
+
+function compressImageToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.addEventListener("load", () => resolve(reader.result));
     reader.addEventListener("error", () => reject(new Error("Could not read the selected image.")));
+    reader.addEventListener("load", () => {
+      const image = new Image();
+      image.addEventListener("error", () => reject(new Error("Could not prepare the selected image.")));
+      image.addEventListener("load", () => {
+        const scale = Math.min(1, FALLBACK_IMAGE_MAX_SIDE / Math.max(image.naturalWidth || 1, image.naturalHeight || 1));
+        const width = Math.max(1, Math.round((image.naturalWidth || 1) * scale));
+        const height = Math.max(1, Math.round((image.naturalHeight || 1) * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/webp", FALLBACK_IMAGE_QUALITY));
+      });
+      image.src = reader.result;
+    });
     reader.readAsDataURL(file);
   });
+}
+
+async function imageUploadPayload(fileInput, title) {
+  const file = fileInput?.files?.[0];
+  if (!file) return { imageUrl: "", imageDataUrl: "", ...imageMetadataFromInput(fileInput) };
+  return { ...(await uploadImageFile(file, title || file.name)), ...imageMetadataFromInput(fileInput) };
 }
 
 function displayText(value, fallback) {
@@ -251,16 +324,17 @@ function firstDisplayText(values, fallback) {
 function widgetImageMarkup(entry, label) {
   const title = displayText(label, "Widget");
   const alt = escapeHtml(`${title} image`);
-  const imageActionLabel = entry.imageDataUrl ? `Change image for ${title}` : `Add image for ${title}`;
+  const source = imageSource(entry);
+  const imageActionLabel = source ? `Change image for ${title}` : `Add image for ${title}`;
   const actionAttributes = entry.id
     ? `button type="button" data-image-upload-id="${escapeHtml(entry.id)}" aria-label="${escapeHtml(imageActionLabel)}" title="${escapeHtml(imageActionLabel)}"`
     : `div aria-label="No image upload target available"`;
   const closeTag = entry.id ? "button" : "div";
 
-  if (entry.imageDataUrl) {
+  if (source) {
     return `
     <${actionAttributes} class="widget-media widget-media-action widget-media-filled">
-      <img src="${escapeHtml(entry.imageDataUrl)}" alt="${alt}" loading="lazy" />
+      <img src="${escapeHtml(source)}" alt="${alt}" loading="lazy" style="${imageStyle(entry)}" />
       <span class="widget-media-overlay">Change image</span>
     </${closeTag}>`;
   }
@@ -359,10 +433,13 @@ function resetImagePickers(root) {
   root.querySelectorAll("[data-image-picker]").forEach((picker) => {
     const status = picker.querySelector("[data-image-status]");
     const preview = picker.querySelector("[data-image-preview]");
+    const position = picker.querySelector("[data-image-position]");
     if (status) status.textContent = "No image chosen";
+    if (position) position.value = "center center";
     if (preview) {
       preview.removeAttribute("src");
       preview.hidden = true;
+      preview.style.objectPosition = "center center";
     }
   });
 }
@@ -373,7 +450,15 @@ function initImagePickers() {
     const trigger = picker.querySelector("[data-image-trigger]");
     const status = picker.querySelector("[data-image-status]");
     const preview = picker.querySelector("[data-image-preview]");
+    if (!picker.querySelector("[data-image-position]")) {
+      picker.insertAdjacentHTML("beforeend", `<label class="image-position-control">Visible section<select data-image-position>${imagePositionOptionsMarkup()}</select></label>`);
+    }
+    const position = picker.querySelector("[data-image-position]");
     if (!input || !trigger) return;
+
+    if (position && preview) {
+      position.addEventListener("change", () => { preview.style.objectPosition = position.value; });
+    }
 
     trigger.addEventListener("click", () => input.click());
     input.addEventListener("change", () => {
@@ -392,6 +477,7 @@ function initImagePickers() {
         const reader = new FileReader();
         reader.addEventListener("load", () => {
           preview.src = reader.result;
+          preview.style.objectPosition = selectedImagePosition(picker);
           preview.hidden = false;
         });
         reader.readAsDataURL(file);
@@ -477,14 +563,24 @@ function initCommandInterface() {
   });
 }
 
-function chooseWidgetImage() {
+function chooseWidgetImage(title = "Widget image") {
   return new Promise((resolve, reject) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/jpeg,image/png,image/webp,image/gif";
+    const position = document.createElement("select");
+    position.innerHTML = imagePositionOptionsMarkup();
     input.addEventListener("change", async () => {
       try {
-        resolve(await imageToDataUrl(input));
+        if (!input.files?.[0]) {
+          resolve(null);
+          return;
+        }
+        const choice = window.prompt("Which section should remain visible? Type: center, top, bottom, left, or right.", "center");
+        const normalized = String(choice || "center").trim().toLowerCase();
+        const option = IMAGE_POSITION_OPTIONS.find((item) => item.label.toLowerCase() === normalized || item.value === normalized);
+        position.value = option?.value || "center center";
+        resolve({ ...(await uploadImageFile(input.files[0], title)), imageObjectPosition: position.value });
       } catch (error) {
         reject(error);
       }
@@ -508,10 +604,11 @@ function renderCollection({ key, listId, emptyText, template }) {
   list.querySelectorAll("[data-image-upload-id]").forEach((button) => {
     button.addEventListener("click", async () => {
       try {
-        const imageDataUrl = await chooseWidgetImage();
-        if (!imageDataUrl) return;
+        const currentEntry = getStoredCollection(key).find((entry) => entry.id === button.dataset.imageUploadId);
+        const image = await chooseWidgetImage(currentEntry?.title || currentEntry?.name || "Widget image");
+        if (!image) return;
         const nextCollection = getStoredCollection(key).map((entry) => (
-          entry.id === button.dataset.imageUploadId ? { ...entry, imageDataUrl } : entry
+          entry.id === button.dataset.imageUploadId ? { ...entry, ...image } : entry
         ));
         saveCollection(key, nextCollection);
         renderDashboard();
@@ -729,7 +826,7 @@ function initDashboardForms() {
     status: document.getElementById("encounter-status").value,
     description: document.getElementById("encounter-description").value.trim(),
     tags: document.getElementById("encounter-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
-    imageDataUrl: await imageToDataUrl(document.getElementById("encounter-image")),
+    ...(await imageUploadPayload(document.getElementById("encounter-image"), document.getElementById("encounter-title").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -740,7 +837,7 @@ function initDashboardForms() {
     status: document.getElementById("location-status").value,
     description: document.getElementById("location-description").value.trim(),
     tags: document.getElementById("location-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
-    imageDataUrl: await imageToDataUrl(document.getElementById("location-image")),
+    ...(await imageUploadPayload(document.getElementById("location-image"), document.getElementById("location-name").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -749,7 +846,7 @@ function initDashboardForms() {
     title: document.getElementById("note-title").value.trim(),
     category: document.getElementById("note-category").value,
     content: document.getElementById("note-content").value.trim(),
-    imageDataUrl: await imageToDataUrl(document.getElementById("note-image")),
+    ...(await imageUploadPayload(document.getElementById("note-image"), document.getElementById("note-title").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -759,7 +856,7 @@ function initDashboardForms() {
     role: document.getElementById("character-role").value.trim(),
     faction: document.getElementById("character-faction").value.trim(),
     notes: document.getElementById("character-notes").value.trim(),
-    imageDataUrl: await imageToDataUrl(document.getElementById("character-image")),
+    ...(await imageUploadPayload(document.getElementById("character-image"), document.getElementById("character-name").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -768,7 +865,7 @@ function initDashboardForms() {
     name: document.getElementById("item-name").value.trim(),
     type: document.getElementById("item-type").value,
     description: document.getElementById("item-description").value.trim(),
-    imageDataUrl: await imageToDataUrl(document.getElementById("item-image")),
+    ...(await imageUploadPayload(document.getElementById("item-image"), document.getElementById("item-name").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -784,7 +881,7 @@ function initDashboardForms() {
       day,
       year,
       description: document.getElementById("event-description").value.trim(),
-      imageDataUrl: await imageToDataUrl(document.getElementById("event-image")),
+      ...(await imageUploadPayload(document.getElementById("event-image"), document.getElementById("event-title").value.trim())),
       createdAt: readableDate(),
     };
     event.date = eventDateLabel(event, settings);
@@ -943,7 +1040,9 @@ function openEventDetail(eventId) {
   if (!modal || !body) return;
   const event = getStoredCollection("events").find((item) => item.id === eventId);
   if (!event) return;
+  const source = imageSource(event);
   body.innerHTML = `
+    ${source ? `<img class="event-detail-image" src="${escapeHtml(source)}" alt="${escapeHtml(event.title)} image" style="${imageStyle(event)}" />` : ""}
     <div class="card-kicker"><span class="status-badge status-prepared">Calendar event</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
     <h2 id="event-detail-title">${escapeHtml(event.title)}</h2>
     <p>${escapeHtml(event.description)}</p>
