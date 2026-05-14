@@ -269,7 +269,7 @@ select:focus-visible {
 .status-prepared { color: #18120b; background: rgba(255, 179, 92, 0.96); border-color: transparent; }
 .status-hidden { color: #f7f1e8; background: rgba(216, 91, 106, 0.72); border-color: rgba(255, 255, 255, 0.16); }
 .status-completed { color: #111820; background: rgba(104, 184, 255, 0.9); border-color: transparent; }
-.hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0 0; }
+.hero-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 12px; margin: 20px 0 0; }
 .hero-stats div { border: 1px solid var(--line); border-radius: 18px; padding: 12px; background: rgba(15, 17, 21, 0.36); }
 .hero-stats dt { color: var(--muted); font-size: 0.78rem; font-weight: 750; }
 .hero-stats dd { margin: 0; font-size: 1.75rem; color: var(--ember-2); font-weight: 900; }
@@ -882,3 +882,61 @@ code { color: var(--ember-2); }
 }
 
 .image-picker-status.error { color: var(--crimson); }
+
+.campaign-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.start-campaign-button { white-space: nowrap; }
+.compact-stats { margin-top: 18px; }
+.player-card { color: inherit; }
+.setup-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  gap: 20px;
+  align-items: start;
+}
+.setup-form-panel,
+.setup-summary-panel { display: grid; gap: 16px; }
+.setup-player-list { grid-template-columns: 1fr; }
+.compact-player-card { min-height: auto; }
+.setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.player-character-form .form-message {
+  margin: 0;
+}
+.character-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  gap: 22px;
+  align-items: center;
+}
+.character-avatar,
+.character-avatar-placeholder {
+  width: 100%;
+  min-height: 260px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  object-fit: cover;
+  overflow: hidden;
+}
+.character-sheet-grid h2 { margin: 0; }
+
+@media (max-width: 1080px) {
+  .setup-grid,
+  .character-hero { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .campaign-title-row,
+  .setup-actions { align-items: stretch; flex-direction: column; }
+  .start-campaign-button,
+  .setup-actions .btn { width: 100%; }
+}
