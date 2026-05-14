@@ -285,11 +285,26 @@ async function serveStatic(req, res, requestUrl) {
     else fs.createReadStream(filePath).pipe(res);
   } catch (error) {
     if (error.code === "ENOENT") {
+      if (isFrontendRoute(pathname)) {
+        await serveIndexFallback(req, res);
+        return;
+      }
       sendText(res, 404, "Not found");
       return;
     }
     throw error;
   }
+}
+
+function isFrontendRoute(pathname) {
+  return pathname === "/campaigns" || pathname.startsWith("/campaigns/");
+}
+
+async function serveIndexFallback(req, res) {
+  const indexPath = path.join(PUBLIC_DIR, "index.html");
+  res.writeHead(200, { "Content-Type": STATIC_TYPES[".html"] });
+  if (req.method === "HEAD") res.end();
+  else fs.createReadStream(indexPath).pipe(res);
 }
 
 function sendJson(res, statusCode, payload) {

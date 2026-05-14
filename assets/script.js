@@ -8,9 +8,154 @@ const STORAGE_KEYS = {
   events: "dnducks.events",
   calendarSettings: "dnducks.calendarSettings",
   weather: "dnducks.weather",
+  campaigns: "dnducks.campaigns",
 };
 
 const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events"]);
+
+const DEFAULT_CAMPAIGN_ID = "local";
+const DEFAULT_CAMPAIGN = {
+  id: DEFAULT_CAMPAIGN_ID,
+  name: "Your campaign",
+  description: "Create campaign notes, NPCs, encounters, items, events, and player characters in this local workspace.",
+  status: "active",
+  workspaceLabel: "Local workspace",
+  players: [],
+  setupCompleted: false,
+  campaignStartNoteId: "",
+  createdAt: "Local draft",
+  updatedAt: "Local draft",
+};
+
+function normalizeCampaign(campaign = {}) {
+  return {
+    ...DEFAULT_CAMPAIGN,
+    ...campaign,
+    id: String(campaign.id || DEFAULT_CAMPAIGN.id),
+    players: Array.isArray(campaign.players) ? campaign.players.filter(Boolean) : [],
+    setupCompleted: Boolean(campaign.setupCompleted),
+  };
+}
+
+function getCampaigns() {
+  const raw = localStorage.getItem(STORAGE_KEYS.campaigns);
+  if (!raw) return [normalizeCampaign(DEFAULT_CAMPAIGN)];
+  try {
+    const parsed = JSON.parse(raw);
+    const campaigns = Array.isArray(parsed) ? parsed.map(normalizeCampaign) : [];
+    return campaigns.length ? campaigns : [normalizeCampaign(DEFAULT_CAMPAIGN)];
+  } catch (error) {
+    console.warn("Could not parse campaigns from localStorage", error);
+    return [normalizeCampaign(DEFAULT_CAMPAIGN)];
+  }
+}
+
+function saveCampaigns(campaigns) {
+  localStorage.setItem(STORAGE_KEYS.campaigns, JSON.stringify(campaigns.map(normalizeCampaign)));
+}
+
+function getCampaign(campaignId = DEFAULT_CAMPAIGN_ID) {
+  return getCampaigns().find((campaign) => campaign.id === campaignId) || null;
+}
+
+function upsertCampaign(nextCampaign) {
+  const normalized = normalizeCampaign({ ...nextCampaign, updatedAt: readableDate() });
+  const campaigns = getCampaigns();
+  const index = campaigns.findIndex((campaign) => campaign.id === normalized.id);
+  if (index >= 0) campaigns[index] = normalized;
+  else campaigns.unshift(normalized);
+  saveCampaigns(campaigns);
+  return normalized;
+}
+
+function currentCampaign() {
+  return getCampaign(DEFAULT_CAMPAIGN_ID) || upsertCampaign(DEFAULT_CAMPAIGN);
+}
+
+function playerDisplayName(player) {
+  return firstDisplayText([player.characterName, player.playerName], "Unnamed hero");
+}
+
+function buildPlayerCharacter(form) {
+  const playerName = form.querySelector("#player-name")?.value.trim() || "";
+  const characterName = form.querySelector("#player-character-name")?.value.trim() || "";
+  const levelValue = form.querySelector("#player-level")?.value.trim() || "";
+  const level = levelValue ? Number(levelValue) : "";
+  return {
+    id: createId("player"),
+    campaignId: DEFAULT_CAMPAIGN_ID,
+    playerName,
+    characterName,
+    classRole: form.querySelector("#player-class-role")?.value.trim() || "",
+    level,
+    race: form.querySelector("#player-race")?.value.trim() || "",
+    background: form.querySelector("#player-background")?.value.trim() || "",
+    description: form.querySelector("#player-description")?.value.trim() || "",
+    notes: form.querySelector("#player-notes")?.value.trim() || "",
+    avatarUrl: "",
+    createdAt: readableDate(),
+    updatedAt: readableDate(),
+  };
+}
+
+function playerFormHasData(form) {
+  return ["#player-name", "#player-character-name", "#player-class-role", "#player-level", "#player-race", "#player-background", "#player-description", "#player-notes"]
+    .some((selector) => String(form.querySelector(selector)?.value || "").trim());
+}
+
+function validatePlayerCharacter(player, requireData = true) {
+  const errors = [];
+  if (!requireData && !player.playerName && !player.characterName && !player.classRole && !player.level && !player.race && !player.background && !player.description && !player.notes) return errors;
+  if (!player.playerName) errors.push("Player name is required.");
+  if (!player.characterName) errors.push("Character name is required.");
+  if (player.level !== "" && (!Number.isFinite(player.level) || player.level < 1)) errors.push("Level must be a number greater than 0.");
+  return errors;
+}
+
+function savePlayerToCampaign(campaignId, player) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  const savedPlayer = { ...player, avatarUrl: player.avatarUrl || player.imageDataUrl || "" };
+  return upsertCampaign({ ...campaign, players: [...campaign.players, savedPlayer] });
+}
+
+function campaignStartContent(players) {
+  const summary = players.length
+    ? `\n\nParty summary:\n${players.map((player) => `- ${player.playerName}: ${player.characterName}${player.classRole ? `, ${player.classRole}` : ""}${player.level ? ` level ${player.level}` : ""}`).join("\n")}`
+    : "";
+  return `The campaign has started. Party members have been created and are ready for the adventure.${summary}`;
+}
+
+function ensureCampaignStartNote(campaign) {
+  const notes = getStoredCollection("notes");
+  const existingId = campaign.campaignStartNoteId;
+  const existing = notes.find((note) => note.id === existingId || (note.campaignId === campaign.id && note.generatedBy === "campaign-setup-start"));
+  if (existing) return { notes, noteId: existing.id };
+  const note = {
+    id: createId("note"),
+    campaignId: campaign.id,
+    generatedBy: "campaign-setup-start",
+    title: "Campaign Start",
+    category: "Session Note",
+    content: campaignStartContent(campaign.players),
+    createdAt: readableDate(),
+  };
+  const nextNotes = [note, ...notes];
+  saveCollection("notes", nextNotes);
+  return { notes: nextNotes, noteId: note.id };
+}
+
+function completeCampaignSetup(campaignId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  const { noteId } = ensureCampaignStartNote(campaign);
+  return upsertCampaign({ ...campaign, setupCompleted: true, campaignStartNoteId: noteId });
+}
+
+function routeParts() {
+  return window.location.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+}
+
 
 function getStoredCollection(key) {
   const raw = localStorage.getItem(STORAGE_KEYS[key]);
@@ -502,6 +647,48 @@ function widgetCreatedValue(entry) {
   return Number.isNaN(parsedDate) ? 0 : parsedDate;
 }
 
+function campaignOverviewCard(campaign) {
+  const notes = getStoredCollection("notes");
+  const characters = getStoredCollection("characters");
+  const events = getStoredCollection("events");
+  const players = campaign.players || [];
+  const actionHref = campaign.setupCompleted ? "#dashboard" : `/campaigns/${encodeURIComponent(campaign.id)}/setup`;
+  const actionLabel = campaign.setupCompleted ? "OPEN CAMPAIGN" : "START CAMPAIGN";
+  const searchable = textForSearch([campaign.name, campaign.description, "campaign local workspace players party"]);
+  return `
+    <article class="content-card campaign-card span-2" data-searchable="${escapeHtml(searchable)}" data-status="active">
+      <div class="card-visual visual-ember" aria-hidden="true"><span>${cardVisualLabel(campaign.name)}</span></div>
+      <div class="content-card-body">
+        <div class="campaign-title-row">
+          <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(statusLabel(campaign.status))}</span><span>${escapeHtml(campaign.workspaceLabel || "Local workspace")}</span></div>
+          <a class="btn ${campaign.setupCompleted ? "btn-secondary" : "btn-primary"}" href="${escapeHtml(actionHref)}">${actionLabel}</a>
+        </div>
+        <h3>${escapeHtml(campaign.name)}</h3>
+        <p class="widget-description">${escapeHtml(campaign.description)}</p>
+        <dl class="hero-stats compact-stats">
+          <div><dt>Notes</dt><dd>${notes.length}</dd></div>
+          <div><dt>NPCs</dt><dd>${characters.length}</dd></div>
+          <div><dt>Events</dt><dd>${events.length}</dd></div>
+          <div><dt>Players</dt><dd>${players.length}</dd></div>
+        </dl>
+      </div>
+    </article>`;
+}
+
+function playerCharacterCard(player) {
+  const title = playerDisplayName(player);
+  const searchable = textForSearch([player.playerName, player.characterName, player.classRole, player.race, "player character party"]);
+  const imageEntry = { imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl };
+  return `
+    <a class="content-card entry-card widget-card player-card" href="/campaigns/${encodeURIComponent(player.campaignId || DEFAULT_CAMPAIGN_ID)}/players/${encodeURIComponent(player.id)}" data-searchable="${escapeHtml(searchable)}" data-status="active">
+      ${widgetImageDisplayMarkup(imageEntry, title)}
+      <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
+      <h3>${escapeHtml(title)}</h3>
+      ${widgetDescriptionMarkup(player.description || player.notes)}
+      ${widgetTagsMarkup([`Player: ${player.playerName}`, player.level ? `Level ${player.level}` : "", player.race])}
+    </a>`;
+}
+
 function dashboardOverviewEntries() {
   const configs = [
     {
@@ -567,13 +754,10 @@ function dashboardOverviewEntries() {
 function renderDashboardOverview() {
   const grid = document.getElementById("campaigns");
   if (!grid) return;
+  const campaign = currentCampaign();
   const entries = dashboardOverviewEntries();
-  if (!entries.length) {
-    grid.innerHTML = `<div class="empty-state">No dashboard widgets yet. Save notes, NPCs, encounters, locations, items, or events to populate the dashboard with your content.</div>`;
-    return;
-  }
-
-  grid.innerHTML = entries.map(({ entry, label, status, title, subtitle, description, tags }) => {
+  const campaignCards = [campaignOverviewCard(campaign), ...(campaign.players || []).map(playerCharacterCard)];
+  const entryCards = entries.map(({ entry, label, status, title, subtitle, description, tags }) => {
     const widgetStatus = status(entry);
     const widgetTitle = title(entry);
     const widgetSubtitle = subtitle(entry);
@@ -588,7 +772,8 @@ function renderDashboardOverview() {
         ${widgetDescriptionMarkup(widgetDescription)}
         ${widgetTagsMarkup(widgetTags)}
       </article>`;
-  }).join("");
+  });
+  grid.innerHTML = [...campaignCards, ...entryCards].join("");
 }
 
 function renderDashboard() {
@@ -736,6 +921,8 @@ function updateSummaryCards() {
   const statNotes = document.getElementById("stat-notes");
   const statCharacters = document.getElementById("stat-characters");
   const statEvents = document.getElementById("stat-events");
+  const statPlayers = document.getElementById("stat-players");
+  const campaign = currentCampaign();
 
   if (notes[0] && noteTitle && noteSummary) {
     noteTitle.textContent = notes[0].title;
@@ -769,6 +956,16 @@ function updateSummaryCards() {
   if (statNotes) statNotes.textContent = notes.length;
   if (statCharacters) statCharacters.textContent = characters.length;
   if (statEvents) statEvents.textContent = events.length;
+  if (statPlayers) statPlayers.textContent = campaign.players.length;
+  const startButton = document.getElementById("start-campaign-button");
+  if (startButton) {
+    startButton.href = campaign.setupCompleted ? "#dashboard" : `/campaigns/${encodeURIComponent(campaign.id)}/setup`;
+    startButton.textContent = campaign.setupCompleted ? "OPEN CAMPAIGN" : "START CAMPAIGN";
+    startButton.classList.toggle("btn-secondary", campaign.setupCompleted);
+    startButton.classList.toggle("btn-primary", !campaign.setupCompleted);
+  }
+  const widgetTitle = document.getElementById("campaign-widget-title");
+  if (widgetTitle) widgetTitle.textContent = campaign.name;
 }
 
 function wireForm(formId, key, buildEntry) {
@@ -980,6 +1177,192 @@ function initAiPlaceholder() {
 }
 
 
+function renderNotFoundPage(message) {
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell">
+      <div class="page-hero">
+        <p class="eyebrow">Not found</p>
+        <h1>We could not find that campaign page.</h1>
+        <p>${escapeHtml(message)}</p>
+        <a class="btn btn-primary" href="/">Back to dashboard</a>
+      </div>
+    </section>`;
+}
+
+function renderAddedPlayersSummary(campaign) {
+  const list = document.getElementById("added-players-summary");
+  if (!list) return;
+  const players = campaign.players || [];
+  if (!players.length) {
+    list.innerHTML = `<div class="empty-state">No player characters added yet. Save the first hero to build the party.</div>`;
+    return;
+  }
+  list.innerHTML = players.map((player) => `
+    <article class="content-card compact-player-card">
+      <div class="card-kicker"><span class="status-badge status-active">Saved</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
+      <h3>${escapeHtml(player.characterName)}</h3>
+      ${widgetTagsMarkup([`Player: ${player.playerName}`, player.level ? `Level ${player.level}` : "", player.race])}
+    </article>`).join("");
+}
+
+function playerCharacterFormMarkup() {
+  return `
+    <form class="panel form-grid player-character-form" id="player-character-form" novalidate>
+      <label>Player name<input id="player-name" type="text" placeholder="Player name" required /></label>
+      <label>Character name<input id="player-character-name" type="text" placeholder="Character name" required /></label>
+      <label>Character class / role<input id="player-class-role" type="text" placeholder="Ranger, Cleric, Face, Tank..." /></label>
+      <label>Level<input id="player-level" type="number" min="1" step="1" placeholder="1" /></label>
+      <label>Race / ancestry<input id="player-race" type="text" placeholder="Elf, Human, Tiefling..." /></label>
+      <label>Background<input id="player-background" type="text" placeholder="Acolyte, Outlander, Noble..." /></label>
+      <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
+      <label class="full-width">Notes<textarea id="player-notes" rows="3" placeholder="Secrets, bonds, safety notes, goals, or mechanics to remember..."></textarea></label>
+      <div class="file-picker image-picker full-width" data-image-picker>
+        <label for="player-avatar">Optional avatar</label>
+        <input id="player-avatar" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+        <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="player-avatar">Choose image</button>
+        <span class="image-picker-status" data-image-status>No image chosen</span>
+        <img class="image-picker-preview" data-image-preview alt="Selected player avatar preview" hidden />
+      </div>
+      <div class="form-message full-width" id="player-form-message" aria-live="polite"></div>
+      <div class="setup-actions full-width">
+        <button class="btn btn-secondary" type="button" id="add-another-player">ADD ANOTHER PLAYER</button>
+        <button class="btn btn-primary" type="button" id="go-on-campaign">GO ON</button>
+      </div>
+    </form>`;
+}
+
+async function saveCurrentPlayerFromSetup(form, { requireData }) {
+  const message = document.getElementById("player-form-message");
+  const campaignId = form.dataset.campaignId;
+  const player = buildPlayerCharacter(form);
+  const hasData = playerFormHasData(form);
+  if (!requireData && !hasData) return { saved: false, campaign: getCampaign(campaignId) };
+  const errors = validatePlayerCharacter(player, requireData);
+  if (errors.length) {
+    if (message) {
+      message.textContent = errors.join(" ");
+      message.classList.add("error");
+    }
+    return { saved: false, errors };
+  }
+  player.avatarUrl = await imageToDataUrl(document.getElementById("player-avatar"));
+  const campaign = savePlayerToCampaign(campaignId, player);
+  form.reset();
+  resetImagePickers(form);
+  if (message) {
+    message.textContent = `${player.characterName} has joined the party.`;
+    message.classList.remove("error");
+  }
+  return { saved: true, campaign };
+}
+
+function renderCampaignSetupPage(campaignId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) {
+    renderNotFoundPage("The requested campaign does not exist in local storage.");
+    return;
+  }
+  if (campaign.setupCompleted) {
+    window.location.href = "/#dashboard";
+    return;
+  }
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell setup-page">
+      <div class="page-hero">
+        <p class="eyebrow">Start campaign</p>
+        <h1>${escapeHtml(campaign.name)}</h1>
+        <p>Create the party one character sheet at a time before entering the live campaign dashboard.</p>
+      </div>
+      <div class="setup-grid">
+        <section class="setup-form-panel">
+          <div class="section-heading"><div><p class="eyebrow">Party builder</p><h2>Add a player character</h2></div></div>
+          ${playerCharacterFormMarkup()}
+        </section>
+        <aside class="setup-summary-panel">
+          <div class="section-heading"><div><p class="eyebrow">Already added</p><h2>Party so far</h2></div></div>
+          <div class="collection-grid setup-player-list" id="added-players-summary" aria-live="polite"></div>
+        </aside>
+      </div>
+    </section>`;
+  const form = document.getElementById("player-character-form");
+  form.dataset.campaignId = campaign.id;
+  initImagePickers();
+  renderAddedPlayersSummary(campaign);
+  document.getElementById("add-another-player").addEventListener("click", async () => {
+    const result = await saveCurrentPlayerFromSetup(form, { requireData: true });
+    if (result.campaign) renderAddedPlayersSummary(result.campaign);
+  });
+  document.getElementById("go-on-campaign").addEventListener("click", async () => {
+    const result = await saveCurrentPlayerFromSetup(form, { requireData: false });
+    if (result.errors) return;
+    const nextCampaign = result.campaign || getCampaign(campaign.id);
+    if (!nextCampaign.players.length) {
+      const message = document.getElementById("player-form-message");
+      if (message) {
+        message.textContent = "Add at least one player character before starting the campaign.";
+        message.classList.add("error");
+      }
+      return;
+    }
+    completeCampaignSetup(campaign.id);
+    window.location.href = "/#dashboard";
+  });
+}
+
+function renderPlayerCharacterPage(campaignId, playerId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) {
+    renderNotFoundPage("The requested campaign does not exist in local storage.");
+    return;
+  }
+  const player = (campaign.players || []).find((item) => item.id === playerId);
+  if (!player) {
+    renderNotFoundPage("That player character is not saved in this campaign.");
+    return;
+  }
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell character-page">
+      <div class="page-hero character-hero">
+        <div>
+          <p class="eyebrow">Player character</p>
+          <h1>${escapeHtml(player.characterName)}</h1>
+          <p>Played by ${escapeHtml(player.playerName)} in ${escapeHtml(campaign.name)}.</p>
+          <a class="btn btn-secondary" href="/#campaigns">Back to campaign dashboard</a>
+        </div>
+        ${player.avatarUrl ? `<img class="character-avatar" src="${escapeHtml(player.avatarUrl)}" alt="${escapeHtml(player.characterName)} avatar" />` : `<div class="card-visual character-avatar-placeholder" aria-hidden="true"><span>${cardVisualLabel(player.characterName)}</span></div>`}
+      </div>
+      <div class="info-grid character-sheet-grid">
+        <article class="content-card"><p class="eyebrow">Class / role</p><h2>${escapeHtml(player.classRole || "Not set")}</h2></article>
+        <article class="content-card"><p class="eyebrow">Level</p><h2>${escapeHtml(player.level || "Not set")}</h2></article>
+        <article class="content-card"><p class="eyebrow">Race / ancestry</p><h2>${escapeHtml(player.race || "Not set")}</h2></article>
+      </div>
+      <article class="content-card prose-card">
+        <p class="eyebrow">Background</p>
+        <p>${escapeHtml(player.background || "No background recorded yet.")}</p>
+        <p class="eyebrow">Description</p>
+        <p>${escapeHtml(player.description || "No short description recorded yet.")}</p>
+        <p class="eyebrow">Notes</p>
+        <p>${escapeHtml(player.notes || "No notes recorded yet.")}</p>
+      </article>
+    </section>`;
+}
+
+function initCampaignRoutes() {
+  const parts = routeParts();
+  if (parts[0] !== "campaigns") return false;
+  const campaignId = parts[1] || DEFAULT_CAMPAIGN_ID;
+  if (parts[2] === "setup") {
+    renderCampaignSetupPage(campaignId);
+    return true;
+  }
+  if (parts[2] === "players" && parts[3]) {
+    renderPlayerCharacterPage(campaignId, parts[3]);
+    return true;
+  }
+  renderNotFoundPage("This campaign route is not available yet.");
+  return true;
+}
+
 function renderCampaignCalendar() {
   const grid = document.getElementById("calendar-grid");
   const title = document.getElementById("calendar-current-title");
@@ -1094,14 +1477,16 @@ function initCalendarPage() {
 
 
 initMobileNavigation();
-initCommandInterface();
-initImagePickers();
-populateCalendarFormDefaults();
-initDashboardForms();
-initCalendarPage();
-initMaterials();
-initAiPlaceholder();
-renderDashboard();
+if (!initCampaignRoutes()) {
+  initCommandInterface();
+  initImagePickers();
+  populateCalendarFormDefaults();
+  initDashboardForms();
+  initCalendarPage();
+  initMaterials();
+  initAiPlaceholder();
+  renderDashboard();
+}
 
 /*
 Backend roadmap summary:

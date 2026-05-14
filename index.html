@@ -8,8 +8,8 @@
       content="DnDucks is a polished Dungeon Master command center for campaigns, sessions, NPCs, encounters, notes, maps, items, and live play."
     />
     <title>DnDucks | Dungeon Master Command Center</title>
-    <link rel="stylesheet" href="assets/styles.css" />
-    <script src="assets/script.js" defer></script>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script src="/assets/script.js" defer></script>
   </head>
   <body data-page="dashboard">
     <header class="topbar">
@@ -47,11 +47,14 @@
             <span class="feature-rune">DD</span>
           </div>
           <div class="feature-card-body">
-            <div class="card-kicker">
-              <span class="status-badge status-active">Active</span>
-              <span>Local workspace</span>
+            <div class="campaign-title-row">
+              <div class="card-kicker">
+                <span class="status-badge status-active">Active</span>
+                <span>Local workspace</span>
+              </div>
+              <a class="btn btn-primary start-campaign-button" id="start-campaign-button" href="/campaigns/local/setup">START CAMPAIGN</a>
             </div>
-            <h2>Your campaign</h2>
+            <h2 id="campaign-widget-title">Your campaign</h2>
             <p>
               Create campaign notes, NPCs, encounters, items, and events below. Dashboard widgets appear only after
               you save them.
@@ -60,6 +63,7 @@
               <div><dt>Notes</dt><dd id="stat-notes">0</dd></div>
               <div><dt>NPCs</dt><dd id="stat-characters">0</dd></div>
               <div><dt>Events</dt><dd id="stat-events">0</dd></div>
+              <div><dt>Players</dt><dd id="stat-players">0</dd></div>
             </dl>
           </div>
         </aside>
