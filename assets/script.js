@@ -230,9 +230,6 @@ const IMAGE_POSITION_OPTIONS = [
   { value: "left center", label: "Left" },
   { value: "right center", label: "Right" },
 ];
-const FALLBACK_IMAGE_MAX_SIDE = 1200;
-const FALLBACK_IMAGE_QUALITY = 0.82;
-
 function imagePositionOptionsMarkup(selected = "center center") {
   return IMAGE_POSITION_OPTIONS.map((option) => (
     `<option value="${escapeHtml(option.value)}"${option.value === selected ? " selected" : ""}>${escapeHtml(option.label)}</option>`
@@ -258,51 +255,30 @@ function imageMetadataFromInput(fileInput) {
 }
 
 async function uploadImageFile(file, title = "Widget image") {
-  if (!file) return { imageUrl: "", imageStorage: "none" };
+  if (!file) return { imageUrl: "", imageDataUrl: "", imageStorage: "none" };
   if (!file.type.startsWith("image/")) {
     throw new Error("Widget images must be image files.");
   }
 
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("title", title || file.name);
+  formData.append("category", "image");
+
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("title", title || file.name);
-    formData.append("category", "image");
     const material = await fetchJson("/api/materials/upload", { method: "POST", body: formData });
     return {
       imageUrl: material.publicUrl || material.downloadUrl,
+      imageDataUrl: "",
       imageMaterialId: material.id,
       imageStorage: "local-file",
     };
   } catch (error) {
-    console.warn("Local image upload failed; using compressed browser fallback.", error);
-    const imageDataUrl = await compressImageToDataUrl(file);
-    return { imageDataUrl, imageStorage: "browser-fallback" };
+    console.warn("Local image upload failed; widget image was not saved.", error);
+    throw new Error(
+      "Could not save the selected image. Start the local backend with npm start and try again; images are no longer saved in browser storage."
+    );
   }
-}
-
-function compressImageToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("error", () => reject(new Error("Could not read the selected image.")));
-    reader.addEventListener("load", () => {
-      const image = new Image();
-      image.addEventListener("error", () => reject(new Error("Could not prepare the selected image.")));
-      image.addEventListener("load", () => {
-        const scale = Math.min(1, FALLBACK_IMAGE_MAX_SIDE / Math.max(image.naturalWidth || 1, image.naturalHeight || 1));
-        const width = Math.max(1, Math.round((image.naturalWidth || 1) * scale));
-        const height = Math.max(1, Math.round((image.naturalHeight || 1) * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const context = canvas.getContext("2d");
-        context.drawImage(image, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/webp", FALLBACK_IMAGE_QUALITY));
-      });
-      image.src = reader.result;
-    });
-    reader.readAsDataURL(file);
-  });
 }
 
 async function imageUploadPayload(fileInput, title) {
