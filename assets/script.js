@@ -223,70 +223,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-const IMAGE_POSITION_OPTIONS = [
-  { value: "center center", label: "Center" },
-  { value: "center top", label: "Top" },
-  { value: "center bottom", label: "Bottom" },
-  { value: "left center", label: "Left" },
-  { value: "right center", label: "Right" },
-];
-function imagePositionOptionsMarkup(selected = "center center") {
-  return IMAGE_POSITION_OPTIONS.map((option) => (
-    `<option value="${escapeHtml(option.value)}"${option.value === selected ? " selected" : ""}>${escapeHtml(option.label)}</option>`
-  )).join("");
-}
-
-function selectedImagePosition(root) {
-  return root?.querySelector?.("[data-image-position]")?.value || "center center";
-}
-
-function imageSource(entry = {}) {
-  return entry.imageUrl || entry.imageDataUrl || "";
-}
-
-function imageStyle(entry = {}) {
-  return `object-position: ${escapeHtml(entry.imageObjectPosition || "center center")};`;
-}
-
-function imageMetadataFromInput(fileInput) {
-  return {
-    imageObjectPosition: selectedImagePosition(fileInput?.closest?.("[data-image-picker]")),
-  };
-}
-
-async function uploadImageFile(file, title = "Widget image") {
-  if (!file) return { imageUrl: "", imageDataUrl: "", imageStorage: "none" };
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Widget images must be image files.");
-  }
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("title", title || file.name);
-  formData.append("category", "image");
-
-  try {
-    const material = await fetchJson("/api/materials/upload", { method: "POST", body: formData });
-    return {
-      imageUrl: material.publicUrl || material.downloadUrl,
-      imageDataUrl: "",
-      imageMaterialId: material.id,
-      imageStorage: "local-file",
-    };
-  } catch (error) {
-    console.warn("Local image upload failed; widget image was not saved.", error);
-    throw new Error(
-      "Could not save the selected image. Start the local backend with npm start and try again; images are no longer saved in browser storage."
-    );
-  }
-}
-
-async function imageUploadPayload(fileInput, title) {
-  const file = fileInput?.files?.[0];
-  if (!file) return { imageUrl: "", imageDataUrl: "", ...imageMetadataFromInput(fileInput) };
-  return { ...(await uploadImageFile(file, title || file.name)), ...imageMetadataFromInput(fileInput) };
-}
-
 function displayText(value, fallback) {
   const text = String(value ?? "").trim();
   return text || fallback;
@@ -295,31 +231,6 @@ function displayText(value, fallback) {
 function firstDisplayText(values, fallback) {
   const found = values.find((value) => String(value ?? "").trim());
   return displayText(found, fallback);
-}
-
-function widgetImageMarkup(entry, label) {
-  const title = displayText(label, "Widget");
-  const alt = escapeHtml(`${title} image`);
-  const source = imageSource(entry);
-  const imageActionLabel = source ? `Change image for ${title}` : `Add image for ${title}`;
-  const actionAttributes = entry.id
-    ? `button type="button" data-image-upload-id="${escapeHtml(entry.id)}" aria-label="${escapeHtml(imageActionLabel)}" title="${escapeHtml(imageActionLabel)}"`
-    : `div aria-label="No image upload target available"`;
-  const closeTag = entry.id ? "button" : "div";
-
-  if (source) {
-    return `
-    <${actionAttributes} class="widget-media widget-media-action widget-media-filled">
-      <img src="${escapeHtml(source)}" alt="${alt}" loading="lazy" style="${imageStyle(entry)}" />
-      <span class="widget-media-overlay">Change image</span>
-    </${closeTag}>`;
-  }
-
-  return `
-    <${actionAttributes} class="widget-media widget-media-empty widget-media-action">
-      <span aria-hidden="true">＋</span>
-      <small>Add image</small>
-    </${closeTag}>`;
 }
 
 function widgetDescriptionMarkup(value) {
@@ -383,10 +294,6 @@ function formatUploadedAt(value) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 }
 
-function isPreviewableImage(material) {
-  return String(material.mimeType || "").startsWith("image/");
-}
-
 function statusBadgeClass(status) {
   return {
     active: "status-active",
@@ -405,166 +312,6 @@ function statusLabel(status) {
   }[status] || "Active";
 }
 
-function resetImagePickers(root) {
-  root.querySelectorAll("[data-image-picker]").forEach((picker) => {
-    const status = picker.querySelector("[data-image-status]");
-    const preview = picker.querySelector("[data-image-preview]");
-    const position = picker.querySelector("[data-image-position]");
-    if (status) status.textContent = "No image chosen";
-    if (position) position.value = "center center";
-    if (preview) {
-      preview.removeAttribute("src");
-      preview.hidden = true;
-      preview.style.objectPosition = "center center";
-    }
-  });
-}
-
-function initImagePickers() {
-  document.querySelectorAll("[data-image-picker]").forEach((picker) => {
-    const input = picker.querySelector('input[type="file"]');
-    const trigger = picker.querySelector("[data-image-trigger]");
-    const status = picker.querySelector("[data-image-status]");
-    const preview = picker.querySelector("[data-image-preview]");
-    if (!picker.querySelector("[data-image-position]")) {
-      picker.insertAdjacentHTML("beforeend", `<label class="image-position-control">Visible section<select data-image-position>${imagePositionOptionsMarkup()}</select></label>`);
-    }
-    const position = picker.querySelector("[data-image-position]");
-    if (!input || !trigger) return;
-
-    if (position && preview) {
-      position.addEventListener("change", () => { preview.style.objectPosition = position.value; });
-    }
-
-    trigger.addEventListener("click", () => input.click());
-    input.addEventListener("change", () => {
-      const file = input.files?.[0];
-      if (!file) {
-        if (status) status.textContent = "No image chosen";
-        if (preview) {
-          preview.removeAttribute("src");
-          preview.hidden = true;
-        }
-        return;
-      }
-
-      if (status) status.textContent = file.name;
-      if (preview && file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.addEventListener("load", () => {
-          preview.src = reader.result;
-          preview.style.objectPosition = selectedImagePosition(picker);
-          preview.hidden = false;
-        });
-        reader.readAsDataURL(file);
-      }
-    });
-  });
-}
-
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
-  const text = await response.text();
-  const payload = text ? JSON.parse(text) : null;
-  if (!response.ok) {
-    throw new Error(payload?.error || "Request failed.");
-  }
-  return payload;
-}
-
-function cardVisualLabel(value) {
-  return escapeHtml(
-    String(value || "DM")
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-  );
-}
-
-function initMobileNavigation() {
-  const toggle = document.querySelector(".mobile-menu-toggle");
-  const nav = document.querySelector(".topnav");
-  if (!toggle || !nav) return;
-
-  toggle.addEventListener("click", () => {
-    const isOpen = nav.classList.toggle("is-open");
-    toggle.setAttribute("aria-expanded", String(isOpen));
-  });
-}
-
-function initCommandInterface() {
-  const search = document.getElementById("global-search");
-  const filterToggle = document.getElementById("filter-toggle");
-  const filterPanel = document.getElementById("filter-panel");
-  const statusButtons = document.querySelectorAll("[data-status-filter]");
-  let activeStatus = "all";
-
-  function applyFilters() {
-    const query = search ? search.value.trim().toLowerCase() : "";
-    document.querySelectorAll("[data-searchable]").forEach((card) => {
-      const cardStatus = card.dataset.status || "active";
-      const matchesStatus = activeStatus === "all" || cardStatus === activeStatus;
-      const matchesQuery = !query || (card.dataset.searchable || "").includes(query);
-      card.classList.toggle("is-filtered-out", !matchesStatus || !matchesQuery);
-    });
-  }
-
-  if (search) search.addEventListener("input", applyFilters);
-  document.addEventListener("dashboard:rendered", applyFilters);
-
-  statusButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      activeStatus = button.dataset.statusFilter || "all";
-      statusButtons.forEach((item) => item.classList.toggle("is-active", item === button));
-      applyFilters();
-    });
-  });
-
-  if (filterToggle && filterPanel) {
-    filterToggle.addEventListener("click", () => {
-      const isHidden = filterPanel.hasAttribute("hidden");
-      filterPanel.toggleAttribute("hidden", !isHidden);
-      filterToggle.setAttribute("aria-expanded", String(isHidden));
-    });
-  }
-
-  document.querySelectorAll(".category-pill").forEach((link) => {
-    link.addEventListener("click", () => {
-      document.querySelectorAll(".category-pill").forEach((item) => item.classList.remove("is-active"));
-      link.classList.add("is-active");
-    });
-  });
-}
-
-function chooseWidgetImage(title = "Widget image") {
-  return new Promise((resolve, reject) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/jpeg,image/png,image/webp,image/gif";
-    const position = document.createElement("select");
-    position.innerHTML = imagePositionOptionsMarkup();
-    input.addEventListener("change", async () => {
-      try {
-        if (!input.files?.[0]) {
-          resolve(null);
-          return;
-        }
-        const choice = window.prompt("Which section should remain visible? Type: center, top, bottom, left, or right.", "center");
-        const normalized = String(choice || "center").trim().toLowerCase();
-        const option = IMAGE_POSITION_OPTIONS.find((item) => item.label.toLowerCase() === normalized || item.value === normalized);
-        position.value = option?.value || "center center";
-        resolve({ ...(await uploadImageFile(input.files[0], title)), imageObjectPosition: position.value });
-      } catch (error) {
-        reject(error);
-      }
-    }, { once: true });
-    input.click();
-  });
-}
-
 function renderCollection({ key, listId, emptyText, template }) {
   const list = document.getElementById(listId);
   if (!list) return;
@@ -577,23 +324,6 @@ function renderCollection({ key, listId, emptyText, template }) {
 
   list.innerHTML = collection.map((entry) => template(entry)).join("");
 
-  list.querySelectorAll("[data-image-upload-id]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      try {
-        const currentEntry = getStoredCollection(key).find((entry) => entry.id === button.dataset.imageUploadId);
-        const image = await chooseWidgetImage(currentEntry?.title || currentEntry?.name || "Widget image");
-        if (!image) return;
-        const nextCollection = getStoredCollection(key).map((entry) => (
-          entry.id === button.dataset.imageUploadId ? { ...entry, ...image } : entry
-        ));
-        saveCollection(key, nextCollection);
-        renderDashboard();
-        renderCampaignCalendar();
-      } catch (error) {
-        alert(error.message);
-      }
-    });
-  });
 
   list.querySelectorAll("[data-delete-id]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -619,7 +349,6 @@ function renderDashboard() {
       const searchable = textForSearch([title, tier, description, tags.join(" "), "encounter scene combat"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(encounter)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
-          ${widgetImageMarkup(encounter, title)}
           <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(tier)}</span></div>
           <h3>${escapeHtml(title)}</h3>
           ${widgetDescriptionMarkup(description)}
@@ -642,7 +371,6 @@ ${widgetDeleteActionMarkup(encounter, "Delete encounter")}
       const searchable = textForSearch([name, type, description, tags.join(" "), "location atlas place faction"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(location)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
-          ${widgetImageMarkup(location, name)}
           <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(type)}</span></div>
           <h3>${escapeHtml(name)}</h3>
           ${widgetDescriptionMarkup(description)}
@@ -660,7 +388,6 @@ ${widgetDeleteActionMarkup(location, "Delete location")}
       const searchable = textForSearch([note.title, note.category, note.content, note.createdAt, "note campaign wiki"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
-          ${widgetImageMarkup(note, note.title)}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
@@ -678,7 +405,6 @@ ${widgetDeleteActionMarkup(note, "Delete note")}
       const searchable = textForSearch([character.name, character.role, character.faction, character.notes, "npc character"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(character)} data-searchable="${escapeHtml(searchable)}" data-status="hidden">
-          ${widgetImageMarkup(character, character.name)}
           <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>${escapeHtml(character.role)}</span></div>
           <h3>${escapeHtml(character.name)}</h3>
           ${widgetDescriptionMarkup(character.notes)}
@@ -698,7 +424,6 @@ ${widgetDeleteActionMarkup(character, "Delete NPC")}
       const searchable = textForSearch([item.name, item.type, item.description, "item homebrew monster loot"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
-          ${widgetImageMarkup(item, item.name)}
           <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
           <h3>${escapeHtml(item.name)}</h3>
           ${widgetDescriptionMarkup(item.description)}
@@ -716,7 +441,6 @@ ${widgetDeleteActionMarkup(item, "Delete item")}
       const searchable = textForSearch([event.title, eventDateLabel(event), event.description, "session calendar event"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
-          ${widgetImageMarkup(event, event.title)}
           <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
           <h3>${escapeHtml(event.title)}</h3>
           ${widgetDescriptionMarkup(event.description)}
@@ -784,7 +508,6 @@ function wireForm(formId, key, buildEntry) {
       collection.unshift(await buildEntry());
       saveCollection(key, collection);
       form.reset();
-      resetImagePickers(form);
       populateCalendarFormDefaults();
       renderDashboard();
       renderCampaignCalendar();
@@ -802,7 +525,6 @@ function initDashboardForms() {
     status: document.getElementById("encounter-status").value,
     description: document.getElementById("encounter-description").value.trim(),
     tags: document.getElementById("encounter-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
-    ...(await imageUploadPayload(document.getElementById("encounter-image"), document.getElementById("encounter-title").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -813,7 +535,6 @@ function initDashboardForms() {
     status: document.getElementById("location-status").value,
     description: document.getElementById("location-description").value.trim(),
     tags: document.getElementById("location-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
-    ...(await imageUploadPayload(document.getElementById("location-image"), document.getElementById("location-name").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -822,7 +543,6 @@ function initDashboardForms() {
     title: document.getElementById("note-title").value.trim(),
     category: document.getElementById("note-category").value,
     content: document.getElementById("note-content").value.trim(),
-    ...(await imageUploadPayload(document.getElementById("note-image"), document.getElementById("note-title").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -832,7 +552,6 @@ function initDashboardForms() {
     role: document.getElementById("character-role").value.trim(),
     faction: document.getElementById("character-faction").value.trim(),
     notes: document.getElementById("character-notes").value.trim(),
-    ...(await imageUploadPayload(document.getElementById("character-image"), document.getElementById("character-name").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -841,7 +560,6 @@ function initDashboardForms() {
     name: document.getElementById("item-name").value.trim(),
     type: document.getElementById("item-type").value,
     description: document.getElementById("item-description").value.trim(),
-    ...(await imageUploadPayload(document.getElementById("item-image"), document.getElementById("item-name").value.trim())),
     createdAt: readableDate(),
   }));
 
@@ -857,7 +575,6 @@ function initDashboardForms() {
       day,
       year,
       description: document.getElementById("event-description").value.trim(),
-      ...(await imageUploadPayload(document.getElementById("event-image"), document.getElementById("event-title").value.trim())),
       createdAt: readableDate(),
     };
     event.date = eventDateLabel(event, settings);
@@ -874,15 +591,13 @@ async function loadMaterials() {
     const materials = await fetchJson("/api/materials");
     if (count) count.textContent = `${materials.length} saved material${materials.length === 1 ? "" : "s"}`;
     if (!materials.length) {
-      list.innerHTML = `<div class="empty-state">No uploaded materials yet. Upload a map, NPC portrait, PDF handout, or campaign note to persist it locally.</div>`;
+      list.innerHTML = `<div class="empty-state">No uploaded materials yet. Upload a PDF handout, note, or data file to persist it locally.</div>`;
       return;
     }
 
     list.innerHTML = materials.map((material) => {
-      const searchable = textForSearch([material.title, material.originalFilename, material.category, material.description, material.tags?.join(" "), "material file map handout"]);
-      const preview = isPreviewableImage(material)
-        ? `<a class="material-preview" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(material.downloadUrl)}" alt="Preview of ${escapeHtml(material.title || material.originalFilename)}" loading="lazy" /></a>`
-        : `<a class="material-preview material-preview-file" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><span>${escapeHtml((material.originalFilename || "file").split(".").pop().toUpperCase())}</span></a>`;
+      const searchable = textForSearch([material.title, material.originalFilename, material.category, material.description, material.tags?.join(" "), "material file handout note data"]);
+      const preview = `<a class="material-preview material-preview-file" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><span>${escapeHtml((material.originalFilename || "file").split(".").pop().toUpperCase())}</span></a>`;
       return `
         <article class="content-card entry-card material-card" data-widget-origin="user" data-searchable="${escapeHtml(searchable)}" data-status="active">
           ${preview}
@@ -1016,9 +731,7 @@ function openEventDetail(eventId) {
   if (!modal || !body) return;
   const event = getStoredCollection("events").find((item) => item.id === eventId);
   if (!event) return;
-  const source = imageSource(event);
   body.innerHTML = `
-    ${source ? `<img class="event-detail-image" src="${escapeHtml(source)}" alt="${escapeHtml(event.title)} image" style="${imageStyle(event)}" />` : ""}
     <div class="card-kicker"><span class="status-badge status-prepared">Calendar event</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
     <h2 id="event-detail-title">${escapeHtml(event.title)}</h2>
     <p>${escapeHtml(event.description)}</p>
@@ -1096,7 +809,6 @@ function initCalendarPage() {
 
 initMobileNavigation();
 initCommandInterface();
-initImagePickers();
 populateCalendarFormDefaults();
 initDashboardForms();
 initCalendarPage();

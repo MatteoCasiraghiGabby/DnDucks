@@ -234,13 +234,6 @@
               <label>Status<select id="encounter-status" required><option value="prepared">Prepared</option><option value="active">Active</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
               <label>Tags<input id="encounter-tags" type="text" placeholder="Medium, Blackfen, Puzzle" /></label>
               <label class="full-width">Description<textarea id="encounter-description" rows="3" placeholder="Creatures, hazards, clues, terrain, and rewards..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="encounter-image">Optional encounter image</label>
-                <input id="encounter-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="encounter-image">Choose image</button>
-                <span class="image-picker-status" data-image-status>No image chosen</span>
-                <img class="image-picker-preview" data-image-preview alt="Selected encounter image preview" hidden />
-              </div>
               <button class="btn btn-primary" type="submit">Save Encounter</button>
             </form>
             <div class="collection-grid" id="encounters-list" aria-live="polite"></div>
@@ -281,13 +274,6 @@
               <label>Status<select id="location-status" required><option value="active">Active</option><option value="prepared">Prepared</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
               <label>Tags<input id="location-tags" type="text" placeholder="Routes, Hideout, Marsh" /></label>
               <label class="full-width">Description<textarea id="location-description" rows="3" placeholder="Terrain, factions, secrets, routes, and hooks..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="location-image">Optional location image</label>
-                <input id="location-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="location-image">Choose image</button>
-                <span class="image-picker-status" data-image-status>No image chosen</span>
-                <img class="image-picker-preview" data-image-preview alt="Selected location image preview" hidden />
-              </div>
               <button class="btn btn-primary" type="submit">Save Location</button>
             </form>
             <div class="collection-grid" id="locations-list" aria-live="polite"></div>
@@ -305,13 +291,6 @@
               <label>Note title<input id="note-title" name="title" type="text" placeholder="The baron's hidden pact" required /></label>
               <label>Category<select id="note-category" name="category" required><option>Session Note</option><option>NPC</option><option>Location</option><option>Quest</option><option>Lore</option><option>Consequence</option></select></label>
               <label class="full-width">Note content<textarea id="note-content" name="content" rows="4" placeholder="Record clues, decisions, loose threads, and future consequences..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="note-image">Optional widget image</label>
-                <input id="note-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="note-image">Choose image</button>
-                <span class="image-picker-status" data-image-status>No image chosen</span>
-                <img class="image-picker-preview" data-image-preview alt="Selected note image preview" hidden />
-              </div>
               <button class="btn btn-primary" type="submit">Save Note</button>
             </form>
             <div class="linking-concept panel">
@@ -333,13 +312,6 @@
               <label>Role<input id="character-role" type="text" placeholder="Smuggler Queen" required /></label>
               <label>Faction<input id="character-faction" type="text" placeholder="The Gilded Fang" /></label>
               <label class="full-width">Notes<textarea id="character-notes" rows="3" placeholder="Motives, secrets, relationship to the party..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="character-image">Optional portrait or symbol</label>
-                <input id="character-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="character-image">Choose image</button>
-                <span class="image-picker-status" data-image-status>No image chosen</span>
-                <img class="image-picker-preview" data-image-preview alt="Selected character image preview" hidden />
-              </div>
               <button class="btn btn-primary" type="submit">Save Character</button>
             </form>
             <div class="collection-grid" id="characters-list" aria-live="polite"></div>
@@ -351,13 +323,6 @@
               <label>Item or rule name<input id="item-name" type="text" placeholder="Moonlit Dagger" required /></label>
               <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
               <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Mechanical effects, lore, rarity, hooks..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="item-image">Optional item or monster image</label>
-                <input id="item-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="item-image">Choose image</button>
-                <span class="image-picker-status" data-image-status>No image chosen</span>
-                <img class="image-picker-preview" data-image-preview alt="Selected item image preview" hidden />
-              </div>
               <button class="btn btn-primary" type="submit">Save Item</button>
             </form>
             <div class="collection-grid" id="items-list" aria-live="polite"></div>
@@ -407,16 +372,15 @@
               <span class="tag" id="material-count">Loading files...</span>
             </div>
             <form class="panel form-grid" id="material-form">
-              <label class="file-picker full-width">Upload map, portrait, handout, note, or data file
-                <input id="material-file" name="file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,.md,.json,.csv,image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,text/markdown,application/json,text/csv" required />
+              <label class="file-picker full-width">Upload handout, note, PDF, or data file
+                <input id="material-file" name="file" type="file" accept=".pdf,.txt,.md,.json,.csv,application/pdf,text/plain,text/markdown,application/json,text/csv" required />
               </label>
-              <label>Title<input id="material-title" name="title" type="text" placeholder="Blackfen route map" /></label>
+              <label>Title<input id="material-title" name="title" type="text" placeholder="Council handout" /></label>
               <label>Category
                 <select id="material-category" name="category">
-                  <option value="map">Map</option>
                   <option value="handout">Handout</option>
-                  <option value="npc_image">NPC image</option>
                   <option value="note">Note</option>
+                  <option value="data">Data</option>
                   <option value="other">Other</option>
                 </select>
               </label>
