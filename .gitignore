@@ -4,3 +4,6 @@ npm-debug.log*
 .env
 storage/uploads/*
 !storage/uploads/.gitkeep
+
+uploads/images/*
+!uploads/images/.gitkeep

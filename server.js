@@ -5,10 +5,12 @@ const path = require("node:path");
 loadEnvFile();
 
 const { MaterialStore, MAX_FILE_SIZE_BYTES, resolveUploadDir } = require("./src/materialStore");
+const { ImageStorageService, IMAGE_UPLOAD_MAX_BYTES, IMAGE_UPLOAD_MAX_FILES, resolveImageUploadDir } = require("./src/imageStorageService");
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = process.cwd();
 const store = new MaterialStore(resolveUploadDir());
+const imageStore = new ImageStorageService(resolveImageUploadDir());
 
 const STATIC_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -24,12 +26,17 @@ const STATIC_TYPES = {
   ".ico": "image/x-icon",
 };
 
-async function createServer(materialStore = store) {
-  await materialStore.ensureReady();
+async function createServer(materialStore = store, uploadedImageStore = imageStore) {
+  await Promise.all([materialStore.ensureReady(), uploadedImageStore.ensureReady()]);
 
   return http.createServer(async (req, res) => {
     try {
       const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+      if (requestUrl.pathname === "/api/uploads/images") {
+        await handleImageUploadsApi(req, res, uploadedImageStore);
+        return;
+      }
 
       if (requestUrl.pathname.startsWith("/api/materials")) {
         await handleMaterialsApi(req, res, requestUrl, materialStore);
@@ -37,16 +44,33 @@ async function createServer(materialStore = store) {
       }
 
       if (req.method === "GET" || req.method === "HEAD") {
-        await serveStatic(req, res, requestUrl);
+        if (requestUrl.pathname.startsWith("/uploads/images/")) {
+          await serveUploadedImage(req, res, requestUrl, uploadedImageStore);
+        } else {
+          await serveStatic(req, res, requestUrl);
+        }
         return;
       }
 
       sendJson(res, 405, { error: "Method not allowed." });
     } catch (error) {
       if (!error.statusCode || error.statusCode >= 500) console.error(error);
-      sendJson(res, error.statusCode || 500, { error: error.message || "Unexpected server error." });
+      sendJson(res, error.statusCode || 500, { error: error.message || "Unexpected server error.", ...(error.code ? { code: error.code } : {}) });
     }
   });
+}
+
+async function handleImageUploadsApi(req, res, uploadedImageStore) {
+  if (req.method !== "POST") {
+    sendJson(res, 405, { error: "Method not allowed.", code: "METHOD_NOT_ALLOWED" });
+    return;
+  }
+
+  const { files } = await parseMultipart(req, {
+    maxBodySize: IMAGE_UPLOAD_MAX_BYTES * IMAGE_UPLOAD_MAX_FILES + 1024 * 1024,
+  });
+  const images = await uploadedImageStore.saveMany(files);
+  sendJson(res, 201, { images, count: images.length });
 }
 
 async function handleMaterialsApi(req, res, requestUrl, materialStore) {
@@ -107,7 +131,7 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
   sendJson(res, 404, { error: "API route not found." });
 }
 
-async function parseMultipart(req) {
+async function parseMultipart(req, options = {}) {
   const contentType = req.headers["content-type"] || "";
   const boundaryMatch = contentType.match(/boundary=(?:(?:"([^"]+)")|([^;]+))/i);
   if (!boundaryMatch) {
@@ -117,7 +141,7 @@ async function parseMultipart(req) {
   const boundary = boundaryMatch[1] || boundaryMatch[2];
   const chunks = [];
   let total = 0;
-  const maxBodySize = MAX_FILE_SIZE_BYTES + 1024 * 1024;
+  const maxBodySize = options.maxBodySize || MAX_FILE_SIZE_BYTES + 1024 * 1024;
 
   for await (const chunk of req) {
     total += chunk.length;
@@ -130,6 +154,7 @@ async function parseMultipart(req) {
   const body = Buffer.concat(chunks);
   const delimiter = Buffer.from(`--${boundary}`);
   const fields = {};
+  const files = [];
   let file;
   let cursor = body.indexOf(delimiter);
 
@@ -154,12 +179,14 @@ async function parseMultipart(req) {
 
     if (name) {
       if (filename && filename[1]) {
-        file = {
+        const parsedFile = {
           fieldName: name[1],
           originalFilename: filename[1],
           mimeType: type ? type[1].trim().toLowerCase() : "application/octet-stream",
           buffer: content,
         };
+        files.push(parsedFile);
+        if (!file) file = parsedFile;
       } else {
         fields[name[1]] = content.toString("utf8");
       }
@@ -167,7 +194,46 @@ async function parseMultipart(req) {
     cursor = nextDelimiter;
   }
 
-  return { file, fields };
+  return { file, files, fields };
+}
+
+async function serveUploadedImage(req, res, requestUrl, uploadedImageStore) {
+  const encodedName = requestUrl.pathname.slice("/uploads/images/".length);
+  let savedFilename;
+  try {
+    savedFilename = decodeURIComponent(encodedName);
+  } catch {
+    sendText(res, 404, "Not found");
+    return;
+  }
+
+  if (!/^[0-9]+-[0-9a-f-]+\.(?:jpg|jpeg|png|webp|gif)$/i.test(savedFilename)) {
+    sendText(res, 404, "Not found");
+    return;
+  }
+
+  const filePath = uploadedImageStore.resolveStoredPath(savedFilename);
+  try {
+    const stats = await fsp.stat(filePath);
+    if (!stats.isFile()) {
+      sendText(res, 404, "Not found");
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": STATIC_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream",
+      "Content-Length": stats.size,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
+    });
+    if (req.method === "HEAD") res.end();
+    else fs.createReadStream(filePath).pipe(res);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      sendText(res, 404, "Not found");
+      return;
+    }
+    throw error;
+  }
 }
 
 async function streamMaterial(res, material, filePath) {
@@ -252,6 +318,7 @@ if (require.main === module) {
     server.listen(PORT, () => {
       console.log(`DnDucks running at http://localhost:${PORT}`);
       console.log(`Campaign material uploads stored in ${resolveUploadDir()}`);
+      console.log(`Image uploads stored in ${resolveImageUploadDir()}`);
     });
   });
 }
