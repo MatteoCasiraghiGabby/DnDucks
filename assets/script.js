@@ -767,44 +767,12 @@ function initAiPlaceholder() {
 }
 
 
-function initContactForm() {
-  const form = document.getElementById("contact-form");
-  const status = document.getElementById("contact-message-status");
-  if (!form || !status) return;
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    status.classList.remove("error");
-
-    const name = document.getElementById("contact-name").value.trim();
-    const email = document.getElementById("contact-email").value.trim();
-    const subject = document.getElementById("contact-subject").value.trim();
-    const message = document.getElementById("contact-message").value.trim();
-    const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    if (!name || !email || !subject || !message) {
-      status.textContent = "Please fill out every field before sending.";
-      status.classList.add("error");
-      return;
-    }
-    if (!emailLooksValid) {
-      status.textContent = "Please enter a valid email address.";
-      status.classList.add("error");
-      return;
-    }
-
-    status.textContent = "Success! This Phase 1 prototype validated your message locally. A backend will send it later.";
-    form.reset();
-  });
-}
-
 initMobileNavigation();
 initCommandInterface();
 initImagePickers();
 initDashboardForms();
 initMaterials();
 initAiPlaceholder();
-initContactForm();
 renderDashboard();
 
 /*
