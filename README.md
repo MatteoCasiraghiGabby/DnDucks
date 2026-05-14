@@ -58,9 +58,9 @@ The default maximum file size is 10 MB. Override it with `UPLOAD_MAX_BYTES`.
 - `GET /api/materials/:id/download` streams the registered file only.
 - `DELETE /api/materials/:id` removes metadata and deletes the stored file.
 
-## Reusable image uploads
+## Widget image uploads
 
-DnDucks also includes a dedicated image upload system for reusable widget art and preferred campaign images.
+DnDucks also includes a dedicated image upload system for widget art.
 
 ### Storage location
 
@@ -107,24 +107,21 @@ Example response:
 }
 ```
 
-### Frontend reuse
+### Frontend use
 
 The frontend uses one vanilla JavaScript upload service, `uploadImages(files)`, which sends selected files with `FormData` to `/api/uploads/images`. Widget forms use the same image picker pattern and now persist uploaded image URLs instead of embedding new images as base64 data.
 
-To place a reusable image picker in a page or widget, follow the existing `data-image-picker` pattern:
+To place an image picker in a page or widget, follow the existing `data-image-picker` pattern:
 
 ```html
-<div class="file-picker image-picker" data-image-picker data-max-files="12">
-  <label for="my-images">Upload preferred images</label>
-  <input id="my-images" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
-  <button class="btn btn-secondary" type="button" data-image-trigger="my-images">Choose images</button>
-  <button class="btn btn-primary" type="button" data-image-upload-trigger>Upload selected</button>
+<div class="file-picker image-picker" data-image-picker>
+  <label for="my-image">Optional widget image</label>
+  <input id="my-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+  <button class="btn btn-secondary" type="button" data-image-trigger="my-image">Choose image</button>
   <span class="image-picker-status" data-image-status aria-live="polite">No image chosen</span>
-  <div data-image-preview-grid></div>
+  <img class="image-picker-preview" data-image-preview alt="Selected image preview" hidden />
 </div>
 ```
-
-Use the Preferred Images section in the Materials area to upload and manage reusable maps, NPC portraits, symbols, and item art. The section stores the returned image metadata in local browser storage so it can be displayed consistently with `imagePreviewGridMarkup()` and placed into future widgets without duplicating upload logic.
 
 ## Development-only storage note
 

@@ -8,7 +8,6 @@ const STORAGE_KEYS = {
   events: "dnducks.events",
   calendarSettings: "dnducks.calendarSettings",
   weather: "dnducks.weather",
-  preferredImages: "dnducks.preferredImages",
 };
 
 const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events"]);
@@ -301,60 +300,15 @@ function statusLabel(status) {
   }[status] || "Active";
 }
 
-function getPreferredImages() {
-  return getStoredCollection("preferredImages");
-}
-
-function savePreferredImages(images) {
-  saveCollection("preferredImages", images);
-}
-
-function imagePreviewGridMarkup(images, options = {}) {
-  const emptyText = options.emptyText || "No preferred images yet.";
-  const removeAttr = options.removable ? " data-preferred-image-remove" : "";
-  if (!images.length) return `<div class="empty-state image-grid-empty">${escapeHtml(emptyText)}</div>`;
-  return `
-    <div class="image-preview-grid">
-      ${images.map((image, index) => `
-        <figure class="image-preview-card">
-          <img src="${escapeHtml(image.url)}" alt="${escapeHtml(image.alt || image.originalFilename || `Uploaded image ${index + 1}`)}" loading="lazy" />
-          <figcaption>
-            <span>${escapeHtml(image.originalFilename || image.savedFilename || "Uploaded image")}</span>
-            <small>${escapeHtml(formatBytes(image.fileSize))}</small>
-          </figcaption>
-          ${options.removable ? `<button class="btn btn-danger image-remove-button" type="button"${removeAttr}="${escapeHtml(image.url)}" aria-label="Remove ${escapeHtml(image.originalFilename || "image")}">Remove</button>` : ""}
-        </figure>`).join("")}
-    </div>`;
-}
-
-function renderPreferredImagesSection() {
-  const section = document.querySelector("[data-preferred-images-section]");
-  if (!section) return;
-  const grid = section.querySelector("[data-preferred-images-grid]");
-  const count = section.querySelector("[data-preferred-images-count]");
-  const images = getPreferredImages();
-  if (count) count.textContent = `${images.length} preferred image${images.length === 1 ? "" : "s"}`;
-  if (!grid) return;
-  grid.innerHTML = imagePreviewGridMarkup(images, { removable: true, emptyText: "Upload preferred NPC portraits, maps, symbols, or item art to reuse in widgets." });
-  grid.querySelectorAll("[data-preferred-image-remove]").forEach((button) => {
-    button.addEventListener("click", () => {
-      savePreferredImages(getPreferredImages().filter((image) => image.url !== button.dataset.preferredImageRemove));
-      renderPreferredImagesSection();
-    });
-  });
-}
-
 function resetImagePickers(root) {
   const pickers = root.matches?.("[data-image-picker]") ? [root] : Array.from(root.querySelectorAll("[data-image-picker]"));
   pickers.forEach((picker) => {
     const status = picker.querySelector("[data-image-status]");
     const preview = picker.querySelector("[data-image-preview]");
-    const grid = picker.querySelector("[data-image-preview-grid]");
     if (status) {
       status.textContent = "No image chosen";
       status.classList.remove("error");
     }
-    if (grid) grid.innerHTML = "";
     if (preview) {
       preview.removeAttribute("src");
       preview.hidden = true;
@@ -371,22 +325,12 @@ function selectedFilePreviews(files) {
   }));
 }
 
-function renderSelectedPreviewGrid(grid, previews) {
-  if (!grid) return;
-  grid.querySelectorAll("img").forEach((img) => {
-    if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
-  });
-  grid.innerHTML = imagePreviewGridMarkup(previews, { emptyText: "No images selected." });
-}
-
 function initImagePickers() {
   document.querySelectorAll("[data-image-picker]").forEach((picker) => {
     const input = picker.querySelector('input[type="file"]');
     const trigger = picker.querySelector("[data-image-trigger]");
-    const uploadTrigger = picker.querySelector("[data-image-upload-trigger]");
     const status = picker.querySelector("[data-image-status]");
     const preview = picker.querySelector("[data-image-preview]");
-    const grid = picker.querySelector("[data-image-preview-grid]");
     const maxFiles = Number(picker.dataset.maxFiles || input?.dataset.maxFiles || 0);
     if (!input || !trigger) return;
 
@@ -406,7 +350,6 @@ function initImagePickers() {
         status.classList.remove("error");
       }
       const previews = selectedFilePreviews(files);
-      if (grid) renderSelectedPreviewGrid(grid, previews);
       if (preview) {
         if (!previews[0]) {
           preview.removeAttribute("src");
@@ -417,38 +360,7 @@ function initImagePickers() {
         preview.hidden = false;
       }
     });
-
-    uploadTrigger?.addEventListener("click", async () => {
-      const files = Array.from(input.files || []);
-      if (!files.length) {
-        if (status) status.textContent = "Choose one or more images first.";
-        return;
-      }
-      try {
-        if (status) {
-          status.textContent = "Uploading images...";
-          status.classList.remove("error");
-        }
-        uploadTrigger.disabled = true;
-        const images = await uploadImages(files);
-        const existing = getPreferredImages();
-        savePreferredImages([...images, ...existing]);
-        input.value = "";
-        resetImagePickers(picker);
-        if (status) status.textContent = `Uploaded ${images.length} image${images.length === 1 ? "" : "s"}.`;
-        renderPreferredImagesSection();
-      } catch (error) {
-        if (status) {
-          status.textContent = error.message;
-          status.classList.add("error");
-        }
-      } finally {
-        uploadTrigger.disabled = false;
-      }
-    });
   });
-
-  renderPreferredImagesSection();
 }
 
 async function fetchJson(url, options = {}) {
