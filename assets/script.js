@@ -11,95 +11,15 @@ const STORAGE_KEYS = {
   preferredImages: "dnducks.preferredImages",
 };
 
-const demoData = {
-  notes: [
-    {
-      id: "demo-note-1",
-      title: "The river spirit remembers the bargain",
-      category: "Consequence",
-      content:
-        "If the party ignores the spirit, ferry crossings become dangerous and the marsh clans blame the city council.",
-      createdAt: "Demo",
-    },
-  ],
-  characters: [
-    {
-      id: "demo-character-1",
-      name: "Mira Voss",
-      role: "Smuggler Queen",
-      faction: "The Gilded Fang",
-      notes: "Controls the safest Blackfen routes and knows who moved the Ember Sigil.",
-      createdAt: "Demo",
-    },
-  ],
-  items: [
-    {
-      id: "demo-item-1",
-      name: "Moonlit Dagger",
-      type: "Magic Item",
-      description: "A silvered blade that glows near drowned gates and forgotten oaths.",
-      createdAt: "Demo",
-    },
-  ],
-  encounters: [
-    {
-      id: "demo-encounter-1",
-      title: "Ambush at the Broken Bridge",
-      tier: "Level 6",
-      status: "prepared",
-      description: "Bandit scouts, a collapsing span, and a clue stitched into a red sash.",
-      tags: ["Medium", "Blackfen"],
-      createdAt: "Demo",
-    },
-    {
-      id: "demo-encounter-2",
-      title: "The Sunken Gate Chamber",
-      tier: "Set piece",
-      status: "hidden",
-      description: "Environmental puzzle with rising water, oath runes, and one optional guardian.",
-      tags: ["Puzzle", "Guardian"],
-      createdAt: "Demo",
-    },
-  ],
-  locations: [
-    {
-      id: "demo-location-1",
-      name: "Blackfen Marsh",
-      type: "Location",
-      status: "active",
-      description: "Treacherous channels, lantern markers, and smugglers who know every dry path.",
-      tags: ["Routes", "Faction pressure"],
-      createdAt: "Demo",
-    },
-    {
-      id: "demo-location-2",
-      name: "The Gilded Fang Den",
-      type: "Faction site",
-      status: "hidden",
-      description: "A hidden counting house beneath a shuttered theater.",
-      tags: ["DM-only", "Hideout"],
-      createdAt: "Demo",
-    },
-  ],
-  events: [
-    {
-      id: "demo-event-1",
-      title: "Session 12: The Sunken Gate",
-      date: "1st Bloomwane, 1492 DR",
-      monthIndex: 0,
-      day: 1,
-      year: 1492,
-      description: "Blackfen Marsh route, broken bridge ambush, and first reveal of the oath gate.",
-      createdAt: "Demo",
-    },
-  ],
-};
+const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events"]);
 
 function getStoredCollection(key) {
   const raw = localStorage.getItem(STORAGE_KEYS[key]);
-  if (!raw) return demoData[key] ? [...demoData[key]] : [];
+  if (!raw) return [];
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return USER_WIDGET_COLLECTIONS.has(key) ? parsed.filter(isUserProducedEntry) : parsed;
   } catch (error) {
     console.warn(`Could not parse ${key} from localStorage`, error);
     return [];
@@ -107,7 +27,8 @@ function getStoredCollection(key) {
 }
 
 function saveCollection(key, collection) {
-  localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(collection));
+  const nextCollection = USER_WIDGET_COLLECTIONS.has(key) ? collection.filter(isUserProducedEntry) : collection;
+  localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(nextCollection));
 }
 
 const DEFAULT_CALENDAR_SETTINGS = {
@@ -276,6 +197,25 @@ function widgetImageMarkup(entry, label) {
       <span aria-hidden="true">＋</span>
       <small>Add image</small>
     </${closeTag}>`;
+}
+
+function widgetImageDisplayMarkup(entry, label) {
+  const title = displayText(label, "Widget");
+  const alt = escapeHtml(`${title} image`);
+  const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
+
+  if (imageUrl) {
+    return `
+    <div class="widget-media widget-media-filled">
+      <img src="${escapeHtml(imageUrl)}" alt="${alt}" loading="lazy" />
+    </div>`;
+  }
+
+  return `
+    <div class="widget-media widget-media-empty" aria-hidden="true">
+      <span>＋</span>
+      <small>No image</small>
+    </div>`;
 }
 
 function widgetDescriptionMarkup(value) {
@@ -643,7 +583,105 @@ function renderCollection({ key, listId, emptyText, template }) {
   });
 }
 
+function widgetCreatedValue(entry) {
+  const idTimestamp = Number(String(entry?.id || "").split("-")[1]);
+  if (Number.isFinite(idTimestamp)) return idTimestamp;
+  const parsedDate = Date.parse(entry?.createdAt || "");
+  return Number.isNaN(parsedDate) ? 0 : parsedDate;
+}
+
+function dashboardOverviewEntries() {
+  const configs = [
+    {
+      key: "encounters",
+      label: "Encounter",
+      status: (entry) => entry.status || "prepared",
+      title: (entry) => firstDisplayText([entry.title, entry.name], "Untitled encounter"),
+      subtitle: (entry) => firstDisplayText([entry.tier, entry.type, entry.sceneType], "Encounter"),
+      description: (entry) => firstDisplayText([entry.description, entry.notes, entry.content], ""),
+      tags: (entry) => entryTags(entry.tags),
+    },
+    {
+      key: "locations",
+      label: "Location",
+      status: (entry) => entry.status || "active",
+      title: (entry) => firstDisplayText([entry.name, entry.title], "Untitled location"),
+      subtitle: (entry) => firstDisplayText([entry.type, entry.regionType], "Location"),
+      description: (entry) => firstDisplayText([entry.description, entry.notes, entry.content], ""),
+      tags: (entry) => entryTags(entry.tags),
+    },
+    {
+      key: "notes",
+      label: "Note",
+      status: () => "active",
+      title: (entry) => firstDisplayText([entry.title], "Untitled note"),
+      subtitle: (entry) => firstDisplayText([entry.category], "Note"),
+      description: (entry) => firstDisplayText([entry.content], ""),
+      tags: () => [],
+    },
+    {
+      key: "characters",
+      label: "NPC",
+      status: () => "hidden",
+      title: (entry) => firstDisplayText([entry.name], "Untitled character"),
+      subtitle: (entry) => firstDisplayText([entry.role], "Character"),
+      description: (entry) => firstDisplayText([entry.notes], ""),
+      tags: (entry) => entry.faction ? [`Faction: ${entry.faction}`] : [],
+    },
+    {
+      key: "items",
+      label: "Item",
+      status: (entry) => entry.type === "Monster" ? "prepared" : "active",
+      title: (entry) => firstDisplayText([entry.name], "Untitled item"),
+      subtitle: (entry) => firstDisplayText([entry.type], "Item"),
+      description: (entry) => firstDisplayText([entry.description], ""),
+      tags: () => [],
+    },
+    {
+      key: "events",
+      label: "Event",
+      status: () => "prepared",
+      title: (entry) => firstDisplayText([entry.title], "Untitled event"),
+      subtitle: (entry) => eventDateLabel(entry),
+      description: (entry) => firstDisplayText([entry.description], ""),
+      tags: (entry) => [eventWeather(entry)],
+    },
+  ];
+
+  return configs.flatMap((config) => getStoredCollection(config.key).map((entry) => ({ ...config, entry })))
+    .sort((a, b) => widgetCreatedValue(b.entry) - widgetCreatedValue(a.entry));
+}
+
+function renderDashboardOverview() {
+  const grid = document.getElementById("campaigns");
+  if (!grid) return;
+  const entries = dashboardOverviewEntries();
+  if (!entries.length) {
+    grid.innerHTML = `<div class="empty-state">No dashboard widgets yet. Save notes, NPCs, encounters, locations, items, or events to populate the dashboard with your content.</div>`;
+    return;
+  }
+
+  grid.innerHTML = entries.map(({ entry, label, status, title, subtitle, description, tags }) => {
+    const widgetStatus = status(entry);
+    const widgetTitle = title(entry);
+    const widgetSubtitle = subtitle(entry);
+    const widgetDescription = description(entry);
+    const widgetTags = [label, entry.createdAt, ...tags(entry)];
+    const searchable = textForSearch([widgetTitle, widgetSubtitle, widgetDescription, widgetTags.join(" ")]);
+    return `
+      <article class="content-card entry-card widget-card" data-widget-origin="user" data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(widgetStatus)}">
+        ${widgetImageDisplayMarkup(entry, widgetTitle)}
+        <div class="card-kicker"><span class="status-badge ${statusBadgeClass(widgetStatus)}">${statusLabel(widgetStatus)}</span><span>${escapeHtml(widgetSubtitle)}</span></div>
+        <h3>${escapeHtml(widgetTitle)}</h3>
+        ${widgetDescriptionMarkup(widgetDescription)}
+        ${widgetTagsMarkup(widgetTags)}
+      </article>`;
+  }).join("");
+}
+
 function renderDashboard() {
+  renderDashboardOverview();
+
   renderCollection({
     key: "encounters",
     listId: "encounters-list",
@@ -702,7 +740,7 @@ ${widgetDeleteActionMarkup(location, "Delete location")}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
-          ${widgetTagsMarkup([note.createdAt, "Backlinks soon", "The Ashen Crown"])}
+          ${widgetTagsMarkup([note.createdAt, "Backlinks soon"])}
 ${widgetDeleteActionMarkup(note, "Delete note")}
         </article>`;
     },
@@ -740,7 +778,7 @@ ${widgetDeleteActionMarkup(character, "Delete NPC")}
           <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
           <h3>${escapeHtml(item.name)}</h3>
           ${widgetDescriptionMarkup(item.description)}
-          ${widgetTagsMarkup([item.createdAt, "Loot & rules", "The Ashen Crown"])}
+          ${widgetTagsMarkup([item.createdAt, "Loot & rules"])}
 ${widgetDeleteActionMarkup(item, "Delete item")}
         </article>`;
     },
@@ -785,10 +823,14 @@ function updateSummaryCards() {
   const previewWeather = document.getElementById("preview-next-event-weather");
   const statNotes = document.getElementById("stat-notes");
   const statCharacters = document.getElementById("stat-characters");
+  const statEvents = document.getElementById("stat-events");
 
   if (notes[0] && noteTitle && noteSummary) {
     noteTitle.textContent = notes[0].title;
     noteSummary.textContent = notes[0].content.slice(0, 120);
+  } else {
+    if (noteTitle) noteTitle.textContent = "No notes yet";
+    if (noteSummary) noteSummary.textContent = "Create your first note to populate this summary.";
   }
   const nextEvent = nextImminentEvent();
   if (nextEvent) {
@@ -802,9 +844,19 @@ function updateSummaryCards() {
     if (previewSummary) previewSummary.textContent = nextEvent.description.slice(0, 140);
     if (previewDate) previewDate.textContent = dateLabel;
     if (previewWeather) previewWeather.textContent = weatherLabel;
+  } else {
+    if (eventTitle) eventTitle.textContent = "No events yet";
+    if (eventSummary) eventSummary.textContent = "Add an event to schedule the campaign timeline.";
+    if (eventDate) eventDate.textContent = "Calendar";
+    if (eventWeatherText) eventWeatherText.textContent = "Weather pending";
+    if (previewTitle) previewTitle.textContent = "No upcoming event";
+    if (previewSummary) previewSummary.textContent = "Saved events appear on the full calendar page and update this dashboard preview.";
+    if (previewDate) previewDate.textContent = "No date set";
+    if (previewWeather) previewWeather.textContent = "Weather unknown";
   }
   if (statNotes) statNotes.textContent = notes.length;
   if (statCharacters) statCharacters.textContent = characters.length;
+  if (statEvents) statEvents.textContent = events.length;
 }
 
 function wireForm(formId, key, buildEntry) {
@@ -1003,13 +1055,12 @@ function initAiPlaceholder() {
     if (!asked) return;
 
     response.innerHTML = `
-      <h3>Potential linked consequences</h3>
-      <p><strong>Mock analysis:</strong> Based on your prompt, a future AI pass would retrieve related notes, NPCs, factions, items, maps, and calendar events before answering.</p>
+      <h3>Assistant response unavailable</h3>
+      <p>AI analysis is not connected yet. When available, it will retrieve user-created notes, NPCs, factions, items, maps, and calendar events before answering.</p>
       <ul class="compact-list">
-        <li>An opposing faction may exploit the power vacuum.</li>
-        <li>Allies of the harmed figure could demand restitution or revenge.</li>
-        <li>A calendar event might move forward as enemies act before the party can rest.</li>
-        <li>Relevant notes should be linked to NPCs, locations, and unresolved quests.</li>
+        <li>Save the relevant campaign widgets before asking for context-aware analysis.</li>
+        <li>Keep private notes marked DM-only when player visibility matters.</li>
+        <li>Review linked calendar events before making timeline changes.</li>
       </ul>
       <p class="muted">Question received: "${escapeHtml(asked)}"</p>
     `;

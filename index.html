@@ -42,24 +42,24 @@
             <a class="btn btn-secondary" href="#notes">Add Campaign Note</a>
           </div>
         </div>
-        <aside class="campaign-feature-card" aria-label="Active campaign overview">
+        <aside class="campaign-feature-card" aria-label="Campaign content totals">
           <div class="feature-art feature-art-crown" aria-hidden="true">
-            <span class="feature-rune">AC</span>
+            <span class="feature-rune">DD</span>
           </div>
           <div class="feature-card-body">
             <div class="card-kicker">
               <span class="status-badge status-active">Active</span>
-              <span>Updated today</span>
+              <span>Local workspace</span>
             </div>
-            <h2>The Ashen Crown</h2>
+            <h2>Your campaign</h2>
             <p>
-              A royal succession thriller where a drowned gate, a missing sigil, and a dangerous faction keep pulling
-              the party deeper.
+              Create campaign notes, NPCs, encounters, items, and events below. Dashboard widgets appear only after
+              you save them.
             </p>
             <dl class="hero-stats">
               <div><dt>Notes</dt><dd id="stat-notes">0</dd></div>
               <div><dt>NPCs</dt><dd id="stat-characters">0</dd></div>
-              <div><dt>Open quests</dt><dd>6</dd></div>
+              <div><dt>Events</dt><dd id="stat-events">0</dd></div>
             </dl>
           </div>
         </aside>
@@ -73,9 +73,7 @@
         <label class="select-control" for="campaign-select">
           <span class="sr-only">Current campaign</span>
           <select id="campaign-select">
-            <option>The Ashen Crown</option>
-            <option>Blackfen Marsh</option>
-            <option>The Gilded Fang</option>
+            <option>Local campaign</option>
           </select>
         </label>
         <button class="chip-button is-active" type="button" data-status-filter="all">All</button>
@@ -121,55 +119,7 @@
 
         <div class="dashboard-content">
           <section class="dashboard-grid" id="campaigns" aria-label="Campaign overview cards">
-            <article data-widget-origin="permanent" class="content-card campaign-card span-2" data-searchable="the ashen crown active campaign sunken gate gilded fang ember sigil" data-status="active">
-              <div class="card-visual visual-ember" aria-hidden="true"><span>AC</span></div>
-              <div class="content-card-body">
-                <div class="card-kicker"><span class="status-badge status-active">Active</span><span>Campaign</span></div>
-                <h2>The Ashen Crown</h2>
-                <p>
-                  Royal intrigue, sealed ruins, and faction pressure around Session 12: The Sunken Gate.
-                </p>
-                <div class="tag-row">
-                  <span class="tag">Level 6</span>
-                  <span class="tag">Arcane mystery</span>
-                  <span class="tag">The Gilded Fang</span>
-                </div>
-                <div class="quick-actions">
-                  <a class="quick-action" href="#live-session" aria-label="Open run session tools">Run</a>
-                  <a class="quick-action" href="#notes" aria-label="Open campaign notes">Notes</a>
-                  <a class="quick-action" href="calendar.html" aria-label="Open full campaign calendar">Calendar</a>
-                </div>
-              </div>
-            </article>
-            <article data-widget-origin="permanent" class="content-card next-event-card" data-searchable="next imminent calendar event upcoming prepared" data-status="prepared">
-              <div class="card-kicker"><span class="status-badge status-prepared">Next</span><span>Imminent event</span></div>
-              <h3 id="next-event-title">No events yet</h3>
-              <p id="next-event-summary">Add an event in the calendar preview below to schedule the campaign timeline.</p>
-              <div class="mini-metric"><strong id="next-event-date">Calendar</strong><span id="next-event-weather">Weather pending</span></div>
-            </article>
-            <article data-widget-origin="permanent" class="content-card" data-searchable="recover the ember sigil open quest gilded fang" data-status="active">
-              <div class="card-kicker"><span class="status-badge status-active">In Progress</span><span>Quest</span></div>
-              <h3>Recover the Ember Sigil</h3>
-              <p>The party knows the sigil exists, but not which faction currently holds it.</p>
-              <div class="tag-row"><span class="tag">Quest</span><span class="tag">Hidden clue</span></div>
-            </article>
-            <article data-widget-origin="permanent" class="content-card" data-searchable="mira voss smuggler queen npc blackfen" data-status="hidden">
-              <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>Important NPC</span></div>
-              <h3>Mira Voss, Smuggler Queen</h3>
-              <p>Controls the safer routes through Blackfen Marsh and knows who moved the sigil.</p>
-              <div class="tag-row"><span class="tag">Faction contact</span><span class="tag">Blackfen</span></div>
-            </article>
-            <article data-widget-origin="permanent" class="content-card" data-searchable="recent notes local campaign notes" data-status="active">
-              <div class="card-kicker"><span class="status-badge status-active">Recent</span><span>Note</span></div>
-              <h3 id="recent-note-title">No notes yet</h3>
-              <p id="recent-note-summary">Create your first note below to populate this card.</p>
-            </article>
-            <article data-widget-origin="permanent" class="content-card" data-searchable="prepared encounters ambush broken bridge monsters" data-status="prepared">
-              <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Encounter</span></div>
-              <h3>Ambush at the Broken Bridge</h3>
-              <p>Two waves, one environmental hazard, and a hidden archer with a message.</p>
-              <div class="tag-row"><span class="tag">Medium</span><span class="tag">Level 6</span></div>
-            </article>
+            <div class="empty-state">No dashboard widgets yet. Save notes, NPCs, encounters, locations, items, or events to populate the dashboard with your content.</div>
           </section>
 
           <aside class="filter-panel" id="filter-panel" aria-label="Advanced filters" hidden>
@@ -181,7 +131,7 @@
               <label>Content type<select><option>Any type</option><option>Session</option><option>Encounter</option><option>NPC</option><option>Quest</option><option>Item</option><option>Map</option></select></label>
               <label>Status<select><option>Any status</option><option>Active</option><option>Prepared</option><option>Hidden from Players</option><option>Completed</option></select></label>
               <label>Visibility<select><option>All visibility</option><option>DM-only</option><option>Player-visible</option></select></label>
-              <label>Location<select><option>Any location</option><option>Blackfen Marsh</option><option>The Sunken Gate</option><option>Broken Bridge</option></select></label>
+              <label>Location<select><option>Any location</option></select></label>
             </div>
           </aside>
 
@@ -189,34 +139,12 @@
             <div class="section-heading">
               <div>
                 <p class="eyebrow">Live table view</p>
-                <h2>Session 12: The Sunken Gate</h2>
+                <h2>Live Session</h2>
               </div>
               <a class="btn btn-primary" href="#encounters">Open Encounter</a>
             </div>
             <div class="session-grid">
-              <article class="panel session-panel">
-                <div class="card-kicker"><span class="status-badge status-active">Live-ready</span><span>Initiative</span></div>
-                <ol class="initiative-list">
-                  <li><strong>Kael</strong><span>18</span></li>
-                  <li><strong>Mira Voss</strong><span>15</span></li>
-                  <li><strong>Bridge Warden</strong><span>12</span></li>
-                  <li><strong>Hidden Archer</strong><span>9</span></li>
-                </ol>
-              </article>
-              <article class="panel session-panel">
-                <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>Secret notes</span></div>
-                <h3>Reveal only if the party opens the lower lock.</h3>
-                <p>The gate does not open into a room. It opens into an oath the city broke.</p>
-              </article>
-              <article class="panel session-panel">
-                <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Quick references</span></div>
-                <div class="quick-link-grid">
-                  <a href="#characters">NPC cards</a>
-                  <a href="#items">Monster notes</a>
-                  <a href="#maps">Map pins</a>
-                  <a href="#assistant">Consequences</a>
-                </div>
-              </article>
+              <div class="empty-state">Live-session widgets will appear here after they are created from your campaign data.</div>
             </div>
           </section>
 
@@ -226,13 +154,13 @@
                 <p class="eyebrow">Prepared scenes</p>
                 <h2>Encounters</h2>
               </div>
-              <p>Add encounter cards here. Built-in examples are permanent, while encounters you create can be deleted.</p>
+              <p>Add encounter cards here. Saved encounters are the only encounter widgets shown.</p>
             </div>
             <form class="panel form-grid" id="encounter-form">
-              <label>Encounter title<input id="encounter-title" type="text" placeholder="Ambush at the Broken Bridge" required /></label>
-              <label>Tier or scene type<input id="encounter-tier" type="text" placeholder="Level 6 / Set piece" required /></label>
+              <label>Encounter title<input id="encounter-title" type="text" placeholder="Encounter title" required /></label>
+              <label>Tier or scene type<input id="encounter-tier" type="text" placeholder="Tier or scene type" required /></label>
               <label>Status<select id="encounter-status" required><option value="prepared">Prepared</option><option value="active">Active</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
-              <label>Tags<input id="encounter-tags" type="text" placeholder="Medium, Blackfen, Puzzle" /></label>
+              <label>Tags<input id="encounter-tags" type="text" placeholder="Tags, comma-separated" /></label>
               <label class="full-width">Description<textarea id="encounter-description" rows="3" placeholder="Creatures, hazards, clues, terrain, and rewards..." required></textarea></label>
               <div class="file-picker image-picker full-width" data-image-picker>
                 <label for="encounter-image">Optional encounter image</label>
@@ -254,16 +182,7 @@
               </div>
             </div>
             <div class="collection-grid">
-              <article data-widget-origin="permanent" class="content-card" data-searchable="recover the ember sigil quest in progress" data-status="active">
-                <div class="card-kicker"><span class="status-badge status-active">In Progress</span><span>Main quest</span></div>
-                <h3>Recover the Ember Sigil</h3>
-                <p>Find who stole the sigil before the next council bell rings.</p>
-              </article>
-              <article data-widget-origin="permanent" class="content-card" data-searchable="blackfen marsh faction completed quest" data-status="completed">
-                <div class="card-kicker"><span class="status-badge status-completed">Completed</span><span>Side quest</span></div>
-                <h3>Win Passage Through Blackfen</h3>
-                <p>The safe route is secured, but Mira Voss expects a favor later.</p>
-              </article>
+              <div class="empty-state">No quest widgets yet. Quest widgets will be shown here after they are created from user campaign data.</div>
             </div>
           </section>
 
@@ -273,13 +192,13 @@
                 <p class="eyebrow">World atlas</p>
                 <h2>Locations</h2>
               </div>
-              <p>Add atlas cards for places, faction sites, routes, and regions. Your new location widgets can be deleted.</p>
+              <p>Add atlas cards for places, faction sites, routes, and regions. Saved locations are the only location widgets shown.</p>
             </div>
             <form class="panel form-grid" id="location-form">
-              <label>Location name<input id="location-name" type="text" placeholder="Blackfen Marsh" required /></label>
+              <label>Location name<input id="location-name" type="text" placeholder="Location name" required /></label>
               <label>Type<input id="location-type" type="text" placeholder="Location / Faction site" required /></label>
               <label>Status<select id="location-status" required><option value="active">Active</option><option value="prepared">Prepared</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
-              <label>Tags<input id="location-tags" type="text" placeholder="Routes, Hideout, Marsh" /></label>
+              <label>Tags<input id="location-tags" type="text" placeholder="Tags, comma-separated" /></label>
               <label class="full-width">Description<textarea id="location-description" rows="3" placeholder="Terrain, factions, secrets, routes, and hooks..." required></textarea></label>
               <div class="file-picker image-picker full-width" data-image-picker>
                 <label for="location-image">Optional location image</label>
@@ -302,7 +221,7 @@
               <p>Saved in this browser with localStorage. Future versions can sync notes per account and campaign.</p>
             </div>
             <form class="panel form-grid" id="note-form">
-              <label>Note title<input id="note-title" name="title" type="text" placeholder="The baron's hidden pact" required /></label>
+              <label>Note title<input id="note-title" name="title" type="text" placeholder="Note title" required /></label>
               <label>Category<select id="note-category" name="category" required><option>Session Note</option><option>NPC</option><option>Location</option><option>Quest</option><option>Lore</option><option>Consequence</option></select></label>
               <label class="full-width">Note content<textarea id="note-content" name="content" rows="4" placeholder="Record clues, decisions, loose threads, and future consequences..." required></textarea></label>
               <div class="file-picker image-picker full-width" data-image-picker>
@@ -329,9 +248,9 @@
           <section class="workspace-section" id="characters">
             <div class="section-heading"><div><p class="eyebrow">Cast ledger</p><h2>NPCs &amp; Characters</h2></div></div>
             <form class="panel form-grid" id="character-form">
-              <label>Character name<input id="character-name" type="text" placeholder="Mira Voss" required /></label>
-              <label>Role<input id="character-role" type="text" placeholder="Smuggler Queen" required /></label>
-              <label>Faction<input id="character-faction" type="text" placeholder="The Gilded Fang" /></label>
+              <label>Character name<input id="character-name" type="text" placeholder="Character name" required /></label>
+              <label>Role<input id="character-role" type="text" placeholder="Role" required /></label>
+              <label>Faction<input id="character-faction" type="text" placeholder="Faction" /></label>
               <label class="full-width">Notes<textarea id="character-notes" rows="3" placeholder="Motives, secrets, relationship to the party..." required></textarea></label>
               <div class="file-picker image-picker full-width" data-image-picker>
                 <label for="character-image">Optional portrait or symbol</label>
@@ -348,7 +267,7 @@
           <section class="workspace-section" id="items">
             <div class="section-heading"><div><p class="eyebrow">Loot, monsters, rules</p><h2>Items &amp; Homebrew</h2></div></div>
             <form class="panel form-grid" id="item-form">
-              <label>Item or rule name<input id="item-name" type="text" placeholder="Moonlit Dagger" required /></label>
+              <label>Item or rule name<input id="item-name" type="text" placeholder="Item or rule name" required /></label>
               <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
               <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Mechanical effects, lore, rarity, hooks..." required></textarea></label>
               <div class="file-picker image-picker full-width" data-image-picker>
@@ -365,14 +284,7 @@
 
           <section class="workspace-section" id="maps">
             <div class="section-heading"><div><p class="eyebrow">Cartography</p><h2>Maps</h2></div></div>
-            <div class="panel map-placeholder">
-              <div class="map-grid" aria-hidden="true"></div>
-              <div>
-                <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>Map pins soon</span></div>
-                <h3>Blackfen Marsh route map</h3>
-                <p>Upload maps later, add pins, and link pins to notes, NPCs, locations, quests, or encounters.</p>
-              </div>
-            </div>
+            <div class="empty-state">No map widgets yet. Upload materials or create map entries when map widgets are available.</div>
           </section>
 
           <section class="workspace-section" id="calendar-preview">
@@ -391,7 +303,7 @@
                 </div>
               </article>
               <form class="panel form-grid compact-event-form" id="event-form">
-                <label>Event title<input id="event-title" type="text" placeholder="Treaty Moon Council" required /></label>
+                <label>Event title<input id="event-title" type="text" placeholder="Event title" required /></label>
                 <label>Month<select id="event-month" required></select></label>
                 <label>Day<input id="event-day" type="number" min="1" value="1" required /></label>
                 <label>Year<input id="event-year" type="number" value="1492" required /></label>
@@ -410,7 +322,7 @@
               <label class="file-picker full-width">Upload map, portrait, handout, note, or data file
                 <input id="material-file" name="file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,.md,.json,.csv,image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,text/markdown,application/json,text/csv" required />
               </label>
-              <label>Title<input id="material-title" name="title" type="text" placeholder="Blackfen route map" /></label>
+              <label>Title<input id="material-title" name="title" type="text" placeholder="Material title" /></label>
               <label>Category
                 <select id="material-category" name="category">
                   <option value="map">Map</option>
@@ -420,10 +332,10 @@
                   <option value="other">Other</option>
                 </select>
               </label>
-              <label>Campaign ID<input id="material-campaign" name="campaignId" type="text" value="ashen-crown" /></label>
-              <label>Session ID<input id="material-session" name="sessionId" type="text" placeholder="session-12" /></label>
+              <label>Campaign ID<input id="material-campaign" name="campaignId" type="text" placeholder="campaign-id" /></label>
+              <label>Session ID<input id="material-session" name="sessionId" type="text" placeholder="session-id" /></label>
               <label class="full-width">Description<textarea id="material-description" name="description" rows="2" placeholder="How this file should be used at the table..."></textarea></label>
-              <label class="full-width">Tags<input id="material-tags" name="tags" type="text" placeholder="blackfen, travel, clue" /></label>
+              <label class="full-width">Tags<input id="material-tags" name="tags" type="text" placeholder="Tags, comma-separated" /></label>
               <button class="btn btn-primary" type="submit">Upload Material</button>
               <p class="form-message full-width" id="material-status" aria-live="polite"></p>
             </form>
@@ -455,12 +367,12 @@
             <div class="assistant-panel panel">
               <form id="ai-form" class="assistant-form">
                 <label for="ai-question">Ask a campaign consequence question</label>
-                <textarea id="ai-question" rows="4" placeholder="What consequences might follow if the party exposes Mira Voss?" required></textarea>
+                <textarea id="ai-question" rows="4" placeholder="Ask about consequences, summaries, or campaign continuity..." required></textarea>
                 <button class="btn btn-primary" type="submit">Ask Assistant</button>
               </form>
               <div class="ai-response" id="ai-response">
-                <h3>Potential linked consequences</h3>
-                <p>Ask a question to generate a mock response. Future AI integration can analyze approved campaign notes, NPCs, items, maps, and calendar events.</p>
+                <h3>No assistant response yet</h3>
+                <p>Ask a question to generate a response from your saved campaign context when AI integration is available.</p>
               </div>
             </div>
           </section>
