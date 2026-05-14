@@ -543,7 +543,6 @@ textarea { resize: vertical; }
 .page-hero { padding: clamp(26px, 5vw, 54px); }
 .info-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .prose-card { font-size: 1.05rem; }
-.contact-layout { max-width: 920px; }
 .form-message { margin-top: 14px; min-height: 28px; color: var(--green); font-weight: 800; }
 .form-message.error { color: var(--crimson); }
 .site-footer {
