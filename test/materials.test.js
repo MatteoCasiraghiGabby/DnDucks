@@ -5,17 +5,21 @@ const path = require("node:path");
 const test = require("node:test");
 const { createServer } = require("../server");
 const { MaterialStore } = require("../src/materialStore");
+const { ImageStorageService } = require("../src/imageStorageService");
 
 async function withServer(t) {
   const uploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-materials-"));
+  const imageUploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-images-"));
   const store = new MaterialStore(uploadDir);
-  const server = await createServer(store);
+  const imageStore = new ImageStorageService(imageUploadDir);
+  const server = await createServer(store, imageStore);
   await new Promise((resolve) => server.listen(0, resolve));
   t.after(async () => {
     await new Promise((resolve) => server.close(resolve));
     await fs.rm(uploadDir, { recursive: true, force: true });
+    await fs.rm(imageUploadDir, { recursive: true, force: true });
   });
-  return { baseUrl: `http://127.0.0.1:${server.address().port}`, uploadDir };
+  return { baseUrl: `http://127.0.0.1:${server.address().port}`, uploadDir, imageUploadDir };
 }
 
 async function uploadMaterial(baseUrl, filename = "map.txt", content = "hidden gate") {
@@ -135,4 +139,50 @@ test("concurrent uploads preserve every metadata record", async () => {
   } finally {
     await fs.rm(uploadDir, { recursive: true, force: true });
   }
+});
+
+
+test("image upload endpoint accepts multiple images and serves public URLs", async (t) => {
+  const { baseUrl, imageUploadDir } = await withServer(t);
+  const form = new FormData();
+  form.append("images", new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47])], { type: "image/png" }), "map.png");
+  form.append("images", new Blob(["portrait"], { type: "image/webp" }), "npc.webp");
+
+  const response = await fetch(`${baseUrl}/api/uploads/images`, { method: "POST", body: form });
+  const payload = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(payload.count, 2);
+  assert.equal(payload.images[0].originalFilename, "map.png");
+  assert.match(payload.images[0].savedFilename, /^[0-9]+-[0-9a-f-]+\.png$/);
+  assert.equal(payload.images[0].url, `/uploads/images/${encodeURIComponent(payload.images[0].savedFilename)}`);
+  assert.equal(await fs.readFile(path.join(imageUploadDir, payload.images[1].savedFilename), "utf8"), "portrait");
+
+  const served = await fetch(`${baseUrl}${payload.images[0].url}`);
+  assert.equal(served.status, 200);
+  assert.equal(served.headers.get("content-type"), "image/png");
+});
+
+test("image upload rejects non-image files", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const form = new FormData();
+  form.append("images", new Blob(["not an image"], { type: "text/plain" }), "notes.txt");
+
+  const response = await fetch(`${baseUrl}/api/uploads/images`, { method: "POST", body: form });
+  const payload = await response.json();
+
+  assert.equal(response.status, 415);
+  assert.match(payload.error, /Only jpg/);
+});
+
+test("image upload returns a clear error when no image file is provided", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const form = new FormData();
+  form.set("caption", "no file here");
+
+  const response = await fetch(`${baseUrl}/api/uploads/images`, { method: "POST", body: form });
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.match(payload.error, /requires at least one image field/);
 });

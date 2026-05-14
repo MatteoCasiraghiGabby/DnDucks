@@ -58,7 +58,75 @@ The default maximum file size is 10 MB. Override it with `UPLOAD_MAX_BYTES`.
 - `GET /api/materials/:id/download` streams the registered file only.
 - `DELETE /api/materials/:id` removes metadata and deletes the stored file.
 
-### Development-only storage note
+## Reusable image uploads
+
+DnDucks also includes a dedicated image upload system for reusable widget art and preferred campaign images.
+
+### Storage location
+
+Dedicated image uploads are saved outside the static app bundle in:
+
+```bash
+./uploads/images
+```
+
+The folder is created automatically when the server starts. Uploaded files are ignored by Git; only `uploads/images/.gitkeep` is tracked. Configure the folder and limits with:
+
+```bash
+IMAGE_UPLOAD_DIR=./uploads/images
+IMAGE_UPLOAD_MAX_BYTES=5242880
+IMAGE_UPLOAD_MAX_FILES=12
+```
+
+If `IMAGE_UPLOAD_MAX_BYTES` is not set, the image service falls back to `UPLOAD_MAX_BYTES`, then to 5 MB per image.
+
+### Image upload API
+
+- `POST /api/uploads/images` accepts `multipart/form-data` fields named `images`, `image`, `files`, or `file`.
+- The endpoint supports one or multiple images in the same request.
+- Accepted formats are `jpg`, `jpeg`, `png`, `webp`, and `gif` with matching image MIME types.
+- The response is normalized as `{ images, count }`. Each image includes `originalFilename`, `savedFilename`, `url`, `path`, `fileSize`, `mimeType`, and `uploadedAt`.
+- Public image display is limited to generated filenames under `/uploads/images/:savedFilename`; arbitrary local filesystem paths are never exposed.
+
+Example response:
+
+```json
+{
+  "count": 1,
+  "images": [
+    {
+      "originalFilename": "npc.png",
+      "savedFilename": "1710000000000-00000000-0000-4000-8000-000000000000.png",
+      "url": "/uploads/images/1710000000000-00000000-0000-4000-8000-000000000000.png",
+      "path": "/uploads/images/1710000000000-00000000-0000-4000-8000-000000000000.png",
+      "fileSize": 12345,
+      "mimeType": "image/png",
+      "uploadedAt": "2026-05-14T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Frontend reuse
+
+The frontend uses one vanilla JavaScript upload service, `uploadImages(files)`, which sends selected files with `FormData` to `/api/uploads/images`. Widget forms use the same image picker pattern and now persist uploaded image URLs instead of embedding new images as base64 data.
+
+To place a reusable image picker in a page or widget, follow the existing `data-image-picker` pattern:
+
+```html
+<div class="file-picker image-picker" data-image-picker data-max-files="12">
+  <label for="my-images">Upload preferred images</label>
+  <input id="my-images" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
+  <button class="btn btn-secondary" type="button" data-image-trigger="my-images">Choose images</button>
+  <button class="btn btn-primary" type="button" data-image-upload-trigger>Upload selected</button>
+  <span class="image-picker-status" data-image-status aria-live="polite">No image chosen</span>
+  <div data-image-preview-grid></div>
+</div>
+```
+
+Use the Preferred Images section in the Materials area to upload and manage reusable maps, NPC portraits, symbols, and item art. The section stores the returned image metadata in local browser storage so it can be displayed consistently with `imagePreviewGridMarkup()` and placed into future widgets without duplicating upload logic.
+
+## Development-only storage note
 
 Local filesystem storage is intended for this draft/development platform. A production version should move material files to durable object storage such as S3, Supabase Storage, Cloudinary, Firebase Storage, or a similar managed service, with database-backed metadata and authentication/authorization checks.
 
@@ -68,4 +136,4 @@ Local filesystem storage is intended for this draft/development platform. A prod
 npm test
 ```
 
-The tests create an isolated temporary upload directory and verify upload, list, download, delete, persistence metadata behavior, and unsafe filename rejection.
+The tests create isolated temporary upload directories and verify upload, list, download, delete, persistence metadata behavior, unsafe filename rejection, image URL serving, invalid image rejection, and missing-image errors.
