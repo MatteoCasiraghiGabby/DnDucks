@@ -30,7 +30,7 @@ function createFrontendSandbox() {
       removeItem: (key) => storage.delete(key),
     },
     document: documentStub,
-    window: { location: { pathname: "/", href: "/", hash: "" }, addEventListener: () => {} },
+    window: { location: { pathname: "/", href: "/" } },
     Event: class Event { constructor(type) { this.type = type; } },
     fetch: async () => { throw new Error("fetch should not be called in campaign flow unit tests"); },
     alert: () => {},
