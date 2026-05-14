@@ -6,6 +6,8 @@ const STORAGE_KEYS = {
   encounters: "dnducks.encounters",
   locations: "dnducks.locations",
   events: "dnducks.events",
+  calendarSettings: "dnducks.calendarSettings",
+  weather: "dnducks.weather",
 };
 
 const demoData = {
@@ -82,7 +84,10 @@ const demoData = {
     {
       id: "demo-event-1",
       title: "Session 12: The Sunken Gate",
-      date: "Tonight",
+      date: "1st Bloomwane, 1492 DR",
+      monthIndex: 0,
+      day: 1,
+      year: 1492,
       description: "Blackfen Marsh route, broken bridge ambush, and first reveal of the oath gate.",
       createdAt: "Demo",
     },
@@ -102,6 +107,111 @@ function getStoredCollection(key) {
 
 function saveCollection(key, collection) {
   localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(collection));
+}
+
+const DEFAULT_CALENDAR_SETTINGS = {
+  weekLength: 7,
+  weekdays: ["Moonday", "Tirsday", "Windsday", "Thundersday", "Fireday", "Starday", "Sunday"],
+  months: ["Bloomwane", "Highsun", "Goldleaf", "Frostwane"],
+  daysPerMonth: 30,
+  yearName: "DR",
+  currentYear: 1492,
+  currentMonthIndex: 0,
+};
+
+const WEATHER_OPTIONS = [
+  "Clear skies", "Light rain", "Heavy rain", "Silver fog", "Cold wind", "Thunderheads",
+  "Warm breeze", "Ashfall", "Glittering frost", "Oppressive heat", "Moonlit calm", "Arcane aurora",
+];
+
+function getCalendarSettings() {
+  const raw = localStorage.getItem(STORAGE_KEYS.calendarSettings);
+  if (!raw) return { ...DEFAULT_CALENDAR_SETTINGS, weekdays: [...DEFAULT_CALENDAR_SETTINGS.weekdays], months: [...DEFAULT_CALENDAR_SETTINGS.months] };
+  try {
+    const parsed = JSON.parse(raw);
+    const weekLength = Math.max(1, Number(parsed.weekLength) || DEFAULT_CALENDAR_SETTINGS.weekLength);
+    const weekdays = Array.isArray(parsed.weekdays) && parsed.weekdays.length
+      ? parsed.weekdays.map((day) => String(day).trim()).filter(Boolean).slice(0, weekLength)
+      : DEFAULT_CALENDAR_SETTINGS.weekdays.slice(0, weekLength);
+    while (weekdays.length < weekLength) weekdays.push(`Day ${weekdays.length + 1}`);
+    const storedMonths = Array.isArray(parsed.months) && parsed.months.length
+      ? parsed.months.map((month) => String(month).trim()).filter(Boolean)
+      : [];
+    const months = storedMonths.length ? storedMonths : [...DEFAULT_CALENDAR_SETTINGS.months];
+    return {
+      ...DEFAULT_CALENDAR_SETTINGS,
+      ...parsed,
+      weekLength,
+      weekdays,
+      months,
+      daysPerMonth: Math.max(1, Number(parsed.daysPerMonth) || DEFAULT_CALENDAR_SETTINGS.daysPerMonth),
+      currentYear: Number(parsed.currentYear) || DEFAULT_CALENDAR_SETTINGS.currentYear,
+      currentMonthIndex: Math.min(Math.max(0, Number(parsed.currentMonthIndex) || 0), months.length - 1),
+      yearName: String(parsed.yearName || DEFAULT_CALENDAR_SETTINGS.yearName).trim() || DEFAULT_CALENDAR_SETTINGS.yearName,
+    };
+  } catch (error) {
+    console.warn("Could not parse campaign calendar settings", error);
+    return { ...DEFAULT_CALENDAR_SETTINGS, weekdays: [...DEFAULT_CALENDAR_SETTINGS.weekdays], months: [...DEFAULT_CALENDAR_SETTINGS.months] };
+  }
+}
+
+function saveCalendarSettings(settings) {
+  localStorage.setItem(STORAGE_KEYS.calendarSettings, JSON.stringify(settings));
+}
+
+function getWeatherMap() {
+  const raw = localStorage.getItem(STORAGE_KEYS.weather);
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch (error) { console.warn("Could not parse weather", error); return {}; }
+}
+
+function saveWeatherMap(weather) {
+  localStorage.setItem(STORAGE_KEYS.weather, JSON.stringify(weather));
+}
+
+function weatherKey(year, monthIndex, day) {
+  return `${year}-${monthIndex}-${day}`;
+}
+
+function eventDateLabel(event, settings = getCalendarSettings()) {
+  if (Number.isFinite(Number(event.day)) && Number.isFinite(Number(event.monthIndex)) && Number.isFinite(Number(event.year))) {
+    const monthName = settings.months[Number(event.monthIndex)] || `Month ${Number(event.monthIndex) + 1}`;
+    return `${event.day} ${monthName}, ${event.year} ${settings.yearName}`.trim();
+  }
+  return displayText(event.date, "Unscheduled");
+}
+
+function eventSortValue(event) {
+  if (Number.isFinite(Number(event.day)) && Number.isFinite(Number(event.monthIndex)) && Number.isFinite(Number(event.year))) {
+    return Number(event.year) * 10000 + Number(event.monthIndex) * 100 + Number(event.day);
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function sortedEvents() {
+  return getStoredCollection("events").filter(Boolean).sort((a, b) => eventSortValue(a) - eventSortValue(b));
+}
+
+function nextImminentEvent() {
+  const settings = getCalendarSettings();
+  const current = settings.currentYear * 10000 + settings.currentMonthIndex * 100 + 1;
+  return sortedEvents().find((event) => eventSortValue(event) >= current) || sortedEvents()[0];
+}
+
+function eventWeather(event) {
+  if (!event || !Number.isFinite(Number(event.day))) return "Weather unknown";
+  return getWeatherMap()[weatherKey(event.year, event.monthIndex, event.day)] || "Weather not generated";
+}
+
+function populateCalendarFormDefaults() {
+  const settings = getCalendarSettings();
+  document.querySelectorAll("#event-month").forEach((select) => {
+    const selected = select.value || String(settings.currentMonthIndex);
+    select.innerHTML = settings.months.map((month, index) => `<option value="${index}">${escapeHtml(month)}</option>`).join("");
+    select.value = selected;
+  });
+  document.querySelectorAll("#event-year").forEach((input) => { if (!input.value) input.value = settings.currentYear; });
+  document.querySelectorAll("#event-day").forEach((input) => { input.max = settings.daysPerMonth; });
 }
 
 function escapeHtml(value) {
@@ -405,6 +515,7 @@ function renderCollection({ key, listId, emptyText, template }) {
         ));
         saveCollection(key, nextCollection);
         renderDashboard();
+        renderCampaignCalendar();
       } catch (error) {
         alert(error.message);
       }
@@ -416,6 +527,7 @@ function renderCollection({ key, listId, emptyText, template }) {
       const nextCollection = getStoredCollection(key).filter((entry) => entry.id !== button.dataset.deleteId);
       saveCollection(key, nextCollection);
       renderDashboard();
+      renderCampaignCalendar();
     });
   });
 }
@@ -528,11 +640,11 @@ ${widgetDeleteActionMarkup(item, "Delete item")}
     listId: "events-list",
     emptyText: "No saved calendar events yet. Add an in-world date to keep pressure on the party.",
     template: (event) => {
-      const searchable = textForSearch([event.title, event.date, event.description, "session calendar event"]);
+      const searchable = textForSearch([event.title, eventDateLabel(event), event.description, "session calendar event"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
           ${widgetImageMarkup(event, event.title)}
-          <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(event.date)}</span></div>
+          <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
           <h3>${escapeHtml(event.title)}</h3>
           ${widgetDescriptionMarkup(event.description)}
           ${widgetTagsMarkup([event.createdAt, "Session timeline", "Calendar"])}
@@ -554,6 +666,12 @@ function updateSummaryCards() {
   const noteSummary = document.getElementById("recent-note-summary");
   const eventTitle = document.getElementById("next-event-title");
   const eventSummary = document.getElementById("next-event-summary");
+  const eventDate = document.getElementById("next-event-date");
+  const eventWeatherText = document.getElementById("next-event-weather");
+  const previewTitle = document.getElementById("preview-next-event-title");
+  const previewSummary = document.getElementById("preview-next-event-summary");
+  const previewDate = document.getElementById("preview-next-event-date");
+  const previewWeather = document.getElementById("preview-next-event-weather");
   const statNotes = document.getElementById("stat-notes");
   const statCharacters = document.getElementById("stat-characters");
 
@@ -561,9 +679,18 @@ function updateSummaryCards() {
     noteTitle.textContent = notes[0].title;
     noteSummary.textContent = notes[0].content.slice(0, 120);
   }
-  if (events[0] && eventTitle && eventSummary) {
-    eventTitle.textContent = events[0].title;
-    eventSummary.textContent = `${events[0].date}: ${events[0].description.slice(0, 95)}`;
+  const nextEvent = nextImminentEvent();
+  if (nextEvent) {
+    const dateLabel = eventDateLabel(nextEvent);
+    const weatherLabel = eventWeather(nextEvent);
+    if (eventTitle) eventTitle.textContent = nextEvent.title;
+    if (eventSummary) eventSummary.textContent = `${dateLabel}: ${nextEvent.description.slice(0, 95)}`;
+    if (eventDate) eventDate.textContent = dateLabel;
+    if (eventWeatherText) eventWeatherText.textContent = weatherLabel;
+    if (previewTitle) previewTitle.textContent = nextEvent.title;
+    if (previewSummary) previewSummary.textContent = nextEvent.description.slice(0, 140);
+    if (previewDate) previewDate.textContent = dateLabel;
+    if (previewWeather) previewWeather.textContent = weatherLabel;
   }
   if (statNotes) statNotes.textContent = notes.length;
   if (statCharacters) statCharacters.textContent = characters.length;
@@ -585,7 +712,9 @@ function wireForm(formId, key, buildEntry) {
       saveCollection(key, collection);
       form.reset();
       resetImagePickers(form);
+      populateCalendarFormDefaults();
       renderDashboard();
+      renderCampaignCalendar();
     } catch (error) {
       alert(error.message);
     }
@@ -643,14 +772,24 @@ function initDashboardForms() {
     createdAt: readableDate(),
   }));
 
-  wireForm("event-form", "events", async () => ({
-    id: createId("event"),
-    title: document.getElementById("event-title").value.trim(),
-    date: document.getElementById("event-date").value.trim(),
-    description: document.getElementById("event-description").value.trim(),
-    imageDataUrl: await imageToDataUrl(document.getElementById("event-image")),
-    createdAt: readableDate(),
-  }));
+  wireForm("event-form", "events", async () => {
+    const settings = getCalendarSettings();
+    const monthIndex = Number(document.getElementById("event-month")?.value ?? settings.currentMonthIndex);
+    const day = Number(document.getElementById("event-day")?.value ?? 1);
+    const year = Number(document.getElementById("event-year")?.value ?? settings.currentYear);
+    const event = {
+      id: createId("event"),
+      title: document.getElementById("event-title").value.trim(),
+      monthIndex,
+      day,
+      year,
+      description: document.getElementById("event-description").value.trim(),
+      imageDataUrl: await imageToDataUrl(document.getElementById("event-image")),
+      createdAt: readableDate(),
+    };
+    event.date = eventDateLabel(event, settings);
+    return event;
+  });
 }
 
 async function loadMaterials() {
@@ -767,10 +906,125 @@ function initAiPlaceholder() {
 }
 
 
+function renderCampaignCalendar() {
+  const grid = document.getElementById("calendar-grid");
+  const title = document.getElementById("calendar-current-title");
+  if (!grid) return;
+  const settings = getCalendarSettings();
+  const weather = getWeatherMap();
+  const monthName = settings.months[settings.currentMonthIndex] || `Month ${settings.currentMonthIndex + 1}`;
+  if (title) title.textContent = `${monthName} ${settings.currentYear} ${settings.yearName}`;
+
+  const monthEvents = sortedEvents().filter((event) => (
+    Number(event.year) === settings.currentYear && Number(event.monthIndex) === settings.currentMonthIndex
+  ));
+  const headers = settings.weekdays.map((day) => `<div class="calendar-weekday">${escapeHtml(day)}</div>`).join("");
+  const days = Array.from({ length: settings.daysPerMonth }, (_, index) => {
+    const day = index + 1;
+    const dayEvents = monthEvents.filter((event) => Number(event.day) === day);
+    const forecast = weather[weatherKey(settings.currentYear, settings.currentMonthIndex, day)] || "No forecast";
+    return `<article class="calendar-day">
+      <div class="calendar-day-top"><strong>${day}</strong><span>${escapeHtml(forecast)}</span></div>
+      <div class="calendar-day-events">
+        ${dayEvents.map((event) => `<button type="button" class="calendar-event-pill" data-calendar-event-id="${escapeHtml(event.id)}">${escapeHtml(event.title)}</button>`).join("")}
+      </div>
+    </article>`;
+  }).join("");
+  grid.style.setProperty("--calendar-week-length", settings.weekLength);
+  grid.innerHTML = headers + days;
+  grid.querySelectorAll("[data-calendar-event-id]").forEach((button) => {
+    button.addEventListener("click", () => openEventDetail(button.dataset.calendarEventId));
+  });
+}
+
+function openEventDetail(eventId) {
+  const modal = document.getElementById("event-detail-modal");
+  const body = document.getElementById("event-detail-body");
+  if (!modal || !body) return;
+  const event = getStoredCollection("events").find((item) => item.id === eventId);
+  if (!event) return;
+  body.innerHTML = `
+    <div class="card-kicker"><span class="status-badge status-prepared">Calendar event</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
+    <h2 id="event-detail-title">${escapeHtml(event.title)}</h2>
+    <p>${escapeHtml(event.description)}</p>
+    <div class="tag-row"><span class="tag">${escapeHtml(eventWeather(event))}</span><span class="tag">Created ${escapeHtml(event.createdAt || "Unknown")}</span></div>
+  `;
+  modal.hidden = false;
+}
+
+function initCalendarPage() {
+  const settingsForm = document.getElementById("calendar-settings-form");
+  const prev = document.getElementById("calendar-prev");
+  const next = document.getElementById("calendar-next");
+  const weatherButton = document.getElementById("weather-generate");
+  const modal = document.getElementById("event-detail-modal");
+  const settings = getCalendarSettings();
+
+  populateCalendarFormDefaults();
+  if (settingsForm) {
+    document.getElementById("calendar-week-length").value = settings.weekLength;
+    document.getElementById("calendar-weekdays").value = settings.weekdays.join(", ");
+    document.getElementById("calendar-months").value = settings.months.join("\n");
+    document.getElementById("calendar-days-per-month").value = settings.daysPerMonth;
+    document.getElementById("calendar-year-name").value = settings.yearName;
+    document.getElementById("calendar-active-year").value = settings.currentYear;
+
+    settingsForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const weekLength = Math.max(1, Number(document.getElementById("calendar-week-length").value) || 7);
+      const months = document.getElementById("calendar-months").value.split(/\n|,/).map((month) => month.trim()).filter(Boolean);
+      const weekdays = document.getElementById("calendar-weekdays").value.split(",").map((day) => day.trim()).filter(Boolean).slice(0, weekLength);
+      while (weekdays.length < weekLength) weekdays.push(`Day ${weekdays.length + 1}`);
+      saveCalendarSettings({
+        ...getCalendarSettings(),
+        weekLength,
+        weekdays,
+        months: months.length ? months : [...DEFAULT_CALENDAR_SETTINGS.months],
+        daysPerMonth: Math.max(1, Number(document.getElementById("calendar-days-per-month").value) || 30),
+        yearName: document.getElementById("calendar-year-name").value.trim() || "Year",
+        currentYear: Number(document.getElementById("calendar-active-year").value) || settings.currentYear,
+        currentMonthIndex: 0,
+      });
+      populateCalendarFormDefaults();
+      renderCampaignCalendar();
+      renderDashboard();
+    });
+  }
+
+  if (prev) prev.addEventListener("click", () => {
+    const current = getCalendarSettings();
+    current.currentMonthIndex -= 1;
+    if (current.currentMonthIndex < 0) { current.currentMonthIndex = current.months.length - 1; current.currentYear -= 1; }
+    saveCalendarSettings(current); populateCalendarFormDefaults(); renderCampaignCalendar(); renderDashboard();
+  });
+  if (next) next.addEventListener("click", () => {
+    const current = getCalendarSettings();
+    current.currentMonthIndex += 1;
+    if (current.currentMonthIndex >= current.months.length) { current.currentMonthIndex = 0; current.currentYear += 1; }
+    saveCalendarSettings(current); populateCalendarFormDefaults(); renderCampaignCalendar(); renderDashboard();
+  });
+  if (weatherButton) weatherButton.addEventListener("click", () => {
+    const current = getCalendarSettings();
+    const weather = getWeatherMap();
+    for (let day = 1; day <= current.daysPerMonth; day += 1) {
+      weather[weatherKey(current.currentYear, current.currentMonthIndex, day)] = WEATHER_OPTIONS[Math.floor(Math.random() * WEATHER_OPTIONS.length)];
+    }
+    saveWeatherMap(weather); renderCampaignCalendar(); renderDashboard();
+  });
+  if (modal) {
+    modal.addEventListener("click", (event) => { if (event.target === modal || event.target.matches("[data-close-modal]")) modal.hidden = true; });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.hidden = true; });
+  }
+  renderCampaignCalendar();
+}
+
+
 initMobileNavigation();
 initCommandInterface();
 initImagePickers();
+populateCalendarFormDefaults();
 initDashboardForms();
+initCalendarPage();
 initMaterials();
 initAiPlaceholder();
 renderDashboard();
