@@ -657,41 +657,6 @@ function renderCollection({ key, listId, emptyText, template }) {
   });
 }
 
-function widgetCreatedValue(entry) {
-  const idTimestamp = Number(String(entry?.id || "").split("-")[1]);
-  if (Number.isFinite(idTimestamp)) return idTimestamp;
-  const parsedDate = Date.parse(entry?.createdAt || "");
-  return Number.isNaN(parsedDate) ? 0 : parsedDate;
-}
-
-function campaignOverviewCard(campaign) {
-  const notes = getStoredCollection("notes");
-  const characters = getStoredCollection("characters");
-  const events = getStoredCollection("events");
-  const players = campaign.players || [];
-  const actionHref = campaign.setupCompleted ? "#dashboard" : campaignSetupHref(campaign.id);
-  const actionLabel = campaign.setupCompleted ? "OPEN CAMPAIGN" : "START CAMPAIGN";
-  const searchable = textForSearch([campaign.name, campaign.description, "campaign local workspace players party"]);
-  return `
-    <article class="content-card campaign-card span-2" data-searchable="${escapeHtml(searchable)}" data-status="active">
-      <div class="card-visual visual-ember" aria-hidden="true"><span>${cardVisualLabel(campaign.name)}</span></div>
-      <div class="content-card-body">
-        <div class="campaign-title-row">
-          <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(statusLabel(campaign.status))}</span><span>${escapeHtml(campaign.workspaceLabel || "Local workspace")}</span></div>
-          <a class="btn ${campaign.setupCompleted ? "btn-secondary" : "btn-primary"}" href="${escapeHtml(actionHref)}">${actionLabel}</a>
-        </div>
-        <h3>${escapeHtml(campaign.name)}</h3>
-        <p class="widget-description">${escapeHtml(campaign.description)}</p>
-        <dl class="hero-stats compact-stats">
-          <div><dt>Notes</dt><dd>${notes.length}</dd></div>
-          <div><dt>NPCs</dt><dd>${characters.length}</dd></div>
-          <div><dt>Events</dt><dd>${events.length}</dd></div>
-          <div><dt>Players</dt><dd>${players.length}</dd></div>
-        </dl>
-      </div>
-    </article>`;
-}
-
 function playerCharacterCard(player) {
   const title = playerDisplayName(player);
   const searchable = textForSearch([player.playerName, player.characterName, player.classRole, player.race, "player character party"]);
@@ -706,91 +671,14 @@ function playerCharacterCard(player) {
     </a>`;
 }
 
-function dashboardOverviewEntries() {
-  const configs = [
-    {
-      key: "encounters",
-      label: "Encounter",
-      status: (entry) => entry.status || "prepared",
-      title: (entry) => firstDisplayText([entry.title, entry.name], "Untitled encounter"),
-      subtitle: (entry) => firstDisplayText([entry.tier, entry.type, entry.sceneType], "Encounter"),
-      description: (entry) => firstDisplayText([entry.description, entry.notes, entry.content], ""),
-      tags: (entry) => entryTags(entry.tags),
-    },
-    {
-      key: "locations",
-      label: "Location",
-      status: (entry) => entry.status || "active",
-      title: (entry) => firstDisplayText([entry.name, entry.title], "Untitled location"),
-      subtitle: (entry) => firstDisplayText([entry.type, entry.regionType], "Location"),
-      description: (entry) => firstDisplayText([entry.description, entry.notes, entry.content], ""),
-      tags: (entry) => entryTags(entry.tags),
-    },
-    {
-      key: "notes",
-      label: "Note",
-      status: () => "active",
-      title: (entry) => firstDisplayText([entry.title], "Untitled note"),
-      subtitle: (entry) => firstDisplayText([entry.category], "Note"),
-      description: (entry) => firstDisplayText([entry.content], ""),
-      tags: () => [],
-    },
-    {
-      key: "characters",
-      label: "NPC",
-      status: () => "hidden",
-      title: (entry) => firstDisplayText([entry.name], "Untitled character"),
-      subtitle: (entry) => firstDisplayText([entry.role], "Character"),
-      description: (entry) => firstDisplayText([entry.notes], ""),
-      tags: (entry) => entry.faction ? [`Faction: ${entry.faction}`] : [],
-    },
-    {
-      key: "items",
-      label: "Item",
-      status: (entry) => entry.type === "Monster" ? "prepared" : "active",
-      title: (entry) => firstDisplayText([entry.name], "Untitled item"),
-      subtitle: (entry) => firstDisplayText([entry.type], "Item"),
-      description: (entry) => firstDisplayText([entry.description], ""),
-      tags: () => [],
-    },
-    {
-      key: "events",
-      label: "Event",
-      status: () => "prepared",
-      title: (entry) => firstDisplayText([entry.title], "Untitled event"),
-      subtitle: (entry) => eventDateLabel(entry),
-      description: (entry) => firstDisplayText([entry.description], ""),
-      tags: (entry) => [eventWeather(entry)],
-    },
-  ];
-
-  return configs.flatMap((config) => getStoredCollection(config.key).map((entry) => ({ ...config, entry })))
-    .sort((a, b) => widgetCreatedValue(b.entry) - widgetCreatedValue(a.entry));
-}
-
 function renderDashboardOverview() {
   const grid = document.getElementById("campaigns");
   if (!grid) return;
   const campaign = currentCampaign();
-  const entries = dashboardOverviewEntries();
-  const campaignCards = [campaignOverviewCard(campaign), ...(campaign.players || []).map(playerCharacterCard)];
-  const entryCards = entries.map(({ entry, label, status, title, subtitle, description, tags }) => {
-    const widgetStatus = status(entry);
-    const widgetTitle = title(entry);
-    const widgetSubtitle = subtitle(entry);
-    const widgetDescription = description(entry);
-    const widgetTags = [label, entry.createdAt, ...tags(entry)];
-    const searchable = textForSearch([widgetTitle, widgetSubtitle, widgetDescription, widgetTags.join(" ")]);
-    return `
-      <article class="content-card entry-card widget-card" data-widget-origin="user" data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(widgetStatus)}">
-        ${widgetImageDisplayMarkup(entry, widgetTitle)}
-        <div class="card-kicker"><span class="status-badge ${statusBadgeClass(widgetStatus)}">${statusLabel(widgetStatus)}</span><span>${escapeHtml(widgetSubtitle)}</span></div>
-        <h3>${escapeHtml(widgetTitle)}</h3>
-        ${widgetDescriptionMarkup(widgetDescription)}
-        ${widgetTagsMarkup(widgetTags)}
-      </article>`;
-  });
-  grid.innerHTML = [...campaignCards, ...entryCards].join("");
+  const playerCards = (campaign.players || []).map(playerCharacterCard);
+  grid.innerHTML = playerCards.length
+    ? playerCards.join("")
+    : `<div class="empty-state">No player widgets yet. Create player characters to populate this campaign overview.</div>`;
 }
 
 function renderDashboard() {
@@ -974,13 +862,10 @@ function updateSummaryCards() {
   if (statCharacters) statCharacters.textContent = characters.length;
   if (statEvents) statEvents.textContent = events.length;
   if (statPlayers) statPlayers.textContent = campaign.players.length;
-  const startButton = document.getElementById("start-campaign-button");
-  if (startButton) {
-    startButton.href = campaign.setupCompleted ? "#dashboard" : campaignSetupHref(campaign.id);
-    startButton.textContent = campaign.setupCompleted ? "OPEN CAMPAIGN" : "START CAMPAIGN";
-    startButton.classList.toggle("btn-secondary", campaign.setupCompleted);
-    startButton.classList.toggle("btn-primary", !campaign.setupCompleted);
-  }
+  document.querySelectorAll(".campaign-action-button").forEach((button) => {
+    button.href = campaign.setupCompleted ? "#dashboard" : campaignSetupHref(campaign.id);
+    button.textContent = campaign.setupCompleted ? "Open Campaign" : "Start Campaign";
+  });
   const widgetTitle = document.getElementById("campaign-widget-title");
   if (widgetTitle) widgetTitle.textContent = campaign.name;
 }

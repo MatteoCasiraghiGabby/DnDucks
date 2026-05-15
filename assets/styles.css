@@ -894,7 +894,7 @@ code { color: var(--ember-2); }
   gap: 14px;
   margin-bottom: 10px;
 }
-.start-campaign-button { white-space: nowrap; }
+.campaign-action-button { white-space: nowrap; }
 .compact-stats { margin-top: 18px; }
 .player-card { color: inherit; }
 .setup-grid {
@@ -941,7 +941,7 @@ code { color: var(--ember-2); }
 @media (max-width: 760px) {
   .campaign-title-row,
   .setup-actions { align-items: stretch; flex-direction: column; }
-  .start-campaign-button,
+  .campaign-action-button,
   .setup-actions .btn { width: 100%; }
 }
 
