@@ -119,41 +119,64 @@ function savePlayerToCampaign(campaignId, player) {
   return upsertCampaign({ ...campaign, players: [...campaign.players, savedPlayer] });
 }
 
-function campaignStartContent(players) {
+function campaignStartContent(players, description = "") {
   const summary = players.length
     ? `\n\nParty summary:\n${players.map((player) => `- ${player.playerName}: ${player.characterName}${player.classRole ? `, ${player.classRole}` : ""}${player.level ? ` level ${player.level}` : ""}`).join("\n")}`
     : "";
-  return `The campaign has started. Party members have been created and are ready for the adventure.${summary}`;
+  const intro = description.trim() || "The campaign has started. Party members have been created and are ready for the adventure.";
+  return `${intro}${summary}`;
 }
 
-function ensureCampaignStartNote(campaign) {
+function getCampaignStartNote(campaign) {
   const notes = getStoredCollection("notes");
   const existingId = campaign.campaignStartNoteId;
-  const existing = notes.find((note) => note.id === existingId || (note.campaignId === campaign.id && note.generatedBy === "campaign-setup-start"));
-  if (existing) return { notes, noteId: existing.id };
+  return notes.find((note) => note.id === existingId || (note.campaignId === campaign.id && note.generatedBy === "campaign-setup-start"));
+}
+
+function campaignReady(campaign) {
+  return Boolean(campaign?.setupCompleted && getCampaignStartNote(campaign)?.campaignStartDate);
+}
+
+function saveCampaignStartNote(campaign, noteData = {}) {
+  const notes = getStoredCollection("notes");
+  const existing = getCampaignStartNote(campaign);
+  const startDate = noteData.startDate || currentIsoDate();
+  const title = noteData.title?.trim() || campaign.name;
+  const description = noteData.description?.trim() || "";
   const note = {
-    id: createId("note"),
+    ...(existing || {}),
+    id: existing?.id || createId("note"),
     campaignId: campaign.id,
     generatedBy: "campaign-setup-start",
-    title: "Campaign Start",
+    title,
     category: "Session Note",
-    content: campaignStartContent(campaign.players),
-    createdAt: readableDate(),
+    content: campaignStartContent(campaign.players, description),
+    campaignStartDate: startDate,
+    createdAt: readableDateFromIso(startDate),
+    sortAt: Date.parse(`${startDate}T00:00:00`),
   };
-  const nextNotes = [note, ...notes];
+  const nextNotes = existing
+    ? notes.map((item) => item.id === existing.id ? note : item)
+    : [...notes, note];
   saveCollection("notes", nextNotes);
   return { notes: nextNotes, noteId: note.id };
 }
 
-function completeCampaignSetup(campaignId) {
+function completeCampaignSetup(campaignId, noteData = {}) {
   const campaign = getCampaign(campaignId);
   if (!campaign) return null;
-  const { noteId } = ensureCampaignStartNote(campaign);
-  return upsertCampaign({ ...campaign, setupCompleted: true, campaignStartNoteId: noteId });
+  const campaignName = noteData.title?.trim() || campaign.name;
+  const nextCampaign = { ...campaign, name: campaignName };
+  const { noteId } = saveCampaignStartNote(nextCampaign, noteData);
+  return upsertCampaign({ ...nextCampaign, setupCompleted: true, campaignStartNoteId: noteId });
 }
 
 function campaignSetupHref(campaignId) {
   return `index.html#/campaigns/${encodeURIComponent(campaignId)}/setup`;
+}
+
+function campaignStartNoteHref(campaignId) {
+  return `index.html#/campaigns/${encodeURIComponent(campaignId)}/start-note`;
 }
 
 function playerCharacterHref(campaignId, playerId) {
@@ -424,6 +447,31 @@ function readableDate() {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date());
 }
 
+function currentIsoDate() {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${today.getFullYear()}-${month}-${day}`;
+}
+
+function readableDateFromIso(value) {
+  if (!value) return readableDate();
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value}T00:00:00`));
+}
+
+function noteChronologyValue(note) {
+  if (note?.campaignStartDate) return Date.parse(`${note.campaignStartDate}T00:00:00`);
+  if (note?.sortAt) return Number(note.sortAt);
+  const idTimestamp = Number(String(note?.id || "").split("-")[1]);
+  if (Number.isFinite(idTimestamp)) return idTimestamp;
+  const parsedDate = Date.parse(note?.createdAt || "");
+  return Number.isNaN(parsedDate) ? 0 : parsedDate;
+}
+
+function sortedNotes() {
+  return getStoredCollection("notes").sort((a, b) => noteChronologyValue(a) - noteChronologyValue(b));
+}
+
 function textForSearch(values) {
   return values.filter(Boolean).join(" ").toLowerCase();
 }
@@ -618,11 +666,11 @@ function chooseWidgetImage() {
   });
 }
 
-function renderCollection({ key, listId, emptyText, template }) {
+function renderCollection({ key, listId, emptyText, template, getCollection }) {
   const list = document.getElementById(listId);
   if (!list) return;
 
-  const collection = getStoredCollection(key).filter(Boolean);
+  const collection = (getCollection ? getCollection() : getStoredCollection(key)).filter(Boolean);
   if (!collection.length) {
     list.innerHTML = `<div class="empty-state">${emptyText}</div>`;
     return;
@@ -734,15 +782,17 @@ ${widgetDeleteActionMarkup(location, "Delete location")}
     key: "notes",
     listId: "notes-list",
     emptyText: "No saved notes yet. Add one above to begin your campaign wiki.",
+    getCollection: sortedNotes,
     template: (note) => {
       const searchable = textForSearch([note.title, note.category, note.content, note.createdAt, "note campaign wiki"]);
+      const noteDate = note.campaignStartDate ? `Campaign begins ${note.createdAt}` : note.createdAt;
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
           ${widgetImageMarkup(note, note.title)}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
-          ${widgetTagsMarkup([note.createdAt, "Backlinks soon"])}
+          ${widgetTagsMarkup([noteDate, "Backlinks soon"])}
 ${widgetDeleteActionMarkup(note, "Delete note")}
         </article>`;
     },
@@ -863,8 +913,16 @@ function updateSummaryCards() {
   if (statEvents) statEvents.textContent = events.length;
   if (statPlayers) statPlayers.textContent = campaign.players.length;
   document.querySelectorAll(".campaign-action-button").forEach((button) => {
-    button.href = campaign.setupCompleted ? "#dashboard" : campaignSetupHref(campaign.id);
-    button.textContent = campaign.setupCompleted ? "Open Campaign" : "Start Campaign";
+    if (campaignReady(campaign)) {
+      button.href = "#dashboard";
+      button.textContent = "Open Campaign";
+    } else if (campaign.players.length) {
+      button.href = campaignStartNoteHref(campaign.id);
+      button.textContent = "Open Campaign";
+    } else {
+      button.href = campaignSetupHref(campaign.id);
+      button.textContent = "Start Campaign";
+    }
   });
   const widgetTitle = document.getElementById("campaign-widget-title");
   if (widgetTitle) widgetTitle.textContent = campaign.name;
@@ -925,6 +983,7 @@ function initDashboardForms() {
     content: document.getElementById("note-content").value.trim(),
     imageDataUrl: await imageToDataUrl(document.getElementById("note-image")),
     createdAt: readableDate(),
+    sortAt: Date.now(),
   }));
 
   wireForm("character-form", "characters", async () => ({
@@ -1164,8 +1223,12 @@ function renderCampaignSetupPage(campaignId) {
     renderNotFoundPage("The requested campaign does not exist in local storage.");
     return;
   }
-  if (campaign.setupCompleted) {
+  if (campaignReady(campaign)) {
     goToDashboard();
+    return;
+  }
+  if (campaign.setupCompleted && campaign.players.length) {
+    window.location.href = campaignStartNoteHref(campaign.id);
     return;
   }
   document.querySelector("main").innerHTML = `
@@ -1206,7 +1269,62 @@ function renderCampaignSetupPage(campaignId) {
       }
       return;
     }
-    completeCampaignSetup(campaign.id);
+    window.location.href = campaignStartNoteHref(campaign.id);
+  });
+}
+
+function renderCampaignStartNotePage(campaignId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) {
+    renderNotFoundPage("The requested campaign does not exist in local storage.");
+    return;
+  }
+  if (!campaign.players.length) {
+    renderCampaignSetupPage(campaign.id);
+    return;
+  }
+  if (campaignReady(campaign)) {
+    goToDashboard();
+    return;
+  }
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell setup-page">
+      <div class="page-hero">
+        <p class="eyebrow">Campaign beginning</p>
+        <h1>Write the first note.</h1>
+        <p>Set the campaign title, beginning date, and opening description before entering the dashboard.</p>
+      </div>
+      <form class="panel form-grid campaign-start-note-form" id="campaign-start-note-form">
+        <label>Campaign title<input id="campaign-start-title" type="text" value="${escapeHtml(campaign.name)}" required /></label>
+        <label>Beginning date<input id="campaign-start-date" type="date" value="${currentIsoDate()}" required /></label>
+        <label class="full-width">Description<textarea id="campaign-start-description" rows="5" placeholder="Write the opening note, premise, first scene, or table context..." required></textarea></label>
+        <div class="form-message full-width" id="campaign-start-note-message" aria-live="polite"></div>
+        <div class="setup-actions full-width">
+          <a class="btn btn-secondary" href="${escapeHtml(campaignSetupHref(campaign.id))}">BACK TO PLAYERS</a>
+          <button class="btn btn-primary" type="submit">OPEN CAMPAIGN</button>
+        </div>
+      </form>
+    </section>`;
+  const form = document.getElementById("campaign-start-note-form");
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const completed = completeCampaignSetup(campaign.id, {
+      title: document.getElementById("campaign-start-title").value.trim(),
+      startDate: document.getElementById("campaign-start-date").value,
+      description: document.getElementById("campaign-start-description").value.trim(),
+    });
+    if (!completed) {
+      const message = document.getElementById("campaign-start-note-message");
+      if (message) {
+        message.textContent = "Could not save the campaign beginning.";
+        message.classList.add("error");
+      }
+      return;
+    }
     goToDashboard();
   });
 }
@@ -1255,6 +1373,10 @@ function initCampaignRoutes() {
   const campaignId = parts[1] || DEFAULT_CAMPAIGN_ID;
   if (parts[2] === "setup") {
     renderCampaignSetupPage(campaignId);
+    return true;
+  }
+  if (parts[2] === "start-note") {
+    renderCampaignStartNotePage(campaignId);
     return true;
   }
   if (parts[2] === "players" && parts[3]) {

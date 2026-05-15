@@ -82,7 +82,7 @@ test("saving players persists them on the local campaign", () => {
   assert.equal(app.getCampaign("local").players[0].characterName, "Thorn");
 });
 
-test("completing setup creates the Campaign Start note only once", () => {
+test("completing setup saves the first campaign note only once", () => {
   const app = createFrontendSandbox();
   const player = app.buildPlayerCharacter(mockPlayerForm({
     "#player-name": "Riley",
@@ -92,26 +92,74 @@ test("completing setup creates the Campaign Start note only once", () => {
   }));
   app.savePlayerToCampaign("local", player);
 
-  const completed = app.completeCampaignSetup("local");
+  const completed = app.completeCampaignSetup("local", {
+    title: "The Verdant Road",
+    startDate: "2026-05-15",
+    description: "The party meets at the city gate.",
+  });
   assert.equal(completed.setupCompleted, true);
+  assert.equal(completed.name, "The Verdant Road");
+  assert.equal(app.campaignReady(completed), true);
   let notes = app.getStoredCollection("notes");
   assert.equal(notes.length, 1);
-  assert.equal(notes[0].title, "Campaign Start");
+  assert.equal(notes[0].title, "The Verdant Road");
+  assert.equal(notes[0].campaignStartDate, "2026-05-15");
+  assert.match(notes[0].content, /The party meets at the city gate/);
   assert.match(notes[0].content, /Riley: Bramble, Druid level 4/);
 
-  app.completeCampaignSetup("local");
+  app.completeCampaignSetup("local", {
+    title: "The Verdant Road",
+    startDate: "2026-05-15",
+    description: "Updated opening.",
+  });
   notes = app.getStoredCollection("notes");
   assert.equal(notes.length, 1);
+  assert.match(notes[0].content, /Updated opening/);
+});
+
+test("old auto-completed campaigns still require the explicit first note", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+  }));
+  const campaign = app.savePlayerToCampaign("local", player);
+  app.saveCollection("notes", [{
+    id: "note-old-start",
+    campaignId: "local",
+    generatedBy: "campaign-setup-start",
+    title: "Campaign Start",
+    category: "Session Note",
+    content: "Old automatic note.",
+    createdAt: "May 15, 2026",
+  }]);
+  const migrated = app.upsertCampaign({ ...campaign, setupCompleted: true, campaignStartNoteId: "note-old-start" });
+
+  assert.equal(app.campaignReady(migrated), false);
 });
 
 test("campaign setup links use hash routes that static servers can serve", () => {
   const app = createFrontendSandbox();
 
   assert.equal(app.campaignSetupHref("local"), "index.html#/campaigns/local/setup");
+  assert.equal(app.campaignStartNoteHref("local"), "index.html#/campaigns/local/start-note");
   app.window.location.hash = "#/campaigns/local/setup";
   assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "setup"]);
+  app.window.location.hash = "#/campaigns/local/start-note";
+  assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "start-note"]);
 
   const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
   assert.match(html, /href="index\.html#\/campaigns\/local\/setup"/);
   assert.doesNotMatch(html, /href="\/campaigns\/local\/setup"/);
+});
+
+test("notes are returned in campaign chronology order", () => {
+  const app = createFrontendSandbox();
+
+  app.saveCollection("notes", [
+    { id: "note-2000-later", title: "Later", category: "Session Note", content: "Later", createdAt: "May 20, 2026", sortAt: 2000 },
+    { id: "note-1000-first", title: "First", category: "Session Note", content: "First", createdAt: "May 15, 2026", sortAt: 1000 },
+  ]);
+
+  assert.deepEqual(Array.from(app.sortedNotes().map((note) => note.title)), ["First", "Later"]);
 });
