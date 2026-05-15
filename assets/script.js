@@ -671,12 +671,6 @@ function initCommandInterface() {
     });
   }
 
-  document.querySelectorAll(".category-pill").forEach((link) => {
-    link.addEventListener("click", () => {
-      document.querySelectorAll(".category-pill").forEach((item) => item.classList.remove("is-active"));
-      link.classList.add("is-active");
-    });
-  });
 }
 
 function chooseWidgetImage() {
@@ -828,7 +822,6 @@ ${widgetDeleteActionMarkup(location, "Delete location")}
       const noteDate = note.campaignStartDate ? `Campaign begins ${note.createdAt}` : note.createdAt;
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
-          ${widgetImageMarkup(note, note.title)}
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
@@ -1023,7 +1016,6 @@ function initDashboardForms() {
     title: document.getElementById("note-title").value.trim(),
     category: document.getElementById("note-category").value,
     content: document.getElementById("note-content").value.trim(),
-    imageDataUrl: await imageToDataUrl(document.getElementById("note-image")),
     createdAt: readableDate(),
     sortAt: Date.now(),
   }));

@@ -74,12 +74,6 @@
           <span aria-hidden="true">Search</span>
           <input id="global-search" type="search" placeholder="Search notes, NPCs, items, sessions..." />
         </label>
-        <label class="select-control" for="campaign-select">
-          <span class="sr-only">Current campaign</span>
-          <select id="campaign-select">
-            <option>Local campaign</option>
-          </select>
-        </label>
         <button class="chip-button is-active" type="button" data-status-filter="all">All</button>
         <button class="chip-button" type="button" data-status-filter="prepared">Prepared</button>
         <button class="chip-button" type="button" data-status-filter="hidden">DM-only</button>
@@ -88,26 +82,10 @@
         <a class="btn btn-primary campaign-action-button" href="index.html#/campaigns/local/setup">Start Campaign</a>
       </section>
 
-      <nav class="category-scroller section-shell" aria-label="Campaign categories">
-        <a href="#campaigns" class="category-pill is-active"><span>⚑</span>Campaigns</a>
-        <a href="#live-session" class="category-pill"><span>✦</span>Sessions</a>
-        <a href="#encounters" class="category-pill"><span>⚔</span>Encounters</a>
-        <a href="#characters" class="category-pill"><span>☻</span>NPCs</a>
-        <a href="#locations" class="category-pill"><span>⌖</span>Locations</a>
-        <a href="#quests" class="category-pill"><span>◆</span>Quests</a>
-        <a href="#items" class="category-pill"><span>◈</span>Items</a>
-        <a href="#items" class="category-pill"><span>♜</span>Monsters</a>
-        <a href="#notes" class="category-pill"><span>✎</span>Notes</a>
-        <a href="#maps" class="category-pill"><span>◎</span>Maps</a>
-        <a href="#files" class="category-pill"><span>▣</span>Materials</a>
-      </nav>
-
       <div class="app-shell section-shell" id="dashboard">
         <aside class="sidebar" aria-label="Dashboard sections">
           <div class="sidebar-title">Table Tools</div>
           <nav class="sidebar-nav">
-            <a href="#campaigns">Overview</a>
-            <a href="#live-session">Live Session</a>
             <a href="#encounters">Encounters</a>
             <a href="#quests">Quests</a>
             <a href="#locations">Locations</a>
@@ -116,16 +94,10 @@
             <a href="#items">Items</a>
             <a href="#maps">Maps</a>
             <a href="#calendar-preview">Calendar</a>
-            <a href="#files">Materials</a>
-            <a href="#assistant">Assistant</a>
           </nav>
         </aside>
 
         <div class="dashboard-content">
-          <section class="dashboard-grid" id="campaigns" aria-label="Campaign overview cards">
-            <div class="empty-state">No player widgets yet. Create player characters to populate this campaign overview.</div>
-          </section>
-
           <aside class="filter-panel" id="filter-panel" aria-label="Advanced filters" hidden>
             <div>
               <p class="eyebrow">Filters</p>
@@ -138,19 +110,6 @@
               <label>Location<select><option>Any location</option></select></label>
             </div>
           </aside>
-
-          <section class="workspace-section" id="live-session">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Live table view</p>
-                <h2>Live Session</h2>
-              </div>
-              <a class="btn btn-primary" href="#encounters">Open Encounter</a>
-            </div>
-            <div class="session-grid">
-              <div class="empty-state">Live-session widgets will appear here after they are created from your campaign data.</div>
-            </div>
-          </section>
 
           <section class="workspace-section" id="encounters">
             <div class="section-heading">
@@ -228,13 +187,6 @@
               <label>Note title<input id="note-title" name="title" type="text" placeholder="Note title" required /></label>
               <label>Category<select id="note-category" name="category" required><option>Session Note</option><option>NPC</option><option>Location</option><option>Quest</option><option>Lore</option><option>Consequence</option></select></label>
               <label class="full-width">Note content<textarea id="note-content" name="content" rows="4" placeholder="Record clues, decisions, loose threads, and future consequences..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="note-image">Optional widget image</label>
-                <input id="note-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="note-image">Choose image</button>
-                <span class="image-picker-status" data-image-status>No image chosen</span>
-                <img class="image-picker-preview" data-image-preview alt="Selected note image preview" hidden />
-              </div>
               <button class="btn btn-primary" type="submit">Save Note</button>
             </form>
             <div class="linking-concept panel">
@@ -317,50 +269,6 @@
             </div>
           </section>
 
-          <section class="workspace-section" id="files">
-            <div class="section-heading">
-              <div><p class="eyebrow">Campaign archive</p><h2>Materials</h2></div>
-              <span class="tag" id="material-count">Loading files...</span>
-            </div>
-            <form class="panel form-grid" id="material-form">
-              <label class="file-picker full-width">Upload map, portrait, handout, note, or data file
-                <input id="material-file" name="file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.txt,.md,.json,.csv,image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,text/markdown,application/json,text/csv" required />
-              </label>
-              <label>Title<input id="material-title" name="title" type="text" placeholder="Material title" /></label>
-              <label>Category
-                <select id="material-category" name="category">
-                  <option value="map">Map</option>
-                  <option value="handout">Handout</option>
-                  <option value="npc_image">NPC image</option>
-                  <option value="note">Note</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
-              <label>Campaign ID<input id="material-campaign" name="campaignId" type="text" placeholder="campaign-id" /></label>
-              <label>Session ID<input id="material-session" name="sessionId" type="text" placeholder="session-id" /></label>
-              <label class="full-width">Description<textarea id="material-description" name="description" rows="2" placeholder="How this file should be used at the table..."></textarea></label>
-              <label class="full-width">Tags<input id="material-tags" name="tags" type="text" placeholder="Tags, comma-separated" /></label>
-              <button class="btn btn-primary" type="submit">Upload Material</button>
-              <p class="form-message full-width" id="material-status" aria-live="polite"></p>
-            </form>
-            <div class="collection-grid materials-grid" id="materials-list" aria-live="polite"></div>
-          </section>
-
-          <section class="workspace-section" id="assistant">
-            <div class="section-heading"><div><p class="eyebrow">Campaign assistant</p><h2>AI Assistant Placeholder</h2></div></div>
-            <div class="assistant-panel panel">
-              <form id="ai-form" class="assistant-form">
-                <label for="ai-question">Ask a campaign consequence question</label>
-                <textarea id="ai-question" rows="4" placeholder="Ask about consequences, summaries, or campaign continuity..." required></textarea>
-                <button class="btn btn-primary" type="submit">Ask Assistant</button>
-              </form>
-              <div class="ai-response" id="ai-response">
-                <h3>No assistant response yet</h3>
-                <p>Ask a question to generate a response from your saved campaign context when AI integration is available.</p>
-              </div>
-            </div>
-          </section>
-
           <section class="workspace-section roadmap" id="roadmap">
             <div class="section-heading"><div><p class="eyebrow">Build plan</p><h2>Future Backend Roadmap</h2></div></div>
             <div class="panel roadmap-grid">
@@ -375,8 +283,8 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Mobile quick navigation">
-      <a href="#campaigns">Home</a>
-      <a href="#live-session">Run</a>
+      <a href="#dashboard">Home</a>
+      <a href="#encounters">Run</a>
       <a href="#notes">Notes</a>
       <a href="#characters">NPCs</a>
     </nav>
