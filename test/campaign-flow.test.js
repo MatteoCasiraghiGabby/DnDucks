@@ -82,6 +82,48 @@ test("saving players persists them on the local campaign", () => {
   assert.equal(app.getCampaign("local").players[0].characterName, "Thorn");
 });
 
+test("deleting players removes them from the local campaign", () => {
+  const app = createFrontendSandbox();
+  const first = app.savePlayerToCampaign("local", app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Sam",
+    "#player-character-name": "Thorn",
+  })));
+  const second = app.savePlayerToCampaign("local", app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+  })));
+
+  assert.equal(second.players.length, 2);
+  const nextCampaign = app.deletePlayerFromCampaign("local", first.players[0].id);
+  assert.equal(nextCampaign.players.length, 1);
+  assert.equal(nextCampaign.players[0].characterName, "Bramble");
+});
+
+test("resetting a campaign restores the neutral campaign state", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+  }));
+  app.savePlayerToCampaign("local", player);
+  app.completeCampaignSetup("local", {
+    title: "The Verdant Road",
+    startDate: "2026-05-15",
+    description: "The party meets at the city gate.",
+  });
+  app.saveCollection("notes", [
+    ...app.getStoredCollection("notes"),
+    { id: "note-unrelated", title: "Keep me", category: "Lore", content: "Manual note", createdAt: "May 16, 2026" },
+  ]);
+
+  const reset = app.resetCampaign("local");
+  assert.equal(reset.name, "Your campaign");
+  assert.equal(reset.setupCompleted, false);
+  assert.equal(reset.campaignStartNoteId, "");
+  assert.equal(reset.players.length, 0);
+  assert.deepEqual(Array.from(app.getStoredCollection("notes").map((note) => note.title)), ["Keep me"]);
+});
+
 test("completing setup saves the first campaign note only once", () => {
   const app = createFrontendSandbox();
   const player = app.buildPlayerCharacter(mockPlayerForm({
@@ -143,14 +185,18 @@ test("campaign setup links use hash routes that static servers can serve", () =>
 
   assert.equal(app.campaignSetupHref("local"), "index.html#/campaigns/local/setup");
   assert.equal(app.campaignStartNoteHref("local"), "index.html#/campaigns/local/start-note");
+  assert.equal(app.dashboardHref(), "index.html#dashboard");
   app.window.location.hash = "#/campaigns/local/setup";
   assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "setup"]);
   app.window.location.hash = "#/campaigns/local/start-note";
   assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "start-note"]);
 
   const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
   assert.match(html, /href="index\.html#\/campaigns\/local\/setup"/);
   assert.doesNotMatch(html, /href="\/campaigns\/local\/setup"/);
+  assert.match(script, /id="back-to-dashboard-button"/);
+  assert.match(script, /addEventListener\("click", goToDashboard\)/);
 });
 
 test("notes are returned in campaign chronology order", () => {

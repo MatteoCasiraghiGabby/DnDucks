@@ -72,6 +72,16 @@ function currentCampaign() {
   return getCampaign(DEFAULT_CAMPAIGN_ID) || upsertCampaign(DEFAULT_CAMPAIGN);
 }
 
+function resetCampaign(campaignId = DEFAULT_CAMPAIGN_ID) {
+  const campaign = getCampaign(campaignId);
+  const noteIdsToRemove = new Set([campaign?.campaignStartNoteId].filter(Boolean));
+  const notes = getStoredCollection("notes").filter((note) => (
+    !noteIdsToRemove.has(note.id) && !(note.campaignId === campaignId && note.generatedBy === "campaign-setup-start")
+  ));
+  saveCollection("notes", notes);
+  return upsertCampaign({ ...DEFAULT_CAMPAIGN, id: campaignId });
+}
+
 function playerDisplayName(player) {
   return firstDisplayText([player.characterName, player.playerName], "Unnamed hero");
 }
@@ -117,6 +127,12 @@ function savePlayerToCampaign(campaignId, player) {
   if (!campaign) return null;
   const savedPlayer = { ...player, avatarUrl: player.avatarUrl || player.imageDataUrl || "" };
   return upsertCampaign({ ...campaign, players: [...campaign.players, savedPlayer] });
+}
+
+function deletePlayerFromCampaign(campaignId, playerId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  return upsertCampaign({ ...campaign, players: campaign.players.filter((player) => player.id !== playerId) });
 }
 
 function campaignStartContent(players, description = "") {
@@ -183,8 +199,12 @@ function playerCharacterHref(campaignId, playerId) {
   return `index.html#/campaigns/${encodeURIComponent(campaignId)}/players/${encodeURIComponent(playerId)}`;
 }
 
+function dashboardHref() {
+  return "index.html#dashboard";
+}
+
 function goToDashboard() {
-  window.location.href = "index.html#dashboard";
+  window.location.href = dashboardHref();
   window.location.reload();
 }
 
@@ -611,6 +631,7 @@ function initCommandInterface() {
   const filterToggle = document.getElementById("filter-toggle");
   const filterPanel = document.getElementById("filter-panel");
   const statusButtons = document.querySelectorAll("[data-status-filter]");
+  const deleteCampaignButton = document.getElementById("delete-campaign-button");
   let activeStatus = "all";
 
   function applyFilters() {
@@ -639,6 +660,14 @@ function initCommandInterface() {
       const isHidden = filterPanel.hasAttribute("hidden");
       filterPanel.toggleAttribute("hidden", !isHidden);
       filterToggle.setAttribute("aria-expanded", String(isHidden));
+    });
+  }
+
+  if (deleteCampaignButton) {
+    deleteCampaignButton.addEventListener("click", () => {
+      resetCampaign(DEFAULT_CAMPAIGN_ID);
+      renderDashboard();
+      renderCampaignCalendar();
     });
   }
 
@@ -709,14 +738,19 @@ function playerCharacterCard(player) {
   const title = playerDisplayName(player);
   const searchable = textForSearch([player.playerName, player.characterName, player.classRole, player.race, "player character party"]);
   const imageEntry = { imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl };
+  const campaignId = player.campaignId || DEFAULT_CAMPAIGN_ID;
   return `
-    <a class="content-card entry-card widget-card player-card" href="${escapeHtml(playerCharacterHref(player.campaignId || DEFAULT_CAMPAIGN_ID, player.id))}" data-searchable="${escapeHtml(searchable)}" data-status="active">
+    <article class="content-card entry-card widget-card player-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
       ${widgetImageDisplayMarkup(imageEntry, title)}
       <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
       <h3>${escapeHtml(title)}</h3>
       ${widgetDescriptionMarkup(player.description || player.notes)}
       ${widgetTagsMarkup([`Player: ${player.playerName}`, player.level ? `Level ${player.level}` : "", player.race])}
-    </a>`;
+      <div class="entry-actions">
+        <a class="btn btn-secondary" href="${escapeHtml(playerCharacterHref(campaignId, player.id))}">Open sheet</a>
+        <button class="btn btn-danger" type="button" data-delete-player-id="${escapeHtml(player.id)}" data-campaign-id="${escapeHtml(campaignId)}">Delete player</button>
+      </div>
+    </article>`;
 }
 
 function renderDashboardOverview() {
@@ -727,6 +761,12 @@ function renderDashboardOverview() {
   grid.innerHTML = playerCards.length
     ? playerCards.join("")
     : `<div class="empty-state">No player widgets yet. Create player characters to populate this campaign overview.</div>`;
+  grid.querySelectorAll("[data-delete-player-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      deletePlayerFromCampaign(button.dataset.campaignId || DEFAULT_CAMPAIGN_ID, button.dataset.deletePlayerId);
+      renderDashboard();
+    });
+  });
 }
 
 function renderDashboard() {
@@ -926,6 +966,8 @@ function updateSummaryCards() {
   });
   const widgetTitle = document.getElementById("campaign-widget-title");
   if (widgetTitle) widgetTitle.textContent = campaign.name;
+  const featureRune = document.getElementById("campaign-feature-rune");
+  if (featureRune) featureRune.textContent = "🦆";
 }
 
 function wireForm(formId, key, buildEntry) {
@@ -1347,7 +1389,7 @@ function renderPlayerCharacterPage(campaignId, playerId) {
           <p class="eyebrow">Player character</p>
           <h1>${escapeHtml(player.characterName)}</h1>
           <p>Played by ${escapeHtml(player.playerName)} in ${escapeHtml(campaign.name)}.</p>
-          <a class="btn btn-secondary" href="index.html#campaigns">Back to campaign dashboard</a>
+          <button class="btn btn-secondary" type="button" id="back-to-dashboard-button">Back to campaign dashboard</button>
         </div>
         ${player.avatarUrl ? `<img class="character-avatar" src="${escapeHtml(player.avatarUrl)}" alt="${escapeHtml(player.characterName)} avatar" />` : `<div class="card-visual character-avatar-placeholder" aria-hidden="true"><span>${cardVisualLabel(player.characterName)}</span></div>`}
       </div>
@@ -1365,6 +1407,7 @@ function renderPlayerCharacterPage(campaignId, playerId) {
         <p>${escapeHtml(player.notes || "No notes recorded yet.")}</p>
       </article>
     </section>`;
+  document.getElementById("back-to-dashboard-button").addEventListener("click", goToDashboard);
 }
 
 function initCampaignRoutes() {
@@ -1513,6 +1556,7 @@ if (!initCampaignRoutes()) {
 }
 window.addEventListener("hashchange", () => {
   if (window.location.hash.startsWith("#/campaigns")) initCampaignRoutes();
+  else if (document.querySelector(".character-page, .setup-page")) window.location.reload();
 });
 
 /*

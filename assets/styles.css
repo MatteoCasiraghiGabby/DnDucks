@@ -234,6 +234,12 @@ select:focus-visible {
   font-weight: 900;
   line-height: 1;
 }
+.campaign-delete-button {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+}
 .feature-card-body { padding: 22px; }
 .feature-card-body h2,
 .content-card h2,
