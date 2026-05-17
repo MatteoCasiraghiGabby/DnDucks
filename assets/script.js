@@ -27,6 +27,135 @@ const DEFAULT_CAMPAIGN = {
   updatedAt: "Local draft",
 };
 
+const PLAYER_CLASSES = [
+  { name: "Barbarian", hitDie: "d12", primary: "Strength", saves: ["strength", "constitution"], skillLimit: 2, skillChoices: ["animalHandling", "athletics", "intimidation", "nature", "perception", "survival"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+  { name: "Bard", hitDie: "d8", primary: "Charisma", saves: ["dexterity", "charisma"], skillLimit: 3, skillChoices: "any", fixedTools: [], toolLimit: 3, toolChoices: "musical" },
+  { name: "Cleric", hitDie: "d8", primary: "Wisdom", saves: ["wisdom", "charisma"], skillLimit: 2, skillChoices: ["history", "insight", "medicine", "persuasion", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+  { name: "Druid", hitDie: "d8", primary: "Wisdom", saves: ["intelligence", "wisdom"], skillLimit: 2, skillChoices: ["arcana", "animalHandling", "insight", "medicine", "nature", "perception", "religion", "survival"], fixedTools: ["herbalismKit"], toolLimit: 0, toolChoices: [] },
+  { name: "Fighter", hitDie: "d10", primary: "Strength or Dexterity", saves: ["strength", "constitution"], skillLimit: 2, skillChoices: ["acrobatics", "animalHandling", "athletics", "history", "insight", "intimidation", "perception", "survival"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+  { name: "Monk", hitDie: "d8", primary: "Dexterity and Wisdom", saves: ["strength", "dexterity"], skillLimit: 2, skillChoices: ["acrobatics", "athletics", "history", "insight", "religion", "stealth"], fixedTools: [], toolLimit: 1, toolChoices: "artisanOrMusical" },
+  { name: "Paladin", hitDie: "d10", primary: "Strength and Charisma", saves: ["wisdom", "charisma"], skillLimit: 2, skillChoices: ["athletics", "insight", "intimidation", "medicine", "persuasion", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+  { name: "Ranger", hitDie: "d10", primary: "Dexterity and Wisdom", saves: ["strength", "dexterity"], skillLimit: 3, skillChoices: ["animalHandling", "athletics", "insight", "investigation", "nature", "perception", "stealth", "survival"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+  { name: "Rogue", hitDie: "d8", primary: "Dexterity", saves: ["dexterity", "intelligence"], skillLimit: 4, skillChoices: ["acrobatics", "athletics", "deception", "insight", "intimidation", "investigation", "perception", "performance", "persuasion", "sleightOfHand", "stealth"], fixedTools: ["thievesTools"], toolLimit: 0, toolChoices: [] },
+  { name: "Sorcerer", hitDie: "d6", primary: "Charisma", saves: ["constitution", "charisma"], skillLimit: 2, skillChoices: ["arcana", "deception", "insight", "intimidation", "persuasion", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+  { name: "Warlock", hitDie: "d8", primary: "Charisma", saves: ["wisdom", "charisma"], skillLimit: 2, skillChoices: ["arcana", "deception", "history", "intimidation", "investigation", "nature", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+  { name: "Wizard", hitDie: "d6", primary: "Intelligence", saves: ["intelligence", "wisdom"], skillLimit: 2, skillChoices: ["arcana", "history", "insight", "investigation", "medicine", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
+];
+
+const PLAYER_RACES = ["Dragonborn", "Dwarf", "Elf", "Gnome", "Half-Elf", "Halfling", "Half-Orc", "Human", "Tiefling"];
+const PLAYER_ALIGNMENTS = ["Lawful Good", "Neutral Good", "Chaotic Good", "Lawful Neutral", "True Neutral", "Chaotic Neutral", "Lawful Evil", "Neutral Evil", "Chaotic Evil", "Unaligned"];
+
+const LANGUAGES = [
+  { key: "common", label: "Common" },
+  { key: "dwarvish", label: "Dwarvish" },
+  { key: "elvish", label: "Elvish" },
+  { key: "giant", label: "Giant" },
+  { key: "gnomish", label: "Gnomish" },
+  { key: "goblin", label: "Goblin" },
+  { key: "halfling", label: "Halfling" },
+  { key: "orc", label: "Orc" },
+  { key: "abyssal", label: "Abyssal" },
+  { key: "celestial", label: "Celestial" },
+  { key: "deepSpeech", label: "Deep Speech" },
+  { key: "draconic", label: "Draconic" },
+  { key: "infernal", label: "Infernal" },
+  { key: "primordial", label: "Primordial" },
+  { key: "sylvan", label: "Sylvan" },
+  { key: "undercommon", label: "Undercommon" },
+];
+
+const TOOLS = [
+  { key: "thievesTools", label: "Thieves' tools", type: "tool" },
+  { key: "herbalismKit", label: "Herbalism kit", type: "tool" },
+  { key: "alchemistsSupplies", label: "Alchemist's supplies", type: "artisan" },
+  { key: "brewersSupplies", label: "Brewer's supplies", type: "artisan" },
+  { key: "calligraphersSupplies", label: "Calligrapher's supplies", type: "artisan" },
+  { key: "carpentersTools", label: "Carpenter's tools", type: "artisan" },
+  { key: "cooksUtensils", label: "Cook's utensils", type: "artisan" },
+  { key: "paintersSupplies", label: "Painter's supplies", type: "artisan" },
+  { key: "smithsTools", label: "Smith's tools", type: "artisan" },
+  { key: "tinkersTools", label: "Tinker's tools", type: "artisan" },
+  { key: "weaversTools", label: "Weaver's tools", type: "artisan" },
+  { key: "woodcarversTools", label: "Woodcarver's tools", type: "artisan" },
+  { key: "drum", label: "Drum", type: "musical" },
+  { key: "flute", label: "Flute", type: "musical" },
+  { key: "lute", label: "Lute", type: "musical" },
+  { key: "lyre", label: "Lyre", type: "musical" },
+  { key: "horn", label: "Horn", type: "musical" },
+  { key: "panFlute", label: "Pan flute", type: "musical" },
+  { key: "viol", label: "Viol", type: "musical" },
+];
+
+const ABILITIES = [
+  { key: "strength", label: "Strength", short: "STR" },
+  { key: "dexterity", label: "Dexterity", short: "DEX" },
+  { key: "constitution", label: "Constitution", short: "CON" },
+  { key: "intelligence", label: "Intelligence", short: "INT" },
+  { key: "wisdom", label: "Wisdom", short: "WIS" },
+  { key: "charisma", label: "Charisma", short: "CHA" },
+];
+
+const SKILLS = [
+  { key: "acrobatics", label: "Acrobatics", ability: "dexterity" },
+  { key: "animalHandling", label: "Animal Handling", ability: "wisdom" },
+  { key: "arcana", label: "Arcana", ability: "intelligence" },
+  { key: "athletics", label: "Athletics", ability: "strength" },
+  { key: "deception", label: "Deception", ability: "charisma" },
+  { key: "history", label: "History", ability: "intelligence" },
+  { key: "insight", label: "Insight", ability: "wisdom" },
+  { key: "intimidation", label: "Intimidation", ability: "charisma" },
+  { key: "investigation", label: "Investigation", ability: "intelligence" },
+  { key: "medicine", label: "Medicine", ability: "wisdom" },
+  { key: "nature", label: "Nature", ability: "intelligence" },
+  { key: "perception", label: "Perception", ability: "wisdom" },
+  { key: "performance", label: "Performance", ability: "charisma" },
+  { key: "persuasion", label: "Persuasion", ability: "charisma" },
+  { key: "religion", label: "Religion", ability: "intelligence" },
+  { key: "sleightOfHand", label: "Sleight of Hand", ability: "dexterity" },
+  { key: "stealth", label: "Stealth", ability: "dexterity" },
+  { key: "survival", label: "Survival", ability: "wisdom" },
+];
+
+const WEAPONS = [
+  { name: "Club", aliases: ["club"], damage: "1d4", type: "bludgeoning", mode: "melee" },
+  { name: "Dagger", aliases: ["dagger"], damage: "1d4", type: "piercing", mode: "finesse" },
+  { name: "Greatclub", aliases: ["greatclub"], damage: "1d8", type: "bludgeoning", mode: "melee" },
+  { name: "Handaxe", aliases: ["handaxe", "hand axe"], damage: "1d6", type: "slashing", mode: "melee" },
+  { name: "Javelin", aliases: ["javelin"], damage: "1d6", type: "piercing", mode: "melee" },
+  { name: "Light Hammer", aliases: ["light hammer"], damage: "1d4", type: "bludgeoning", mode: "melee" },
+  { name: "Mace", aliases: ["mace"], damage: "1d6", type: "bludgeoning", mode: "melee" },
+  { name: "Quarterstaff", aliases: ["quarterstaff", "staff"], damage: "1d6", type: "bludgeoning", mode: "melee" },
+  { name: "Sickle", aliases: ["sickle"], damage: "1d4", type: "slashing", mode: "melee" },
+  { name: "Spear", aliases: ["spear"], damage: "1d6", type: "piercing", mode: "melee" },
+  { name: "Light Crossbow", aliases: ["light crossbow"], damage: "1d8", type: "piercing", mode: "ranged" },
+  { name: "Dart", aliases: ["dart"], damage: "1d4", type: "piercing", mode: "ranged" },
+  { name: "Shortbow", aliases: ["shortbow", "short bow"], damage: "1d6", type: "piercing", mode: "ranged" },
+  { name: "Sling", aliases: ["sling"], damage: "1d4", type: "bludgeoning", mode: "ranged" },
+  { name: "Battleaxe", aliases: ["battleaxe", "battle axe"], damage: "1d8", type: "slashing", mode: "melee" },
+  { name: "Flail", aliases: ["flail"], damage: "1d8", type: "bludgeoning", mode: "melee" },
+  { name: "Glaive", aliases: ["glaive"], damage: "1d10", type: "slashing", mode: "melee" },
+  { name: "Greataxe", aliases: ["greataxe", "great axe"], damage: "1d12", type: "slashing", mode: "melee" },
+  { name: "Greatsword", aliases: ["greatsword", "great sword"], damage: "2d6", type: "slashing", mode: "melee" },
+  { name: "Halberd", aliases: ["halberd"], damage: "1d10", type: "slashing", mode: "melee" },
+  { name: "Lance", aliases: ["lance"], damage: "1d12", type: "piercing", mode: "melee" },
+  { name: "Longsword", aliases: ["longsword", "long sword"], damage: "1d8", type: "slashing", mode: "melee" },
+  { name: "Maul", aliases: ["maul"], damage: "2d6", type: "bludgeoning", mode: "melee" },
+  { name: "Morningstar", aliases: ["morningstar", "morning star"], damage: "1d8", type: "piercing", mode: "melee" },
+  { name: "Pike", aliases: ["pike"], damage: "1d10", type: "piercing", mode: "melee" },
+  { name: "Rapier", aliases: ["rapier"], damage: "1d8", type: "piercing", mode: "finesse" },
+  { name: "Scimitar", aliases: ["scimitar"], damage: "1d6", type: "slashing", mode: "finesse" },
+  { name: "Shortsword", aliases: ["shortsword", "short sword"], damage: "1d6", type: "piercing", mode: "finesse" },
+  { name: "Trident", aliases: ["trident"], damage: "1d6", type: "piercing", mode: "melee" },
+  { name: "War Pick", aliases: ["war pick"], damage: "1d8", type: "piercing", mode: "melee" },
+  { name: "Warhammer", aliases: ["warhammer", "war hammer"], damage: "1d8", type: "bludgeoning", mode: "melee" },
+  { name: "Whip", aliases: ["whip"], damage: "1d4", type: "slashing", mode: "finesse" },
+  { name: "Blowgun", aliases: ["blowgun"], damage: "1", type: "piercing", mode: "ranged" },
+  { name: "Hand Crossbow", aliases: ["hand crossbow"], damage: "1d6", type: "piercing", mode: "ranged" },
+  { name: "Heavy Crossbow", aliases: ["heavy crossbow"], damage: "1d10", type: "piercing", mode: "ranged" },
+  { name: "Longbow", aliases: ["longbow", "long bow"], damage: "1d8", type: "piercing", mode: "ranged" },
+  { name: "Net", aliases: ["net"], damage: "", type: "special", mode: "ranged" },
+];
+
 function normalizeCampaign(campaign = {}) {
   return {
     ...DEFAULT_CAMPAIGN,
@@ -86,22 +215,279 @@ function playerDisplayName(player) {
   return firstDisplayText([player.characterName, player.playerName], "Unnamed hero");
 }
 
+function formValue(form, selector) {
+  return form.querySelector(selector)?.value.trim() || "";
+}
+
+function numberFormValue(form, selector) {
+  const value = formValue(form, selector);
+  return value ? Number(value) : "";
+}
+
+function checkedFormValues(form, name) {
+  return Array.from(form.querySelectorAll?.(`input[name="${name}"]:checked`) || []).map((input) => input.value);
+}
+
+function classInfo(classRole = "") {
+  const normalized = String(classRole).trim().toLowerCase();
+  return PLAYER_CLASSES.find((item) => item.name.toLowerCase() === normalized) || null;
+}
+
+function abilityModifier(score) {
+  const value = Number(score);
+  if (!Number.isFinite(value)) return 0;
+  return Math.floor((value - 10) / 2);
+}
+
+function signedModifier(value) {
+  const number = Number(value) || 0;
+  return number >= 0 ? `+${number}` : String(number);
+}
+
+function proficiencyBonusForLevel(level) {
+  const value = Math.max(1, Math.min(20, Number(level) || 1));
+  return Math.ceil(value / 4) + 1;
+}
+
+function abilityScore(player, key) {
+  return player?.abilities?.[key] ?? "";
+}
+
+function savingThrowBonus(player, abilityKey) {
+  const bonus = abilityModifier(abilityScore(player, abilityKey));
+  return bonus + ((player.savingThrowProficiencies || []).includes(abilityKey) ? proficiencyBonusForLevel(player.level) : 0);
+}
+
+function skillBonus(player, skill) {
+  const bonus = abilityModifier(abilityScore(player, skill.ability));
+  return bonus + ((player.skillProficiencies || []).includes(skill.key) ? proficiencyBonusForLevel(player.level) : 0);
+}
+
+function playerPassivePerception(player) {
+  const saved = Number(player?.combat?.passivePerception);
+  if (Number.isFinite(saved) && saved > 0) return saved;
+  return 10 + skillBonus(player, SKILLS.find((skill) => skill.key === "perception"));
+}
+
+function languageLabel(key) {
+  return LANGUAGES.find((language) => language.key === key)?.label || key;
+}
+
+function toolLabel(key) {
+  return TOOLS.find((tool) => tool.key === key)?.label || key;
+}
+
+function languageRulesForRace(race = "") {
+  const value = String(race).toLowerCase();
+  const fixed = ["common"];
+  let extraLimit = 0;
+  if (value.includes("dragonborn")) fixed.push("draconic");
+  else if (value.includes("half-elf")) {
+    fixed.push("elvish");
+    extraLimit = 1;
+  } else if (value.includes("half-orc")) fixed.push("orc");
+  else if (value.includes("dwarf")) fixed.push("dwarvish");
+  else if (value.includes("elf")) fixed.push("elvish");
+  else if (value.includes("gnome")) fixed.push("gnomish");
+  else if (value.includes("halfling")) fixed.push("halfling");
+  else if (value.includes("human")) extraLimit = 1;
+  else if (value.includes("tiefling")) fixed.push("infernal");
+  return { fixed: Array.from(new Set(fixed)), extraLimit };
+}
+
+function derivedToolProficienciesForClass(classRole = "") {
+  const info = classInfo(classRole);
+  if (!info) return [];
+  const tools = (info.fixedTools || []).map(toolLabel);
+  if (info.toolChoices === "musical" && info.toolLimit) tools.push(`${info.toolLimit} musical instruments`);
+  else if (info.toolChoices === "artisanOrMusical" && info.toolLimit) tools.push(`${info.toolLimit} artisan's tools or musical instrument`);
+  return tools;
+}
+
+function equipmentItems(equipment = "") {
+  return String(equipment)
+    .split(/\n+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeEquipmentText(value = "") {
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function weaponForEquipmentItem(item = "") {
+  const normalized = ` ${normalizeEquipmentText(item)} `;
+  return WEAPONS.find((weapon) => weapon.aliases.some((alias) => normalized.includes(` ${normalizeEquipmentText(alias)} `))) || null;
+}
+
+function weaponAbilityModifier(weapon, abilities = {}) {
+  const strength = abilityModifier(abilities.strength);
+  const dexterity = abilityModifier(abilities.dexterity);
+  if (weapon.mode === "ranged") return dexterity;
+  if (weapon.mode === "finesse") return Math.max(strength, dexterity);
+  return strength;
+}
+
+function weaponDamageText(weapon, modifier) {
+  if (!weapon.damage) return weapon.type;
+  const modifierText = modifier > 0 ? `+${modifier}` : modifier < 0 ? String(modifier) : "";
+  return `${weapon.damage}${modifierText} ${weapon.type}`;
+}
+
+function derivedWeaponAttacks({ equipment, abilities, level }) {
+  const seen = new Set();
+  return equipmentItems(equipment).map((item) => {
+    const weapon = weaponForEquipmentItem(item);
+    if (!weapon || seen.has(weapon.name)) return null;
+    seen.add(weapon.name);
+    const modifier = weaponAbilityModifier(weapon, abilities);
+    return {
+      name: weapon.name,
+      attackBonus: signedModifier(modifier + proficiencyBonusForLevel(level || 1)),
+      damageType: weaponDamageText(weapon, modifier),
+      generatedFromEquipment: true,
+    };
+  }).filter(Boolean);
+}
+
+function hitDieSides(classRole = "") {
+  return Number(String(classInfo(classRole)?.hitDie || "d8").replace("d", "")) || 8;
+}
+
+function classHitDice(level, classRole = "") {
+  return `${Math.max(1, Number(level) || 1)}d${hitDieSides(classRole)}`;
+}
+
+function raceSpeed(race = "") {
+  const value = String(race).toLowerCase();
+  if (value.includes("wood elf")) return 35;
+  if (value.includes("dwarf") || value.includes("gnome") || value.includes("halfling")) return 25;
+  return 30;
+}
+
+function armorFormulaFromEquipment(equipment = "") {
+  const text = String(equipment).toLowerCase();
+  const armors = [
+    { match: "studded leather", base: 12, dex: "full" },
+    { match: "leather", base: 11, dex: "full" },
+    { match: "padded", base: 11, dex: "full" },
+    { match: "half plate", base: 15, dex: "max2" },
+    { match: "breastplate", base: 14, dex: "max2" },
+    { match: "scale mail", base: 14, dex: "max2" },
+    { match: "chain shirt", base: 13, dex: "max2" },
+    { match: "hide", base: 12, dex: "max2" },
+    { match: "plate", base: 18, dex: "none" },
+    { match: "splint", base: 17, dex: "none" },
+    { match: "chain mail", base: 16, dex: "none" },
+    { match: "ring mail", base: 14, dex: "none" },
+  ];
+  return armors.find((armor) => text.includes(armor.match)) || { base: 10, dex: "full" };
+}
+
+function armorClassFromEquipment(dexterityScore, equipment = "", classRole = "", abilities = {}) {
+  const dexMod = abilityModifier(dexterityScore);
+  const armor = armorFormulaFromEquipment(equipment);
+  const shieldBonus = /\bshield\b/i.test(String(equipment)) ? 2 : 0;
+  const hasArmor = armor.base !== 10;
+  if (!hasArmor) {
+    const normalizedClass = String(classRole).toLowerCase();
+    if (normalizedClass === "barbarian") return 10 + dexMod + abilityModifier(abilities.constitution) + shieldBonus;
+    if (normalizedClass === "monk") return 10 + dexMod + abilityModifier(abilities.wisdom);
+  }
+  const dexBonus = armor.dex === "none" ? 0 : armor.dex === "max2" ? Math.min(dexMod, 2) : dexMod;
+  return armor.base + dexBonus + shieldBonus;
+}
+
+function derivedCombatStats({ level, classRole, race, abilities, equipment, hitPointMaximum }) {
+  const dexMod = abilityModifier(abilities?.dexterity);
+  const sides = hitDieSides(classRole);
+  const conMod = abilityModifier(abilities?.constitution);
+  const fixedHitPoints = Math.max(1, sides + conMod);
+  const savedHitPoints = Number(hitPointMaximum);
+  const hitPoints = Number.isFinite(savedHitPoints) && savedHitPoints > 0 ? savedHitPoints : fixedHitPoints;
+  return {
+    armorClass: armorClassFromEquipment(abilities?.dexterity, equipment, classRole, abilities),
+    initiative: dexMod,
+    speed: raceSpeed(race),
+    hitPointMaximum: hitPoints,
+    currentHitPoints: hitPoints,
+    temporaryHitPoints: "",
+    hitDice: classHitDice(level, classRole),
+  };
+}
+
+function datalistMarkup(id, options) {
+  return `<datalist id="${escapeHtml(id)}">${options.map((option) => `<option value="${escapeHtml(option)}"></option>`).join("")}</datalist>`;
+}
+
+function checkboxMarkup(name, options, selected = []) {
+  const selectedSet = new Set(selected);
+  return options.map((option) => `
+    <label class="checkbox-row">
+      <input type="checkbox" name="${escapeHtml(name)}" value="${escapeHtml(option.key)}" ${selectedSet.has(option.key) ? "checked" : ""} />
+      <span>${escapeHtml(option.label)}${option.ability ? ` <small>(${escapeHtml(option.ability.slice(0, 3).toUpperCase())})</small>` : ""}</span>
+    </label>`).join("");
+}
+
 function buildPlayerCharacter(form) {
-  const playerName = form.querySelector("#player-name")?.value.trim() || "";
-  const characterName = form.querySelector("#player-character-name")?.value.trim() || "";
-  const levelValue = form.querySelector("#player-level")?.value.trim() || "";
-  const level = levelValue ? Number(levelValue) : "";
+  const playerName = formValue(form, "#player-name");
+  const characterName = formValue(form, "#player-character-name");
+  const level = numberFormValue(form, "#player-level");
+  const classRole = formValue(form, "#player-class-role");
+  const abilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  const proficiencyBonus = proficiencyBonusForLevel(level || 1);
+  const skillProficiencies = checkedFormValues(form, "player-skill-proficiencies");
+  const passivePerception = numberFormValue(form, "#player-passive-perception") || (10 + abilityModifier(abilities.wisdom) + (skillProficiencies.includes("perception") ? proficiencyBonus : 0));
+  const race = formValue(form, "#player-race");
+  const equipment = formValue(form, "#player-equipment");
+  const hitPointMaximum = numberFormValue(form, "#player-hp-max");
+  const equipmentAttacks = derivedWeaponAttacks({ equipment, abilities, level });
+  const manualAttacks = [1, 2, 3].map((index) => ({
+    name: formValue(form, `#player-attack-${index}-name`),
+    attackBonus: formValue(form, `#player-attack-${index}-bonus`),
+    damageType: formValue(form, `#player-attack-${index}-damage`),
+  })).filter((attack) => attack.name || attack.attackBonus || attack.damageType);
+  const combat = {
+    ...derivedCombatStats({
+      level,
+      classRole,
+      race,
+      abilities,
+      equipment,
+      hitPointMaximum,
+    }),
+    hitPointsRolled: Boolean(hitPointMaximum),
+    passivePerception,
+  };
   return {
     id: createId("player"),
     campaignId: DEFAULT_CAMPAIGN_ID,
     playerName,
     characterName,
-    classRole: form.querySelector("#player-class-role")?.value.trim() || "",
+    classRole,
     level,
-    race: form.querySelector("#player-race")?.value.trim() || "",
-    background: form.querySelector("#player-background")?.value.trim() || "",
-    description: form.querySelector("#player-description")?.value.trim() || "",
-    notes: form.querySelector("#player-notes")?.value.trim() || "",
+    race,
+    background: formValue(form, "#player-background"),
+    alignment: formValue(form, "#player-alignment"),
+    experience: numberFormValue(form, "#player-experience"),
+    abilities,
+    proficiencyBonus,
+    savingThrowProficiencies: checkedFormValues(form, "player-saving-throws"),
+    skillProficiencies,
+    languages: checkedFormValues(form, "player-languages"),
+    toolProficiencies: derivedToolProficienciesForClass(classRole),
+    combat,
+    attacks: [...equipmentAttacks, ...manualAttacks],
+    personality: {
+      traits: formValue(form, "#player-personality-traits"),
+      ideals: formValue(form, "#player-ideals"),
+      bonds: formValue(form, "#player-bonds"),
+      flaws: formValue(form, "#player-flaws"),
+    },
+    equipment,
+    features: formValue(form, "#player-features"),
+    description: formValue(form, "#player-description"),
+    notes: formValue(form, "#player-notes"),
     avatarUrl: "",
     createdAt: readableDate(),
     updatedAt: readableDate(),
@@ -109,8 +495,8 @@ function buildPlayerCharacter(form) {
 }
 
 function playerFormHasData(form) {
-  return ["#player-name", "#player-character-name", "#player-class-role", "#player-level", "#player-race", "#player-background", "#player-description", "#player-notes"]
-    .some((selector) => String(form.querySelector(selector)?.value || "").trim());
+  return Array.from(form.querySelectorAll?.("input, textarea") || [])
+    .some((field) => field.type !== "hidden" && (field.type === "checkbox" ? field.checked : String(field.value || "").trim()));
 }
 
 function validatePlayerCharacter(player, requireData = true) {
@@ -730,16 +1116,25 @@ function renderCollection({ key, listId, emptyText, template, getCollection }) {
 
 function playerCharacterCard(player) {
   const title = playerDisplayName(player);
-  const searchable = textForSearch([player.playerName, player.characterName, player.classRole, player.race, "player character party"]);
+  const searchable = textForSearch([player.playerName, player.characterName, player.classRole, player.race, player.background, "player character party"]);
   const imageEntry = { imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl };
   const campaignId = player.campaignId || DEFAULT_CAMPAIGN_ID;
+  const armorClass = player.combat?.armorClass || "AC";
+  const hitPoints = player.combat?.hitPointMaximum || "HP";
+  const passive = playerPassivePerception(player);
   return `
-    <article class="content-card entry-card widget-card player-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+    <article class="content-card entry-card widget-card player-card player-preview-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
       ${widgetImageDisplayMarkup(imageEntry, title)}
       <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
       <h3>${escapeHtml(title)}</h3>
-      ${widgetDescriptionMarkup(player.description || player.notes)}
-      ${widgetTagsMarkup([`Player: ${player.playerName}`, player.level ? `Level ${player.level}` : "", player.race])}
+      ${widgetDescriptionMarkup(player.description)}
+      <dl class="player-preview-stats">
+        <div><dt>Level</dt><dd>${escapeHtml(player.level || "1")}</dd></div>
+        <div><dt>AC</dt><dd>${escapeHtml(armorClass)}</dd></div>
+        <div><dt>HP</dt><dd>${escapeHtml(hitPoints)}</dd></div>
+        <div><dt>Passive</dt><dd>${escapeHtml(passive)}</dd></div>
+      </dl>
+      ${widgetTagsMarkup([`Player: ${player.playerName}`, player.race, player.background])}
       <div class="entry-actions">
         <a class="btn btn-secondary" href="${escapeHtml(playerCharacterHref(campaignId, player.id))}">Open sheet</a>
         <button class="btn btn-danger" type="button" data-delete-player-id="${escapeHtml(player.id)}" data-campaign-id="${escapeHtml(campaignId)}">Delete player</button>
@@ -1188,29 +1583,249 @@ function renderAddedPlayersSummary(campaign) {
   const list = document.getElementById("added-players-summary");
   if (!list) return;
   const players = campaign.players || [];
-  if (!players.length) {
+  const form = document.getElementById("player-character-form");
+  const draftPlayer = form ? buildPlayerCharacter(form) : null;
+  const groups = players.map((player, index) => playerSectionGroupMarkup(player, index + 1, false));
+  const draftGroup = draftPlayer && playerHasCompletedSection(draftPlayer)
+    ? playerSectionGroupMarkup(draftPlayer, players.length + 1, true)
+    : "";
+  if (!groups.length && !draftGroup) {
     list.innerHTML = `<div class="empty-state">No player characters added yet. Save the first hero to build the party.</div>`;
     return;
   }
-  list.innerHTML = players.map((player) => `
-    <article class="content-card compact-player-card">
-      <div class="card-kicker"><span class="status-badge status-active">Saved</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
-      <h3>${escapeHtml(player.characterName)}</h3>
-      ${widgetTagsMarkup([`Player: ${player.playerName}`, player.level ? `Level ${player.level}` : "", player.race])}
-    </article>`).join("");
+  list.innerHTML = [...groups, draftGroup].filter(Boolean).join("");
+  bindPlayerSummaryControls(form);
+}
+
+function hasNumber(value) {
+  return value !== "" && value !== null && value !== undefined && Number.isFinite(Number(value));
+}
+
+function hasText(value) {
+  return Boolean(String(value ?? "").trim());
+}
+
+function abilitySectionComplete(player) {
+  return ABILITIES.every((ability) => hasNumber(player.abilities?.[ability.key]));
+}
+
+function playerSectionDefinitions(player, options = {}) {
+  const combat = player.combat || {};
+  const attacks = player.attacks || [];
+  const personality = player.personality || {};
+  const storyBlocks = [
+    ["Short description", player.description],
+    ["Personality traits", personality.traits],
+    ["Ideals", personality.ideals],
+    ["Bonds", personality.bonds],
+    ["Flaws", personality.flaws],
+    ["Backstory and notes", player.notes],
+  ].filter(([, value]) => hasText(value));
+  const languageTags = (player.languages || []).map(languageLabel);
+  const toolTags = (player.toolProficiencies || []).map(toolLabel);
+  const equipmentTags = equipmentItems(player.equipment);
+  const equipmentComplete = hasText(player.equipment) && hasText(player.features);
+  const equipmentStarted = equipmentComplete || languageTags.length || toolTags.length || equipmentTags.length;
+  const combatStarted = hasText(player.classRole) || hasText(player.race) || ABILITIES.some((ability) => hasNumber(player.abilities?.[ability.key])) || equipmentStarted;
+  const combatComplete = Boolean(abilitySectionComplete(player) && hasText(player.classRole) && hasText(player.race) && equipmentComplete);
+  const canRollHitPoints = Boolean(options.isDraft && Number(player.level) > 1 && !combat.hitPointsRolled);
+  return [
+    {
+      key: "identity",
+      title: "Character sheet header",
+      complete: hasText(player.playerName) && hasText(player.characterName),
+      body: `
+        <h3>${escapeHtml(player.characterName || "Unnamed hero")}</h3>
+        ${widgetTagsMarkup([`Player: ${player.playerName}`, player.classRole, player.level ? `Level ${player.level}` : "", player.race, player.alignment])}`,
+    },
+    {
+      key: "abilities",
+      title: "Abilities",
+      complete: abilitySectionComplete(player),
+      body: `<dl class="section-widget-stat-grid">${ABILITIES.map((ability) => `
+        <div><dt>${escapeHtml(ability.short)}</dt><dd>${escapeHtml(player.abilities?.[ability.key])} <small>${signedModifier(abilityModifier(player.abilities?.[ability.key]))}</small></dd></div>`).join("")}</dl>`,
+    },
+    {
+      key: "proficiency",
+      title: "Proficiency and skills",
+      complete: Boolean((player.savingThrowProficiencies || []).length || (player.skillProficiencies || []).length),
+      body: `
+        <div class="passive-perception-pill"><span>Passive Perception</span><strong>${escapeHtml(playerPassivePerception(player))}</strong></div>
+        <h3>Saving Throws</h3>
+        <div class="skill-chip-grid saving-throw-chip-grid">
+          ${ABILITIES.map((ability) => `<span class="${(player.savingThrowProficiencies || []).includes(ability.key) ? "is-proficient" : ""}">${escapeHtml(ability.label)} <strong>${signedModifier(savingThrowBonus(player, ability.key))}</strong></span>`).join("")}
+        </div>
+        <h3>Skills</h3>
+        <div class="skill-chip-grid">
+          ${SKILLS.map((skill) => `<span class="${(player.skillProficiencies || []).includes(skill.key) ? "is-proficient" : ""}">${escapeHtml(skill.label)} <strong>${signedModifier(skillBonus(player, skill))}</strong></span>`).join("")}
+        </div>`,
+    },
+    {
+      key: "combat",
+      title: "Combat",
+      complete: combatStarted,
+      status: combatComplete ? "complete" : "partial",
+      body: `<dl class="player-preview-stats">
+        <div><dt>AC</dt><dd>${escapeHtml(combat.armorClass || "—")}</dd></div>
+        <div><dt>Init</dt><dd>${escapeHtml(signedModifier(combat.initiative || 0))}</dd></div>
+        <div><dt>HP</dt><dd>${escapeHtml(combat.hitPointMaximum || "—")}</dd></div>
+        <div><dt>Speed</dt><dd>${escapeHtml(combat.speed ? `${combat.speed} ft.` : "—")}</dd></div>
+        <div><dt>Hit Dice</dt><dd>${escapeHtml(combat.hitDice || "—")}</dd></div>
+      </dl>
+      ${canRollHitPoints ? `<button class="btn btn-secondary hp-widget-roll" type="button" data-roll-hit-points>Roll HP for levels 2-${escapeHtml(player.level)}</button>` : ""}`,
+    },
+    {
+      key: "personality",
+      title: "Personality and story",
+      complete: storyBlocks.length > 0,
+      body: `<div class="story-widget-grid">${storyBlocks.map(([label, value]) => `
+        <section>
+          <h4>${escapeHtml(label)}</h4>
+          <p>${escapeHtml(value)}</p>
+        </section>`).join("")}</div>`,
+    },
+    {
+      key: "equipment",
+      title: "Equipment and features",
+      complete: equipmentStarted,
+      status: equipmentComplete ? "complete" : "partial",
+      body: `<div class="equipment-widget-sections">
+        ${languageTags.length ? `<section><h4>Languages</h4>${widgetTagsMarkup(languageTags)}</section>` : ""}
+        ${toolTags.length ? `<section><h4>Tool proficiencies</h4>${widgetTagsMarkup(toolTags)}</section>` : ""}
+        ${equipmentTags.length ? `<section><h4>Equipment</h4>${widgetTagsMarkup(equipmentTags)}</section>` : ""}
+        ${hasText(player.features) ? `<section><h4>Features and traits</h4><p>${escapeHtml(player.features)}</p></section>` : ""}
+      </div>`,
+    },
+    {
+      key: "attacks",
+      title: "Attacks and spellcasting",
+      complete: attacks.length > 0,
+      body: `<ul class="section-widget-list">${attacks.map((attack) => `<li><strong>${escapeHtml(attack.name || "Attack")}</strong><span>${escapeHtml([attack.attackBonus, attack.damageType].filter(Boolean).join(" · ") || "No details")}</span></li>`).join("")}</ul>`,
+    },
+  ];
+}
+
+function playerCompletedSections(player, options = {}) {
+  return playerSectionDefinitions(player, options).filter((section) => section.complete);
+}
+
+function playerHasCompletedSection(player) {
+  return playerCompletedSections(player).length > 0;
+}
+
+function playerSectionGroupMarkup(player, playerNumber, isDraft) {
+  const sections = playerCompletedSections(player, { isDraft });
+  if (!sections.length) return "";
+  return `
+    <section class="player-widget-group">
+      <div class="player-widget-group-title">
+        <span>${escapeHtml(isDraft ? "Draft" : "Saved")}</span>
+        <h3>Player ${escapeHtml(playerNumber)}</h3>
+      </div>
+      ${sections.map((section) => `
+        <article class="content-card compact-player-card section-summary-card" data-section-key="${escapeHtml(section.key)}">
+          <div class="card-kicker"><span class="status-badge ${section.status === "partial" ? "status-prepared" : "status-active"}">${section.status === "partial" ? "Partial" : "Complete"}</span><span>${escapeHtml(section.title)}</span></div>
+          ${section.body}
+        </article>`).join("")}
+    </section>`;
+}
+
+function abilityInputMarkup(ability) {
+  return `
+    <label class="ability-entry" data-ability-entry="${escapeHtml(ability.key)}">
+      <span>${escapeHtml(ability.label)}</span>
+      <input id="player-${escapeHtml(ability.key)}" type="number" min="1" max="30" step="1" placeholder="10" data-ability-score="${escapeHtml(ability.key)}" />
+      <button class="btn btn-secondary ability-roll-button" type="button" data-roll-ability="${escapeHtml(ability.key)}">Roll</button>
+      <small id="player-${escapeHtml(ability.key)}-modifier">+0</small>
+    </label>`;
+}
+
+function attackInputMarkup(index) {
+  return `
+    <div class="attack-row">
+      <label>Name<input id="player-attack-${index}-name" type="text" placeholder="Longsword, Fire Bolt..." /></label>
+      <label>Atk Bonus<input id="player-attack-${index}-bonus" type="text" placeholder="+5" /></label>
+      <label>Damage / Type<input id="player-attack-${index}-damage" type="text" placeholder="1d8+3 slashing" /></label>
+    </div>`;
 }
 
 function playerCharacterFormMarkup() {
   return `
-    <form class="panel form-grid player-character-form" id="player-character-form" novalidate>
-      <label>Player name<input id="player-name" type="text" placeholder="Player name" required /></label>
-      <label>Character name<input id="player-character-name" type="text" placeholder="Character name" required /></label>
-      <label>Character class / role<input id="player-class-role" type="text" placeholder="Ranger, Cleric, Face, Tank..." /></label>
-      <label>Level<input id="player-level" type="number" min="1" step="1" placeholder="1" /></label>
-      <label>Race / ancestry<input id="player-race" type="text" placeholder="Elf, Human, Tiefling..." /></label>
-      <label>Background<input id="player-background" type="text" placeholder="Acolyte, Outlander, Noble..." /></label>
-      <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
-      <label class="full-width">Notes<textarea id="player-notes" rows="3" placeholder="Secrets, bonds, safety notes, goals, or mechanics to remember..."></textarea></label>
+    <form class="panel player-character-form" id="player-character-form" novalidate>
+      ${datalistMarkup("player-class-options", PLAYER_CLASSES.map((item) => item.name))}
+      ${datalistMarkup("player-race-options", PLAYER_RACES)}
+      ${datalistMarkup("player-alignment-options", PLAYER_ALIGNMENTS)}
+
+      <fieldset class="sheet-form-section sheet-form-identity">
+        <legend>Character sheet header</legend>
+        <label>Player name<input id="player-name" type="text" placeholder="Player name" required /></label>
+        <label>Character name<input id="player-character-name" type="text" placeholder="Character name" required /></label>
+        <label>Class<input id="player-class-role" type="text" list="player-class-options" placeholder="Fighter" /></label>
+        <label>Level<input id="player-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
+        <label>Race<input id="player-race" type="text" list="player-race-options" placeholder="Human" /></label>
+        <label>Alignment<input id="player-alignment" type="text" list="player-alignment-options" placeholder="Neutral Good" /></label>
+      </fieldset>
+
+      <fieldset class="sheet-form-section">
+        <legend>Abilities</legend>
+        <div class="ability-form-grid full-width">
+          ${ABILITIES.map(abilityInputMarkup).join("")}
+        </div>
+      </fieldset>
+
+      <fieldset class="sheet-form-section">
+        <legend>Proficiency and skills</legend>
+        <div class="sheet-derived-grid full-width">
+          <div><span>Proficiency Bonus</span><strong id="player-proficiency-bonus">+2</strong></div>
+          <div><span>Passive Wisdom (Perception)</span><strong id="player-passive-perception-preview">10</strong></div>
+        </div>
+        <input id="player-passive-perception" type="hidden" />
+        <input id="player-hp-max" type="hidden" />
+        <div class="proficiency-columns full-width">
+          <div>
+            <h3>Saving throw proficiencies</h3>
+            <div class="checkbox-grid compact-checkbox-grid">
+              ${checkboxMarkup("player-saving-throws", ABILITIES)}
+            </div>
+          </div>
+          <div>
+            <h3>Skill proficiencies</h3>
+            <div class="checkbox-grid">
+              ${checkboxMarkup("player-skill-proficiencies", SKILLS)}
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="sheet-form-section">
+        <legend>Personality and story</legend>
+        <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
+        <label>Personality traits<textarea id="player-personality-traits" rows="3" placeholder="How they behave at the table and in the world..."></textarea></label>
+        <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
+        <label>Bonds<textarea id="player-bonds" rows="3" placeholder="Who, where, or what matters most?"></textarea></label>
+        <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
+        <label class="full-width">Backstory and notes<textarea id="player-notes" rows="4" placeholder="Secrets, goals, safety notes, or mechanics to remember..."></textarea></label>
+      </fieldset>
+
+      <fieldset class="sheet-form-section">
+        <legend>Equipment and features</legend>
+        <div class="equipment-subsection full-width">
+          <h3>Languages</h3>
+          <div class="checkbox-grid">
+            ${checkboxMarkup("player-languages", LANGUAGES)}
+          </div>
+        </div>
+        <label class="full-width">Equipment<textarea id="player-equipment" rows="5" placeholder="Write one item per line: dagger, leather armor, thieves' tools, explorer's pack..."></textarea></label>
+        <label class="full-width">Features and traits<textarea id="player-features" rows="5" placeholder="Race traits, class features, background feature, feats, spellcasting notes..."></textarea></label>
+      </fieldset>
+
+      <fieldset class="sheet-form-section">
+        <legend>Attacks and spellcasting</legend>
+        <div class="attack-form-grid full-width">
+          ${[1, 2, 3].map(attackInputMarkup).join("")}
+        </div>
+      </fieldset>
+
       <div class="file-picker image-picker full-width" data-image-picker>
         <label for="player-avatar">Optional avatar</label>
         <input id="player-avatar" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
@@ -1224,6 +1839,192 @@ function playerCharacterFormMarkup() {
         <button class="btn btn-primary" type="button" id="go-on-campaign">GO ON</button>
       </div>
     </form>`;
+}
+
+function updatePlayerFormDerivedFields(form) {
+  const level = numberFormValue(form, "#player-level") || 1;
+  const proficiencyBonus = proficiencyBonusForLevel(level);
+  const scores = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  const classRole = formValue(form, "#player-class-role");
+  const race = formValue(form, "#player-race");
+  const equipment = formValue(form, "#player-equipment");
+  if (level <= 1) clearRolledHitPoints(form);
+  ABILITIES.forEach((ability) => {
+    const output = document.getElementById(`player-${ability.key}-modifier`);
+    if (output) output.textContent = signedModifier(abilityModifier(scores[ability.key]));
+  });
+  const proficiencyOutput = document.getElementById("player-proficiency-bonus");
+  if (proficiencyOutput) proficiencyOutput.textContent = signedModifier(proficiencyBonus);
+  const hasPerception = checkedFormValues(form, "player-skill-proficiencies").includes("perception");
+  const passivePerception = 10 + abilityModifier(scores.wisdom) + (hasPerception ? proficiencyBonus : 0);
+  const passiveInput = document.getElementById("player-passive-perception");
+  const passiveOutput = document.getElementById("player-passive-perception-preview");
+  if (passiveInput) passiveInput.value = String(passivePerception);
+  if (passiveOutput) passiveOutput.textContent = String(passivePerception);
+  const combat = derivedCombatStats({
+    level,
+    classRole,
+    race,
+    abilities: scores,
+    equipment,
+    hitPointMaximum: numberFormValue(form, "#player-hp-max"),
+  });
+}
+
+function rollAbilityScore() {
+  return Array.from({ length: 5 }, () => Math.floor(Math.random() * 6) + 1)
+    .sort((a, b) => b - a)
+    .slice(0, 3)
+    .reduce((total, value) => total + value, 0);
+}
+
+function clearRolledHitPoints(form) {
+  const input = form.querySelector("#player-hp-max");
+  if (input) input.value = "";
+}
+
+function rollHitPointsForLevel(form) {
+  const level = Math.max(1, Math.min(20, Number(numberFormValue(form, "#player-level")) || 1));
+  const classRole = formValue(form, "#player-class-role");
+  const constitution = numberFormValue(form, "#player-constitution");
+  const sides = hitDieSides(classRole);
+  const conMod = abilityModifier(constitution);
+  const baseHitPoints = Math.max(1, sides + conMod);
+  if (level <= 1) {
+    clearRolledHitPoints(form);
+    return baseHitPoints;
+  }
+  const extraHitPoints = Array.from({ length: level - 1 }, () => {
+    const roll = Math.floor(Math.random() * sides) + 1;
+    return Math.max(1, roll + conMod);
+  }).reduce((total, value) => total + value, 0);
+  const total = baseHitPoints + extraHitPoints;
+  const input = form.querySelector("#player-hp-max");
+  if (input) input.value = String(total);
+  return total;
+}
+
+function bindPlayerSummaryControls(form) {
+  if (!form) return;
+  document.querySelectorAll("[data-roll-hit-points]").forEach((button) => {
+    button.addEventListener("click", () => {
+      rollHitPointsForLevel(form);
+      updatePlayerFormDerivedFields(form);
+      refreshPlayerSectionSummary(form);
+    });
+  });
+}
+
+function refreshPlayerSectionSummary(form) {
+  renderAddedPlayersSummary(getCampaign(form.dataset.campaignId) || currentCampaign());
+}
+
+function allowedSkillKeysForClass(info) {
+  if (!info) return new Set(SKILLS.map((skill) => skill.key));
+  if (info.skillChoices === "any") return new Set(SKILLS.map((skill) => skill.key));
+  return new Set(info.skillChoices || []);
+}
+
+function enforceSkillLimit(form, info) {
+  const skillInputs = Array.from(form.querySelectorAll?.('input[name="player-skill-proficiencies"]') || []);
+  const checked = skillInputs.filter((input) => input.checked);
+  const limit = info?.skillLimit || checked.length;
+  checked.forEach((input, index) => {
+    if (index >= limit) input.checked = false;
+  });
+}
+
+function enforceLanguageRestrictions(form) {
+  const inputs = Array.from(form.querySelectorAll?.('input[name="player-languages"]') || []);
+  const race = formValue(form, "#player-race");
+  if (!race) {
+    inputs.forEach((input) => {
+      input.checked = false;
+      input.disabled = false;
+      input.closest("label")?.classList.remove("is-disabled", "is-fixed");
+    });
+    return;
+  }
+  const rules = languageRulesForRace(race);
+  const fixed = new Set(rules.fixed);
+  inputs.forEach((input) => {
+    if (fixed.has(input.value)) input.checked = true;
+  });
+  let extraSelected = inputs.filter((input) => input.checked && !fixed.has(input.value));
+  extraSelected.forEach((input, index) => {
+    if (index >= rules.extraLimit) input.checked = false;
+  });
+  extraSelected = inputs.filter((input) => input.checked && !fixed.has(input.value));
+  const limitReached = extraSelected.length >= rules.extraLimit;
+  inputs.forEach((input) => {
+    const isFixed = fixed.has(input.value);
+    const disabled = isFixed || (!input.checked && (rules.extraLimit === 0 || limitReached));
+    input.disabled = disabled;
+    input.closest("label")?.classList.toggle("is-fixed", isFixed);
+    input.closest("label")?.classList.toggle("is-disabled", disabled && !isFixed);
+  });
+}
+
+function applyClassRestrictions(form) {
+  const info = classInfo(formValue(form, "#player-class-role"));
+  if (!info) {
+    form.querySelectorAll?.('input[name="player-saving-throws"]').forEach((input) => {
+      input.disabled = false;
+    });
+    form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
+      input.disabled = false;
+      input.closest("label")?.classList.remove("is-disabled");
+    });
+    enforceLanguageRestrictions(form);
+    return;
+  }
+  form.querySelectorAll?.('input[name="player-saving-throws"]').forEach((input) => {
+    input.checked = info.saves.includes(input.value);
+    input.disabled = true;
+  });
+  const allowedSkills = allowedSkillKeysForClass(info);
+  form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
+    const isAllowed = allowedSkills.has(input.value);
+    input.disabled = !isAllowed;
+    input.checked = input.checked && isAllowed;
+    input.closest("label")?.classList.toggle("is-disabled", !isAllowed);
+  });
+  enforceSkillLimit(form, info);
+  enforceLanguageRestrictions(form);
+}
+
+function initPlayerCharacterForm(form) {
+  updatePlayerFormDerivedFields(form);
+  applyClassRestrictions(form);
+  refreshPlayerSectionSummary(form);
+  form.querySelectorAll("[data-roll-ability]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = document.getElementById(`player-${button.dataset.rollAbility}`);
+      if (input) input.value = String(rollAbilityScore());
+      if (button.dataset.rollAbility === "constitution") clearRolledHitPoints(form);
+      updatePlayerFormDerivedFields(form);
+      refreshPlayerSectionSummary(form);
+    });
+  });
+  form.addEventListener("input", (event) => {
+    if (["player-class-role", "player-level", "player-constitution"].includes(event.target?.id)) clearRolledHitPoints(form);
+    if (event.target?.id === "player-class-role" || event.target?.id === "player-race") applyClassRestrictions(form);
+    updatePlayerFormDerivedFields(form);
+    refreshPlayerSectionSummary(form);
+  });
+  form.addEventListener("change", (event) => {
+    if (["player-class-role", "player-level", "player-constitution"].includes(event.target?.id)) clearRolledHitPoints(form);
+    if (
+	      event.target?.id === "player-class-role"
+	      || event.target?.id === "player-race"
+	      || event.target?.name === "player-skill-proficiencies"
+	      || event.target?.name === "player-languages"
+	    ) {
+      applyClassRestrictions(form);
+    }
+    updatePlayerFormDerivedFields(form);
+    refreshPlayerSectionSummary(form);
+  });
 }
 
 async function saveCurrentPlayerFromSetup(form, { requireData }) {
@@ -1244,6 +2045,8 @@ async function saveCurrentPlayerFromSetup(form, { requireData }) {
   const campaign = savePlayerToCampaign(campaignId, player);
   form.reset();
   resetImagePickers(form);
+  applyClassRestrictions(form);
+  updatePlayerFormDerivedFields(form);
   if (message) {
     message.textContent = `${player.characterName} has joined the party.`;
     message.classList.remove("error");
@@ -1286,6 +2089,7 @@ function renderCampaignSetupPage(campaignId) {
   const form = document.getElementById("player-character-form");
   form.dataset.campaignId = campaign.id;
   initImagePickers();
+  initPlayerCharacterForm(form);
   renderAddedPlayersSummary(campaign);
   document.getElementById("add-another-player").addEventListener("click", async () => {
     const result = await saveCurrentPlayerFromSetup(form, { requireData: true });
@@ -1363,6 +2167,102 @@ function renderCampaignStartNotePage(campaignId) {
   });
 }
 
+function sheetField(label, value) {
+  const display = value === 0 ? 0 : (value || "—");
+  return `<div class="sheet-field"><span>${escapeHtml(label)}</span><strong>${escapeHtml(display)}</strong></div>`;
+}
+
+function sheetTextBlock(label, value) {
+  return `<section class="sheet-box"><h3>${escapeHtml(label)}</h3><p>${escapeHtml(value || "—")}</p></section>`;
+}
+
+function playerAttackRows(player) {
+  const attacks = player.attacks?.length ? player.attacks : [{ name: "", attackBonus: "", damageType: "" }];
+  return attacks.map((attack) => `
+    <tr>
+      <td>${escapeHtml(attack.name || "—")}</td>
+      <td>${escapeHtml(attack.attackBonus || "—")}</td>
+      <td>${escapeHtml(attack.damageType || "—")}</td>
+    </tr>`).join("");
+}
+
+function characterSheetMarkup(player) {
+  const proficiencyBonus = player.proficiencyBonus || proficiencyBonusForLevel(player.level);
+  const combat = player.combat || {};
+  const proficiencyText = [
+    (player.languages || []).length ? `Languages: ${(player.languages || []).map(languageLabel).join(", ")}` : "",
+    (player.toolProficiencies || []).length ? `Tools: ${(player.toolProficiencies || []).map(toolLabel).join(", ")}` : "",
+  ].filter(hasText).join("\n");
+  return `
+    <article class="character-sheet-paper">
+      <header class="sheet-header-grid">
+        ${sheetField("Character Name", player.characterName)}
+        ${sheetField("Class & Level", `${player.classRole || "—"}${player.level ? ` ${player.level}` : ""}`)}
+        ${sheetField("Player Name", player.playerName)}
+        ${sheetField("Race", player.race)}
+        ${sheetField("Alignment", player.alignment)}
+      </header>
+
+      <div class="sheet-main-grid">
+        <aside class="sheet-column sheet-left-column">
+          <div class="ability-sheet-grid">
+            ${ABILITIES.map((ability) => `
+              <div class="ability-score-box">
+                <span>${escapeHtml(ability.label)}</span>
+                <strong>${escapeHtml(abilityScore(player, ability.key) || "10")}</strong>
+                <small>${signedModifier(abilityModifier(abilityScore(player, ability.key)))}</small>
+              </div>`).join("")}
+          </div>
+          <section class="sheet-box">
+            <h3>Saving Throws <small>PB ${signedModifier(proficiencyBonus)}</small></h3>
+            <div class="sheet-check-list">
+              ${ABILITIES.map((ability) => `
+                <div><span>${(player.savingThrowProficiencies || []).includes(ability.key) ? "●" : "○"}</span><strong>${signedModifier(savingThrowBonus(player, ability.key))}</strong>${escapeHtml(ability.label)}</div>`).join("")}
+            </div>
+          </section>
+          <section class="sheet-box">
+            <h3>Skills</h3>
+            <div class="sheet-check-list">
+              ${SKILLS.map((skill) => `
+                <div><span>${(player.skillProficiencies || []).includes(skill.key) ? "●" : "○"}</span><strong>${signedModifier(skillBonus(player, skill))}</strong>${escapeHtml(skill.label)} <small>(${escapeHtml(skill.ability.slice(0, 3).toUpperCase())})</small></div>`).join("")}
+            </div>
+          </section>
+          ${sheetField("Passive Wisdom (Perception)", playerPassivePerception(player))}
+          ${sheetTextBlock("Other Proficiencies & Languages", proficiencyText)}
+        </aside>
+
+        <section class="sheet-column">
+          <div class="combat-sheet-grid">
+            ${sheetField("Armor Class", combat.armorClass)}
+            ${sheetField("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))))}
+            ${sheetField("Speed", combat.speed ? `${combat.speed} ft.` : "")}
+          </div>
+          <div class="hit-point-grid">
+            ${sheetField("Hit Points", combat.hitPointMaximum)}
+            ${sheetField("Hit Dice", combat.hitDice)}
+          </div>
+          <section class="sheet-box">
+            <h3>Attacks & Spellcasting</h3>
+            <table class="sheet-table">
+              <thead><tr><th>Name</th><th>Atk Bonus</th><th>Damage / Type</th></tr></thead>
+              <tbody>${playerAttackRows(player)}</tbody>
+            </table>
+          </section>
+          ${sheetTextBlock("Equipment", player.equipment)}
+        </section>
+
+        <section class="sheet-column">
+          ${sheetTextBlock("Personality Traits", player.personality?.traits)}
+          ${sheetTextBlock("Ideals", player.personality?.ideals)}
+          ${sheetTextBlock("Bonds", player.personality?.bonds)}
+          ${sheetTextBlock("Flaws", player.personality?.flaws)}
+          ${sheetTextBlock("Features & Traits", player.features)}
+          ${sheetTextBlock("Backstory / Notes", player.notes)}
+        </section>
+      </div>
+    </article>`;
+}
+
 function renderPlayerCharacterPage(campaignId, playerId) {
   const campaign = getCampaign(campaignId);
   if (!campaign) {
@@ -1385,19 +2285,7 @@ function renderPlayerCharacterPage(campaignId, playerId) {
         </div>
         ${player.avatarUrl ? `<img class="character-avatar" src="${escapeHtml(player.avatarUrl)}" alt="${escapeHtml(player.characterName)} avatar" />` : `<div class="card-visual character-avatar-placeholder" aria-hidden="true"><span>${cardVisualLabel(player.characterName)}</span></div>`}
       </div>
-      <div class="info-grid character-sheet-grid">
-        <article class="content-card"><p class="eyebrow">Class / role</p><h2>${escapeHtml(player.classRole || "Not set")}</h2></article>
-        <article class="content-card"><p class="eyebrow">Level</p><h2>${escapeHtml(player.level || "Not set")}</h2></article>
-        <article class="content-card"><p class="eyebrow">Race / ancestry</p><h2>${escapeHtml(player.race || "Not set")}</h2></article>
-      </div>
-      <article class="content-card prose-card">
-        <p class="eyebrow">Background</p>
-        <p>${escapeHtml(player.background || "No background recorded yet.")}</p>
-        <p class="eyebrow">Description</p>
-        <p>${escapeHtml(player.description || "No short description recorded yet.")}</p>
-        <p class="eyebrow">Notes</p>
-        <p>${escapeHtml(player.notes || "No notes recorded yet.")}</p>
-      </article>
+      ${characterSheetMarkup(player)}
     </section>`;
   document.getElementById("back-to-dashboard-button").addEventListener("click", goToDashboard);
 }
