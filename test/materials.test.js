@@ -7,6 +7,8 @@ const { createServer } = require("../server");
 const { MaterialStore } = require("../src/materialStore");
 const { ImageStorageService } = require("../src/imageStorageService");
 
+process.env.OPENAI_API_KEY = "";
+
 async function withServer(t) {
   const uploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-materials-"));
   const imageUploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-images-"));
@@ -185,4 +187,37 @@ test("image upload returns a clear error when no image file is provided", async 
 
   assert.equal(response.status, 400);
   assert.match(payload.error, /requires at least one image field/);
+});
+
+test("character analysis endpoint completes a story with SRD-style background features", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      characterName: "Mira",
+      description: "A brave village rebel who protected common folk from a tyrant.",
+      notes: "Her family farm still needs help and she is reckless about justice.",
+    }),
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.background, "Folk Hero");
+  assert.match(payload.features, /Rustic Hospitality/);
+  assert.deepEqual(payload.suggestedSkills, ["animalHandling", "survival"]);
+  assert.equal(payload.source, "local-srd-reference");
+});
+
+test("character analysis endpoint asks for story text", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ characterName: "Blank" }),
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(payload.code, "EMPTY_STORY");
 });

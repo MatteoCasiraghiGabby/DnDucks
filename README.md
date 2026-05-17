@@ -123,6 +123,21 @@ To place an image picker in a page or widget, follow the existing `data-image-pi
 </div>
 ```
 
+## Character story completion
+
+The party setup flow includes a **Complete personality widget** button under **Personality and story**. The browser sends the written description, traits, ideals, bonds, flaws, and backstory to `POST /api/characters/analyze`.
+
+If `OPENAI_API_KEY` is available, the server asks the configured OpenAI model to infer SRD/basic-rules-style background, feature, personality fields, skill suggestions, language choices, and feature icons. If the model is unavailable or the request fails, the server uses a local SRD-style reference matcher so the button still completes the widget offline.
+
+Optional configuration:
+
+```bash
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+The analysis output is intentionally concise and should be reviewed by the DM/player before saving the character.
+
 ## Development-only storage note
 
 Local filesystem storage is intended for this draft/development platform. A production version should move material files to durable object storage such as S3, Supabase Storage, Cloudinary, Firebase Storage, or a similar managed service, with database-backed metadata and authentication/authorization checks.

@@ -2051,3 +2051,33 @@ select:focus {
   .content-card,
   .panel { padding: 20px; }
 }
+
+.story-complete-actions {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+  border: 1px dashed rgba(127, 29, 29, 0.28);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255, 250, 236, 0.34);
+}
+.story-complete-actions .btn {
+  justify-self: start;
+}
+.story-complete-actions p {
+  margin: 0;
+}
+.story-analysis-result {
+  display: grid;
+  gap: 10px;
+}
+.story-analysis-card {
+  display: grid;
+  gap: 10px;
+}
+.story-analysis-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 1.3rem;
+}
