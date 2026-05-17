@@ -221,3 +221,34 @@ test("character analysis endpoint asks for story text", async (t) => {
   assert.equal(response.status, 400);
   assert.equal(payload.code, "EMPTY_STORY");
 });
+
+test("character analysis endpoint rejects non-object JSON with clear error metadata", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(null),
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(payload.code, "INVALID_ANALYSIS_PAYLOAD");
+  assert.match(payload.requestId, /^analysis-/);
+});
+
+test("character analysis endpoint answers CORS preflight for split frontend/backend dev servers", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
+    method: "OPTIONS",
+    headers: {
+      Origin: "http://localhost:5173",
+      "Access-Control-Request-Method": "POST",
+      "Access-Control-Request-Headers": "content-type",
+    },
+  });
+
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.match(response.headers.get("access-control-allow-methods"), /POST/);
+  assert.match(response.headers.get("access-control-allow-headers"), /Content-Type/);
+});

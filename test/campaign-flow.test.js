@@ -209,3 +209,38 @@ test("notes are returned in campaign chronology order", () => {
 
   assert.deepEqual(Array.from(app.sortedNotes().map((note) => note.title)), ["First", "Later"]);
 });
+
+test("character story payload matches the backend analysis contract", () => {
+  const app = createFrontendSandbox();
+  const payload = app.collectCharacterStoryPayload(mockPlayerForm({
+    "#player-name": "Ana",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Ranger",
+    "#player-race": "Human",
+    "#player-background": "",
+    "#player-alignment": "Neutral Good",
+    "#player-description": "A brave village rebel.",
+    "#player-personality-traits": "Curious and reckless.",
+    "#player-ideals": "Justice",
+    "#player-bonds": "Family farm",
+    "#player-flaws": "Too trusting",
+    "#player-notes": "Protected common folk from a tyrant.",
+  }));
+
+  assert.deepEqual(Object.keys(payload), [
+    "playerName",
+    "characterName",
+    "classRole",
+    "race",
+    "background",
+    "alignment",
+    "description",
+    "traits",
+    "ideals",
+    "bonds",
+    "flaws",
+    "notes",
+  ]);
+  assert.equal(payload.description, "A brave village rebel.");
+  assert.equal(payload.notes, "Protected common folk from a tyrant.");
+});

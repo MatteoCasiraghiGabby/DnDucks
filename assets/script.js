@@ -981,13 +981,31 @@ function initImagePickers() {
 }
 
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch (error) {
+    throw new Error(`Network error while contacting ${url}: ${error.message || "request could not be sent"}. Check that the backend is running and reachable.`);
+  }
+
   const text = await response.text();
-  const payload = text ? JSON.parse(text) : null;
+  const payload = parseJsonResponse(text);
   if (!response.ok) {
-    throw new Error(payload?.error || "Request failed.");
+    const details = [payload?.error || response.statusText || "Request failed."];
+    if (payload?.code) details.push(`Code: ${payload.code}.`);
+    if (payload?.requestId) details.push(`Request ID: ${payload.requestId}.`);
+    throw new Error(`HTTP ${response.status}: ${details.join(" ")}`);
   }
   return payload;
+}
+
+function parseJsonResponse(text) {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error("The backend returned a non-JSON response. Check the endpoint URL, proxy configuration, and backend logs.");
+  }
 }
 
 function cardVisualLabel(value) {
@@ -1933,7 +1951,7 @@ async function completeCharacterStoryWidget(form) {
     refreshPlayerSectionSummary(form);
     result.innerHTML = storyAnalysisResultMarkup(analysis);
   } catch (error) {
-    result.innerHTML = `<p class="error">${escapeHtml(error.message || "Could not complete the character widget.")}</p>`;
+    result.innerHTML = `<p class="error">${escapeHtml(error.message || "Could not complete the character widget. Check that the backend is running, then try again.")}</p>`;
   } finally {
     button.disabled = false;
     button.textContent = "Complete personality widget";
