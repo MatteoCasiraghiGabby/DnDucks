@@ -12,6 +12,32 @@ const PUBLIC_DIR = process.cwd();
 const store = new MaterialStore(resolveUploadDir());
 const imageStore = new ImageStorageService(resolveImageUploadDir());
 
+const JSON_BODY_LIMIT_BYTES = 64 * 1024;
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+const BACKGROUND_REFERENCES = [
+  { name: "Acolyte", keywords: ["temple", "shrine", "faith", "priest", "god", "religion", "cult"], feature: "Shelter of the Faithful", skills: ["insight", "religion"], languages: 2, icon: "⛪" },
+  { name: "Charlatan", keywords: ["con", "false identity", "disguise", "scam", "forgery", "trick"], feature: "False Identity", skills: ["deception", "sleightOfHand"], tools: ["disguiseKit", "forgeryKit"], icon: "🎭" },
+  { name: "Criminal", keywords: ["thief", "crime", "gang", "spy", "smuggler", "blackmail", "underworld"], feature: "Criminal Contact", skills: ["deception", "stealth"], tools: ["thievesTools", "gamingSet"], icon: "🗝️" },
+  { name: "Entertainer", keywords: ["perform", "stage", "music", "dance", "circus", "actor", "bard"], feature: "By Popular Demand", skills: ["acrobatics", "performance"], tools: ["disguiseKit", "musicalInstrument"], icon: "🎻" },
+  { name: "Folk Hero", keywords: ["village", "common folk", "tyrant", "rebel", "hero", "farm", "humble"], feature: "Rustic Hospitality", skills: ["animalHandling", "survival"], tools: ["artisanTools", "vehiclesLand"], icon: "🌾" },
+  { name: "Guild Artisan", keywords: ["guild", "craft", "merchant", "artisan", "trade", "apprentice"], feature: "Guild Membership", skills: ["insight", "persuasion"], tools: ["artisanTools"], languages: 1, icon: "⚒️" },
+  { name: "Hermit", keywords: ["hermit", "exile", "secluded", "monastery", "revelation", "alone"], feature: "Discovery", skills: ["medicine", "religion"], tools: ["herbalismKit"], languages: 1, icon: "🕯️" },
+  { name: "Noble", keywords: ["noble", "lord", "lady", "court", "estate", "heir", "aristocrat"], feature: "Position of Privilege", skills: ["history", "persuasion"], tools: ["gamingSet"], languages: 1, icon: "👑" },
+  { name: "Outlander", keywords: ["wild", "wilderness", "tribe", "nomad", "hunter", "frontier", "exile"], feature: "Wanderer", skills: ["athletics", "survival"], tools: ["musicalInstrument"], languages: 1, icon: "🏕️" },
+  { name: "Sage", keywords: ["scholar", "library", "study", "arcane", "wizard", "research", "student"], feature: "Researcher", skills: ["arcana", "history"], languages: 2, icon: "📚" },
+  { name: "Sailor", keywords: ["ship", "sea", "sailor", "pirate", "crew", "harbor", "ocean"], feature: "Ship's Passage", skills: ["athletics", "perception"], tools: ["navigatorTools", "vehiclesWater"], icon: "⚓" },
+  { name: "Soldier", keywords: ["army", "war", "battle", "soldier", "guard", "mercenary", "veteran"], feature: "Military Rank", skills: ["athletics", "intimidation"], tools: ["gamingSet", "vehiclesLand"], icon: "🛡️" },
+  { name: "Urchin", keywords: ["street", "orphan", "city", "urchin", "beggar", "rooftop", "alley"], feature: "City Secrets", skills: ["sleightOfHand", "stealth"], tools: ["disguiseKit", "thievesTools"], icon: "🏙️" },
+];
+
+const TRAIT_PATTERNS = [
+  { key: "traits", label: "Personality Traits", icon: "✨", patterns: ["curious", "brave", "kind", "sarcastic", "honest", "quiet", "reckless", "patient", "suspicious", "cheerful"] },
+  { key: "ideals", label: "Ideals", icon: "🧭", patterns: ["freedom", "justice", "faith", "power", "knowledge", "redemption", "tradition", "change", "charity", "glory"] },
+  { key: "bonds", label: "Bonds", icon: "🔗", patterns: ["family", "mentor", "friend", "home", "village", "temple", "guild", "crew", "sibling", "parent"] },
+  { key: "flaws", label: "Flaws", icon: "⚠️", patterns: ["greedy", "vengeful", "coward", "secret", "debt", "addict", "arrogant", "impulsive", "haunted", "fear"] },
+];
+
 const STATIC_TYPES = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -32,6 +58,11 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
   return http.createServer(async (req, res) => {
     try {
       const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+      if (requestUrl.pathname === "/api/characters/analyze") {
+        await handleCharacterAnalysisApi(req, res);
+        return;
+      }
 
       if (requestUrl.pathname === "/api/uploads/images") {
         await handleImageUploadsApi(req, res, uploadedImageStore);
@@ -129,6 +160,180 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
   }
 
   sendJson(res, 404, { error: "API route not found." });
+}
+
+
+async function handleCharacterAnalysisApi(req, res) {
+  if (req.method !== "POST") {
+    sendJson(res, 405, { error: "Method not allowed.", code: "METHOD_NOT_ALLOWED" });
+    return;
+  }
+
+  const payload = await parseJsonBody(req);
+  const storyText = [payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join("\n\n");
+  if (!storyText) {
+    sendJson(res, 400, { error: "Add personality or story text before completing the character widget.", code: "EMPTY_STORY" });
+    return;
+  }
+
+  const fallback = analyzeCharacterStoryLocally(payload);
+  const aiAnalysis = await analyzeCharacterStoryWithOpenAI(payload, fallback);
+  sendJson(res, 200, aiAnalysis || fallback);
+}
+
+async function parseJsonBody(req, options = {}) {
+  const contentType = req.headers["content-type"] || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw Object.assign(new Error("Expected application/json."), { statusCode: 400, code: "INVALID_CONTENT_TYPE" });
+  }
+  const chunks = [];
+  let total = 0;
+  const maxBodySize = options.maxBodySize || JSON_BODY_LIMIT_BYTES;
+  for await (const chunk of req) {
+    total += chunk.length;
+    if (total > maxBodySize) throw Object.assign(new Error("JSON request is too large."), { statusCode: 413, code: "JSON_TOO_LARGE" });
+    chunks.push(chunk);
+  }
+  if (!chunks.length) return {};
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch (error) {
+    throw Object.assign(new Error("Could not parse JSON request body."), { statusCode: 400, code: "INVALID_JSON" });
+  }
+}
+
+async function analyzeCharacterStoryWithOpenAI(payload, fallback) {
+  if (!process.env.OPENAI_API_KEY || typeof fetch !== "function") return null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        input: [
+          {
+            role: "system",
+            content: "You complete D&D 5e character sheet widgets from player-written story. Use SRD/basic-rules style categories only. Return strict JSON matching the provided fallback shape. Keep text concise, do not quote rulebook passages, and prefer inferred options that match the story.",
+          },
+          {
+            role: "user",
+            content: JSON.stringify({ character: payload, fallback, validBackgrounds: BACKGROUND_REFERENCES.map(({ name, feature, skills, icon }) => ({ name, feature, skills, icon })) }),
+          },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "character_story_analysis",
+            strict: true,
+            schema: characterAnalysisJsonSchema(),
+          },
+        },
+      }),
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const content = data.output_text || data.output?.flatMap((item) => item.content || []).map((item) => item.text).filter(Boolean).join("\n");
+    if (!content) return null;
+    return normalizeCharacterAnalysis(JSON.parse(content), fallback);
+  } catch (error) {
+    console.warn("Character story AI analysis fell back to local rules:", error.message);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function analyzeCharacterStoryLocally(payload = {}) {
+  const text = [payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join(" ");
+  const lower = text.toLowerCase();
+  const scoredBackgrounds = BACKGROUND_REFERENCES.map((background) => ({
+    ...background,
+    score: background.keywords.reduce((score, keyword) => score + (lower.includes(keyword) ? 1 : 0), 0),
+  })).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  const background = scoredBackgrounds[0]?.score ? scoredBackgrounds[0] : BACKGROUND_REFERENCES.find((item) => item.name === "Folk Hero");
+  const fields = Object.fromEntries(TRAIT_PATTERNS.map((group) => {
+    const matched = group.patterns.filter((pattern) => lower.includes(pattern));
+    return [group.key, String(payload[group.key] || "").trim() || (matched.length ? `${group.icon} ${matched.slice(0, 3).join(", ")}` : "")];
+  }));
+  const featureLines = [
+    `${background.icon} Background: ${background.name}`,
+    `🎖️ Background feature: ${background.feature}`,
+    ...(background.skills || []).map((skill) => `✅ Skill proficiency: ${skill}`),
+    ...(background.tools || []).map((tool) => `🧰 Tool proficiency: ${tool}`),
+    ...(background.languages ? [`🗣️ Choose ${background.languages} extra language${background.languages > 1 ? "s" : ""}`] : []),
+  ];
+  return normalizeCharacterAnalysis({
+    background: background.name,
+    backgroundFeature: background.feature,
+    confidence: Math.min(0.95, 0.55 + (background.score * 0.1)),
+    ...fields,
+    features: featureLines.join("\n"),
+    suggestedSkills: background.skills || [],
+    suggestedTools: background.tools || [],
+    suggestedLanguages: background.languages || 0,
+    icons: [background.icon, "✨", "🧭", "🔗", "⚠️"],
+    summary: `Matched the story to the ${background.name} background and prepared SRD-style personality, feature, proficiency, and language prompts.`,
+    source: "local-srd-reference",
+  });
+}
+
+function normalizeCharacterAnalysis(analysis = {}, fallback = {}) {
+  return {
+    background: String(analysis.background || fallback.background || "").slice(0, 80),
+    backgroundFeature: String(analysis.backgroundFeature || fallback.backgroundFeature || "").slice(0, 120),
+    traits: String(analysis.traits || fallback.traits || "").slice(0, 600),
+    ideals: String(analysis.ideals || fallback.ideals || "").slice(0, 600),
+    bonds: String(analysis.bonds || fallback.bonds || "").slice(0, 600),
+    flaws: String(analysis.flaws || fallback.flaws || "").slice(0, 600),
+    features: String(analysis.features || fallback.features || "").slice(0, 1600),
+    suggestedSkills: sanitizeStringArray(analysis.suggestedSkills || fallback.suggestedSkills),
+    suggestedTools: sanitizeStringArray(analysis.suggestedTools || fallback.suggestedTools),
+    suggestedLanguages: Math.max(0, Math.min(3, Number(analysis.suggestedLanguages || fallback.suggestedLanguages || 0))),
+    icons: sanitizeStringArray(analysis.icons || fallback.icons).slice(0, 8),
+    summary: String(analysis.summary || fallback.summary || "").slice(0, 500),
+    confidence: Math.max(0, Math.min(1, Number(analysis.confidence || fallback.confidence || 0.5))),
+    source: String(analysis.source || fallback.source || "openai").slice(0, 80),
+  };
+}
+
+function sanitizeStringArray(values = []) {
+  return Array.isArray(values) ? values.map((value) => String(value || "").trim()).filter(Boolean).slice(0, 12) : [];
+}
+
+function characterAnalysisJsonSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      background: { type: "string" },
+      backgroundFeature: { type: "string" },
+      traits: { type: "string" },
+      ideals: { type: "string" },
+      bonds: { type: "string" },
+      flaws: { type: "string" },
+      features: { type: "string" },
+      suggestedSkills: { type: "array", items: { type: "string" } },
+      suggestedTools: { type: "array", items: { type: "string" } },
+      suggestedLanguages: { type: "number" },
+      icons: { type: "array", items: { type: "string" } },
+      summary: { type: "string" },
+      confidence: { type: "number" },
+      source: { type: "string" },
+    },
+    required: ["background", "backgroundFeature", "traits", "ideals", "bonds", "flaws", "features", "suggestedSkills", "suggestedTools", "suggestedLanguages", "icons", "summary", "confidence", "source"],
+  };
 }
 
 async function parseMultipart(req, options = {}) {
@@ -338,4 +543,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createServer, parseMultipart };
+module.exports = { createServer, parseMultipart, analyzeCharacterStoryLocally };

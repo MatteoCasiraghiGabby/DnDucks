@@ -44,6 +44,7 @@ const PLAYER_CLASSES = [
 
 const PLAYER_RACES = ["Dragonborn", "Dwarf", "Elf", "Gnome", "Half-Elf", "Halfling", "Half-Orc", "Human", "Tiefling"];
 const PLAYER_ALIGNMENTS = ["Lawful Good", "Neutral Good", "Chaotic Good", "Lawful Neutral", "True Neutral", "Chaotic Neutral", "Lawful Evil", "Neutral Evil", "Chaotic Evil", "Unaligned"];
+const PLAYER_BACKGROUNDS = ["Acolyte", "Charlatan", "Criminal", "Entertainer", "Folk Hero", "Guild Artisan", "Hermit", "Noble", "Outlander", "Sage", "Sailor", "Soldier", "Urchin"];
 
 const LANGUAGES = [
   { key: "common", label: "Common" },
@@ -1755,6 +1756,7 @@ function playerCharacterFormMarkup() {
       ${datalistMarkup("player-class-options", PLAYER_CLASSES.map((item) => item.name))}
       ${datalistMarkup("player-race-options", PLAYER_RACES)}
       ${datalistMarkup("player-alignment-options", PLAYER_ALIGNMENTS)}
+      ${datalistMarkup("player-background-options", PLAYER_BACKGROUNDS)}
 
       <fieldset class="sheet-form-section sheet-form-identity">
         <legend>Character sheet header</legend>
@@ -1764,6 +1766,7 @@ function playerCharacterFormMarkup() {
         <label>Level<input id="player-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
         <label>Race<input id="player-race" type="text" list="player-race-options" placeholder="Human" /></label>
         <label>Alignment<input id="player-alignment" type="text" list="player-alignment-options" placeholder="Neutral Good" /></label>
+        <label>Background<input id="player-background" type="text" list="player-background-options" placeholder="Folk Hero" /></label>
       </fieldset>
 
       <fieldset class="sheet-form-section">
@@ -1805,6 +1808,11 @@ function playerCharacterFormMarkup() {
         <label>Bonds<textarea id="player-bonds" rows="3" placeholder="Who, where, or what matters most?"></textarea></label>
         <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
         <label class="full-width">Backstory and notes<textarea id="player-notes" rows="4" placeholder="Secrets, goals, safety notes, or mechanics to remember..."></textarea></label>
+        <div class="story-complete-actions full-width">
+          <button class="btn btn-primary" type="button" id="complete-story-widget">Complete personality widget</button>
+          <p class="muted">Uses the configured LLM when available, then falls back to SRD-style background references to infer traits, bonds, flaws, proficiencies, languages, and feature icons.</p>
+        </div>
+        <div class="story-analysis-result full-width" id="story-analysis-result" aria-live="polite"></div>
       </fieldset>
 
       <fieldset class="sheet-form-section">
@@ -1839,6 +1847,97 @@ function playerCharacterFormMarkup() {
         <button class="btn btn-primary" type="button" id="go-on-campaign">GO ON</button>
       </div>
     </form>`;
+}
+
+
+function collectCharacterStoryPayload(form) {
+  return {
+    playerName: formValue(form, "#player-name"),
+    characterName: formValue(form, "#player-character-name"),
+    classRole: formValue(form, "#player-class-role"),
+    race: formValue(form, "#player-race"),
+    background: formValue(form, "#player-background"),
+    alignment: formValue(form, "#player-alignment"),
+    description: formValue(form, "#player-description"),
+    traits: formValue(form, "#player-personality-traits"),
+    ideals: formValue(form, "#player-ideals"),
+    bonds: formValue(form, "#player-bonds"),
+    flaws: formValue(form, "#player-flaws"),
+    notes: formValue(form, "#player-notes"),
+  };
+}
+
+function setFormValueIfPresent(form, selector, value, options = {}) {
+  const input = form.querySelector(selector);
+  if (!input) return;
+  const nextValue = String(value || "").trim();
+  if (!nextValue) return;
+  if (options.append) {
+    const current = input.value.trim();
+    input.value = current && !current.includes(nextValue) ? `${current}\n${nextValue}` : (current || nextValue);
+    return;
+  }
+  if (options.overwrite || !input.value.trim()) input.value = nextValue;
+}
+
+function checkSuggestedOptions(form, name, selectedKeys = []) {
+  const selected = new Set((selectedKeys || []).map((key) => String(key).trim()).filter(Boolean));
+  if (!selected.size) return;
+  form.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
+    if (selected.has(input.value)) input.checked = true;
+  });
+}
+
+function defaultLanguageSuggestions(count) {
+  return LANGUAGES.filter((language) => language.key !== "common").slice(0, Math.max(0, Number(count) || 0)).map((language) => language.key);
+}
+
+function applyCharacterStoryAnalysis(form, analysis) {
+  setFormValueIfPresent(form, "#player-background", analysis.background);
+  setFormValueIfPresent(form, "#player-personality-traits", analysis.traits);
+  setFormValueIfPresent(form, "#player-ideals", analysis.ideals);
+  setFormValueIfPresent(form, "#player-bonds", analysis.bonds);
+  setFormValueIfPresent(form, "#player-flaws", analysis.flaws);
+  setFormValueIfPresent(form, "#player-features", analysis.features, { append: true });
+  checkSuggestedOptions(form, "player-skill-proficiencies", analysis.suggestedSkills);
+  checkSuggestedOptions(form, "player-languages", defaultLanguageSuggestions(analysis.suggestedLanguages));
+}
+
+function storyAnalysisResultMarkup(analysis) {
+  const icons = (analysis.icons || []).map((icon) => `<span>${escapeHtml(icon)}</span>`).join("");
+  return `
+    <article class="content-card story-analysis-card">
+      <div class="story-analysis-icons" aria-hidden="true">${icons}</div>
+      <div class="card-kicker"><span class="status-badge status-active">Complete</span><span>${escapeHtml(analysis.source === "local-srd-reference" ? "SRD fallback" : "LLM analysis")}</span></div>
+      <h3>${escapeHtml(analysis.background || "Suggested background")}${analysis.backgroundFeature ? ` · ${escapeHtml(analysis.backgroundFeature)}` : ""}</h3>
+      ${widgetDescriptionMarkup(analysis.summary)}
+      ${widgetTagsMarkup([...(analysis.suggestedSkills || []).map((skill) => `Skill: ${skill}`), analysis.suggestedLanguages ? `${analysis.suggestedLanguages} language choice${analysis.suggestedLanguages > 1 ? "s" : ""}` : "", `Confidence: ${Math.round((analysis.confidence || 0) * 100)}%`])}
+    </article>`;
+}
+
+async function completeCharacterStoryWidget(form) {
+  const button = document.getElementById("complete-story-widget");
+  const result = document.getElementById("story-analysis-result");
+  if (!button || !result) return;
+  button.disabled = true;
+  button.textContent = "Completing...";
+  result.innerHTML = `<p class="muted">Reading the personality and story text...</p>`;
+  try {
+    const analysis = await fetchJson("/api/characters/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(collectCharacterStoryPayload(form)),
+    });
+    applyCharacterStoryAnalysis(form, analysis);
+    updatePlayerFormDerivedFields(form);
+    refreshPlayerSectionSummary(form);
+    result.innerHTML = storyAnalysisResultMarkup(analysis);
+  } catch (error) {
+    result.innerHTML = `<p class="error">${escapeHtml(error.message || "Could not complete the character widget.")}</p>`;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Complete personality widget";
+  }
 }
 
 function updatePlayerFormDerivedFields(form) {
@@ -1997,6 +2096,7 @@ function initPlayerCharacterForm(form) {
   updatePlayerFormDerivedFields(form);
   applyClassRestrictions(form);
   refreshPlayerSectionSummary(form);
+  document.getElementById("complete-story-widget")?.addEventListener("click", () => completeCharacterStoryWidget(form));
   form.querySelectorAll("[data-roll-ability]").forEach((button) => {
     button.addEventListener("click", () => {
       const input = document.getElementById(`player-${button.dataset.rollAbility}`);
