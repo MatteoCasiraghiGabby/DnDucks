@@ -14,6 +14,9 @@ const imageStore = new ImageStorageService(resolveImageUploadDir());
 
 const JSON_BODY_LIMIT_BYTES = 64 * 1024;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const ANALYSIS_TIMEOUT_MS = Number(process.env.OPENAI_TIMEOUT_MS || 15000);
+const API_CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+
 
 const BACKGROUND_REFERENCES = [
   { name: "Acolyte", keywords: ["temple", "shrine", "faith", "priest", "god", "religion", "cult"], feature: "Shelter of the Faithful", skills: ["insight", "religion"], languages: 2, icon: "⛪" },
@@ -59,6 +62,13 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
     try {
       const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
+      if (requestUrl.pathname.startsWith("/api/")) setApiCorsHeaders(req, res);
+      if (req.method === "OPTIONS" && requestUrl.pathname.startsWith("/api/")) {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
       if (requestUrl.pathname === "/api/characters/analyze") {
         await handleCharacterAnalysisApi(req, res);
         return;
@@ -86,9 +96,17 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
       sendJson(res, 405, { error: "Method not allowed." });
     } catch (error) {
       if (!error.statusCode || error.statusCode >= 500) console.error(error);
-      sendJson(res, error.statusCode || 500, { error: error.message || "Unexpected server error.", ...(error.code ? { code: error.code } : {}) });
+      sendJson(res, error.statusCode || 500, { error: error.message || "Unexpected server error.", ...(error.code ? { code: error.code } : {}), ...(error.requestId ? { requestId: error.requestId } : {}) });
     }
   });
+}
+
+function setApiCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  res.setHeader("Access-Control-Allow-Origin", API_CORS_ORIGIN === "*" ? "*" : (origin && API_CORS_ORIGIN.split(",").map((value) => value.trim()).includes(origin) ? origin : API_CORS_ORIGIN));
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Vary", "Origin");
 }
 
 async function handleImageUploadsApi(req, res, uploadedImageStore) {
@@ -164,51 +182,79 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
 
 
 async function handleCharacterAnalysisApi(req, res) {
+  const requestId = makeRequestId();
   if (req.method !== "POST") {
-    sendJson(res, 405, { error: "Method not allowed.", code: "METHOD_NOT_ALLOWED" });
+    sendJson(res, 405, { error: "Method not allowed.", code: "METHOD_NOT_ALLOWED", requestId });
     return;
   }
 
-  const payload = await parseJsonBody(req);
-  const storyText = [payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
+  const payload = await parseJsonBody(req, { requestId });
+  validateCharacterAnalysisPayload(payload, requestId);
+  const storyText = getCharacterStoryText(payload);
+  if (!storyText) {
+    console.info(`[analysis:${requestId}] rejected empty story text`);
+    sendJson(res, 400, { error: "Add personality or story text before completing the character widget.", code: "EMPTY_STORY", requestId });
+    return;
+  }
+
+  console.info(`[analysis:${requestId}] received story analysis request storyChars=${storyText.length} hasOpenAIKey=${Boolean(process.env.OPENAI_API_KEY)} model=${OPENAI_MODEL}`);
+  const fallback = analyzeCharacterStoryLocally(payload);
+  const aiAnalysis = await analyzeCharacterStoryWithOpenAI(payload, fallback, requestId);
+  const analysis = aiAnalysis || fallback;
+  console.info(`[analysis:${requestId}] completed source=${analysis.source} background=${analysis.background || "unknown"}`);
+  sendJson(res, 200, { ...analysis, requestId });
+}
+
+function validateCharacterAnalysisPayload(payload, requestId) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw Object.assign(new Error("Character analysis request body must be a JSON object."), { statusCode: 400, code: "INVALID_ANALYSIS_PAYLOAD", requestId });
+  }
+}
+
+function getCharacterStoryText(payload = {}) {
+  return [payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
     .map((value) => String(value || "").trim())
     .filter(Boolean)
     .join("\n\n");
-  if (!storyText) {
-    sendJson(res, 400, { error: "Add personality or story text before completing the character widget.", code: "EMPTY_STORY" });
-    return;
-  }
+}
 
-  const fallback = analyzeCharacterStoryLocally(payload);
-  const aiAnalysis = await analyzeCharacterStoryWithOpenAI(payload, fallback);
-  sendJson(res, 200, aiAnalysis || fallback);
+function makeRequestId() {
+  return `analysis-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 async function parseJsonBody(req, options = {}) {
   const contentType = req.headers["content-type"] || "";
+  const errorMetadata = options.requestId ? { requestId: options.requestId } : {};
   if (!contentType.toLowerCase().includes("application/json")) {
-    throw Object.assign(new Error("Expected application/json."), { statusCode: 400, code: "INVALID_CONTENT_TYPE" });
+    throw Object.assign(new Error("Expected application/json."), { statusCode: 400, code: "INVALID_CONTENT_TYPE", ...errorMetadata });
   }
   const chunks = [];
   let total = 0;
   const maxBodySize = options.maxBodySize || JSON_BODY_LIMIT_BYTES;
   for await (const chunk of req) {
     total += chunk.length;
-    if (total > maxBodySize) throw Object.assign(new Error("JSON request is too large."), { statusCode: 413, code: "JSON_TOO_LARGE" });
+    if (total > maxBodySize) throw Object.assign(new Error("JSON request is too large."), { statusCode: 413, code: "JSON_TOO_LARGE", ...errorMetadata });
     chunks.push(chunk);
   }
   if (!chunks.length) return {};
   try {
     return JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch (error) {
-    throw Object.assign(new Error("Could not parse JSON request body."), { statusCode: 400, code: "INVALID_JSON" });
+    throw Object.assign(new Error("Could not parse JSON request body."), { statusCode: 400, code: "INVALID_JSON", ...errorMetadata });
   }
 }
 
-async function analyzeCharacterStoryWithOpenAI(payload, fallback) {
-  if (!process.env.OPENAI_API_KEY || typeof fetch !== "function") return null;
+async function analyzeCharacterStoryWithOpenAI(payload, fallback, requestId = "unknown") {
+  if (!process.env.OPENAI_API_KEY) {
+    console.info(`[analysis:${requestId}] OPENAI_API_KEY not configured; using local SRD fallback`);
+    return null;
+  }
+  if (typeof fetch !== "function") {
+    console.warn(`[analysis:${requestId}] global fetch is unavailable; using local SRD fallback`);
+    return null;
+  }
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), ANALYSIS_TIMEOUT_MS);
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -239,17 +285,45 @@ async function analyzeCharacterStoryWithOpenAI(payload, fallback) {
       }),
       signal: controller.signal,
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const providerError = await safeReadProviderError(response);
+      console.warn(`[analysis:${requestId}] OpenAI request failed status=${response.status} code=${providerError.code || "unknown"}; using local SRD fallback`);
+      return null;
+    }
     const data = await response.json();
-    const content = data.output_text || data.output?.flatMap((item) => item.content || []).map((item) => item.text).filter(Boolean).join("\n");
-    if (!content) return null;
+    const content = extractOpenAIText(data);
+    if (!content) {
+      console.warn(`[analysis:${requestId}] OpenAI response did not contain output text; using local SRD fallback`);
+      return null;
+    }
     return normalizeCharacterAnalysis(JSON.parse(content), fallback);
   } catch (error) {
-    console.warn("Character story AI analysis fell back to local rules:", error.message);
+    console.warn(`[analysis:${requestId}] OpenAI analysis error=${error.name || "Error"}: ${error.message}; using local SRD fallback`);
     return null;
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function safeReadProviderError(response) {
+  try {
+    const payload = await response.json();
+    return {
+      code: payload?.error?.code || payload?.error?.type || "",
+      message: payload?.error?.message || "",
+    };
+  } catch {
+    return { code: "", message: "" };
+  }
+}
+
+function extractOpenAIText(data = {}) {
+  if (typeof data.output_text === "string" && data.output_text.trim()) return data.output_text;
+  return (data.output || [])
+    .flatMap((item) => item.content || [])
+    .map((item) => item.text || item.output_text || "")
+    .filter(Boolean)
+    .join("\n");
 }
 
 function analyzeCharacterStoryLocally(payload = {}) {
