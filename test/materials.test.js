@@ -252,7 +252,7 @@ test("character analysis endpoint returns a clear 405 for unsupported methods", 
   assert.match(payload.message, /Use POST or OPTIONS/);
   assert.equal(payload.method, "GET");
   assert.equal(payload.pathname, "/api/characters/analyze");
-  assert.equal(payload.branch, "character-analysis-method-guard");
+  assert.equal(payload.branch, "api-characters-analyze-405");
   assert.deepEqual(payload.allow, ["POST", "OPTIONS"]);
   assert.match(payload.requestId, /^analysis-/);
 });
@@ -267,7 +267,7 @@ test("character analysis endpoint accepts a proxy-stripped API prefix alias", as
   const payload = await response.json();
 
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-route-branch"), "character-analysis-alias-route");
+  assert.equal(response.headers.get("x-route-branch"), "api-characters-analyze-post");
   assert.equal(payload.source, "local-srd-reference");
 });
 

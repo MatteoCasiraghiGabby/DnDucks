@@ -12,12 +12,7 @@ npm start
 
 Open <http://localhost:3000>. The backend serves the existing HTML/CSS/JS and exposes the materials API under `/api/materials`.
 
-If you serve the frontend from a separate local dev server (for example `localhost:5173`), keep the Node backend running on port `3000`. Local frontend pages on a non-3000 port send `/api/*` requests to `http://localhost:3000` so they do not accidentally POST to the static/dev server. To use a different backend port in that setup, set the API base in the browser console before retrying:
-
-```js
-localStorage.setItem("dnducks.apiBaseUrl", "http://localhost:3017");
-location.reload();
-```
+If you serve the frontend from the Vite dev server (for example `localhost:5173`), keep the Node backend running on port `3000`. The frontend sends relative `/api/*` requests, and Vite proxies those requests to the backend.
 
 ## Local campaign material uploads
 
