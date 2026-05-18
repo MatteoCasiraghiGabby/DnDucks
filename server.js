@@ -290,8 +290,10 @@ async function suggestCharacterDetailsWithOpenAI({ description, context }) {
           content: [
             "You analyze Dungeons & Dragons character descriptions for a DM character sheet.",
             "Return JSON only through the supplied schema.",
-            "Choose only ids from the allowed lists. Do not invent traits, ideals, bonds, flaws, or features.",
-            "Prefer a small, high-confidence set: up to two personality traits, one ideal, one bond, one flaw, and up to two appearance or behavior features.",
+            "Choose only ids from the allowed lists. Do not invent backgrounds, background features, racial traits, feats, talents, or mechanics.",
+            "Use the character's personality, ideals, flaws, and backstory as evidence for mechanical recommendations.",
+            "Suggest only rules-bearing or table-actionable options: background packages, background features, species/racial traits, and feat-style talents.",
+            "Prefer a small, high-confidence set: up to two backgrounds/background features, two racial traits, and two feats.",
             "If the description does not support a category, leave that category out.",
           ].join(" "),
         },
@@ -392,6 +394,8 @@ function validateCharacterSuggestions(raw) {
       id,
       label: allowed.label,
       description: allowed.description,
+      mechanics: allowed.mechanics,
+      source: allowed.source,
       confidence: clampNumber(suggestion.confidence, 0, 1),
       explanation: cleanShortText(suggestion.explanation) || localExplanation(category, allowed),
     });
@@ -405,7 +409,7 @@ function localCharacterSuggestions({ description, context }) {
   const suggestions = Object.entries(ALLOWED_CHARACTER_SUGGESTIONS)
     .flatMap(([category, items]) => scoreSuggestionCategory(category, items, text, tokens))
     .sort((a, b) => b.score - a.score);
-  const perCategoryLimit = { traits: 2, ideals: 1, bonds: 1, flaws: 1, features: 2 };
+  const perCategoryLimit = { backgrounds: 1, backgroundFeatures: 1, racialTraits: 2, feats: 2 };
   const used = {};
   return {
     suggestions: suggestions.filter((suggestion) => {
@@ -448,7 +452,7 @@ function tagMatchesText(tag, text, tokens) {
 }
 
 function localExplanation(category, item) {
-  return `${item.label} fits the ${category.replace(/s$/, "")} signals in the description.`;
+  return `${item.label} fits the ${category.replace(/s$/, "")} signals in the character description.`;
 }
 
 function clampNumber(value, min, max) {

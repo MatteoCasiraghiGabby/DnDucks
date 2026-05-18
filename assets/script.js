@@ -368,6 +368,72 @@ function derivedWeaponAttacks({ equipment, abilities, level }) {
   }).filter(Boolean);
 }
 
+function equipmentWeaponSummaries(player = {}) {
+  const seen = new Set();
+  return equipmentItems(player.equipment).map((item) => {
+    const weapon = weaponForEquipmentItem(item);
+    if (!weapon || seen.has(weapon.name)) return null;
+    seen.add(weapon.name);
+    const modifier = weaponAbilityModifier(weapon, player.abilities || {});
+    return {
+      item,
+      name: weapon.name,
+      mode: weapon.mode === "finesse" ? "Melee or Dexterity" : weapon.mode,
+      attackBonus: signedModifier(modifier + proficiencyBonusForLevel(player.level || 1)),
+      damageType: weaponDamageText(weapon, modifier),
+    };
+  }).filter(Boolean);
+}
+
+function featureBlocks(features = "") {
+  const blocks = [];
+  let current = null;
+  const titlePattern = /\([^)]+\)$/;
+  String(features)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      if (/^source\s*:/i.test(line)) return;
+      const isTitle = titlePattern.test(line) || !current;
+      if (isTitle) {
+        if (current) blocks.push(current);
+        current = { title: line, details: [] };
+        return;
+      }
+      current.details.push(line);
+    });
+  if (current) blocks.push(current);
+  return blocks;
+}
+
+function featureBlocksMarkup(features = "") {
+  const blocks = featureBlocks(features);
+  if (!blocks.length) return "";
+  return `<div class="feature-widget-list">${blocks.map((block) => `
+    <section class="feature-widget-card">
+      <strong>${escapeHtml(block.title)}</strong>
+      ${block.details.length ? `<p>${escapeHtml(block.details.join("\n"))}</p>` : ""}
+    </section>`).join("")}</div>`;
+}
+
+function equipmentWeaponCardsMarkup(player = {}) {
+  const weapons = equipmentWeaponSummaries(player);
+  if (!weapons.length) return "";
+  return `<div class="equipment-weapon-list">${weapons.map((weapon) => `
+    <article class="equipment-weapon-card">
+      <span class="equipment-weapon-icon" aria-hidden="true">${escapeHtml(weapon.name.slice(0, 2).toUpperCase())}</span>
+      <div>
+        <strong>${escapeHtml(weapon.name)}</strong>
+        <dl>
+          <div><dt>Attack</dt><dd>${escapeHtml(weapon.attackBonus)}</dd></div>
+          <div><dt>Damage</dt><dd>${escapeHtml(weapon.damageType)}</dd></div>
+          <div><dt>Mode</dt><dd>${escapeHtml(weapon.mode)}</dd></div>
+        </dl>
+      </div>
+    </article>`).join("")}</div>`;
+}
+
 function hitDieSides(classRole = "") {
   return Number(String(classInfo(classRole)?.hitDie || "d8").replace("d", "")) || 8;
 }
@@ -1033,19 +1099,17 @@ function parseJsonResponse(text) {
 }
 
 const CHARACTER_SUGGESTION_TARGETS = {
-  traits: "#player-personality-traits",
-  ideals: "#player-ideals",
-  bonds: "#player-bonds",
-  flaws: "#player-flaws",
-  features: "#player-features",
+  backgrounds: "#player-features",
+  backgroundFeatures: "#player-features",
+  racialTraits: "#player-features",
+  feats: "#player-features",
 };
 
 const CHARACTER_SUGGESTION_LABELS = {
-  traits: "Personality trait",
-  ideals: "Ideal",
-  bonds: "Bond",
-  flaws: "Flaw",
-  features: "Appearance or behavior feature",
+  backgrounds: "Background package",
+  backgroundFeatures: "Background feature",
+  racialTraits: "Species or racial trait",
+  feats: "Feat or talent",
 };
 
 function collectCharacterSuggestionPayload(form) {
@@ -1055,7 +1119,6 @@ function collectCharacterSuggestionPayload(form) {
       formValue(form, "#player-notes"),
       formValue(form, "#player-personality-traits"),
       formValue(form, "#player-ideals"),
-      formValue(form, "#player-bonds"),
       formValue(form, "#player-flaws"),
     ].filter(Boolean).join("\n\n"),
     characterName: formValue(form, "#player-character-name"),
@@ -1075,7 +1138,11 @@ async function requestCharacterSuggestions(form) {
 }
 
 function suggestionApplyText(suggestion) {
-  return `${suggestion.label}: ${suggestion.description}`;
+  return [
+    `${suggestion.label} (${CHARACTER_SUGGESTION_LABELS[suggestion.category] || "Suggestion"})`,
+    suggestion.description,
+    suggestion.mechanics ? `Mechanics: ${suggestion.mechanics}` : "",
+  ].filter(Boolean).join("\n");
 }
 
 function appendTextareaValue(textarea, value) {
@@ -1110,8 +1177,8 @@ function renderCharacterSuggestions(panel, payload = {}) {
   panel.innerHTML = `
     <div class="suggestion-panel-heading">
       <div>
-        <h3>Suggested traits and features</h3>
-        <p>Review each suggestion before adding it to the sheet.</p>
+        <h3>Suggested mechanical traits</h3>
+        <p>Review mechanical suggestions before adding them to Features and traits.</p>
       </div>
       <span>${escapeHtml(payload.model || "model")}</span>
     </div>
@@ -1122,6 +1189,7 @@ function renderCharacterSuggestions(panel, payload = {}) {
             <span class="suggestion-category">${escapeHtml(CHARACTER_SUGGESTION_LABELS[suggestion.category] || suggestion.category)}</span>
             <h4>${escapeHtml(suggestion.label)}</h4>
             <p>${escapeHtml(suggestion.description)}</p>
+            ${suggestion.mechanics ? `<p><strong>Mechanics:</strong> ${escapeHtml(suggestion.mechanics)}</p>` : ""}
             <small>${escapeHtml(suggestion.explanation)} ${escapeHtml(suggestionConfidenceLabel(suggestion.confidence))}</small>
             <label class="suggestion-edit-label">Edit suggestion<textarea rows="2" data-suggestion-edit>${escapeHtml(suggestionApplyText(suggestion))}</textarea></label>
           </div>
@@ -1767,7 +1835,6 @@ function abilitySectionComplete(player) {
 
 function playerSectionDefinitions(player, options = {}) {
   const combat = player.combat || {};
-  const attacks = player.attacks || [];
   const personality = player.personality || {};
   const storyBlocks = [
     ["Short description", player.description],
@@ -1780,6 +1847,8 @@ function playerSectionDefinitions(player, options = {}) {
   const languageTags = (player.languages || []).map(languageLabel);
   const toolTags = (player.toolProficiencies || []).map(toolLabel);
   const equipmentTags = equipmentItems(player.equipment);
+  const hasWeapons = equipmentWeaponSummaries(player).length > 0;
+  const nonWeaponEquipmentTags = equipmentTags.filter((item) => !weaponForEquipmentItem(item));
   const equipmentComplete = hasText(player.equipment) && hasText(player.features);
   const equipmentStarted = equipmentComplete || languageTags.length || toolTags.length || equipmentTags.length;
   const combatStarted = hasText(player.classRole) || hasText(player.race) || ABILITIES.some((ability) => hasNumber(player.abilities?.[ability.key])) || equipmentStarted;
@@ -1809,11 +1878,11 @@ function playerSectionDefinitions(player, options = {}) {
         <div class="passive-perception-pill"><span>Passive Perception</span><strong>${escapeHtml(playerPassivePerception(player))}</strong></div>
         <h3>Saving Throws</h3>
         <div class="skill-chip-grid saving-throw-chip-grid">
-          ${ABILITIES.map((ability) => `<span class="${(player.savingThrowProficiencies || []).includes(ability.key) ? "is-proficient" : ""}">${escapeHtml(ability.label)} <strong>${signedModifier(savingThrowBonus(player, ability.key))}</strong></span>`).join("")}
+          ${ABILITIES.filter((ability) => (player.savingThrowProficiencies || []).includes(ability.key)).map((ability) => `<span class="is-proficient">${escapeHtml(ability.label)} <strong>${signedModifier(savingThrowBonus(player, ability.key))}</strong></span>`).join("")}
         </div>
         <h3>Skills</h3>
         <div class="skill-chip-grid">
-          ${SKILLS.map((skill) => `<span class="${(player.skillProficiencies || []).includes(skill.key) ? "is-proficient" : ""}">${escapeHtml(skill.label)} <strong>${signedModifier(skillBonus(player, skill))}</strong></span>`).join("")}
+          ${SKILLS.filter((skill) => (player.skillProficiencies || []).includes(skill.key)).map((skill) => `<span class="is-proficient">${escapeHtml(skill.label)} <strong>${signedModifier(skillBonus(player, skill))}</strong></span>`).join("")}
         </div>`,
     },
     {
@@ -1848,15 +1917,10 @@ function playerSectionDefinitions(player, options = {}) {
       body: `<div class="equipment-widget-sections">
         ${languageTags.length ? `<section><h4>Languages</h4>${widgetTagsMarkup(languageTags)}</section>` : ""}
         ${toolTags.length ? `<section><h4>Tool proficiencies</h4>${widgetTagsMarkup(toolTags)}</section>` : ""}
-        ${equipmentTags.length ? `<section><h4>Equipment</h4>${widgetTagsMarkup(equipmentTags)}</section>` : ""}
-        ${hasText(player.features) ? `<section><h4>Features and traits</h4><p>${escapeHtml(player.features)}</p></section>` : ""}
+        ${hasWeapons ? `<section><h4>Weapons</h4>${equipmentWeaponCardsMarkup(player)}</section>` : ""}
+        ${nonWeaponEquipmentTags.length ? `<section><h4>Equipment</h4>${widgetTagsMarkup(nonWeaponEquipmentTags)}</section>` : ""}
+        ${hasText(player.features) ? `<section><h4>Features and traits</h4>${featureBlocksMarkup(player.features)}</section>` : ""}
       </div>`,
-    },
-    {
-      key: "attacks",
-      title: "Attacks and spellcasting",
-      complete: attacks.length > 0,
-      body: `<ul class="section-widget-list">${attacks.map((attack) => `<li><strong>${escapeHtml(attack.name || "Attack")}</strong><span>${escapeHtml([attack.attackBonus, attack.damageType].filter(Boolean).join(" · ") || "No details")}</span></li>`).join("")}</ul>`,
     },
   ];
 }
@@ -1956,16 +2020,14 @@ function playerCharacterFormMarkup() {
       <fieldset class="sheet-form-section">
         <legend>Personality and story</legend>
         <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
+        <label>Personality traits<textarea id="player-personality-traits" rows="3" placeholder="How they behave at the table and in the world..."></textarea></label>
+        <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
+        <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
         <div class="character-suggestion-workflow full-width">
-          <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest traits and features</button>
+          <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest background features and traits</button>
           <span id="character-suggestion-status" aria-live="polite"></span>
           <div class="character-suggestion-panel" id="character-suggestion-panel" hidden></div>
         </div>
-        <label>Personality traits<textarea id="player-personality-traits" rows="3" placeholder="How they behave at the table and in the world..."></textarea></label>
-        <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
-        <label>Bonds<textarea id="player-bonds" rows="3" placeholder="Who, where, or what matters most?"></textarea></label>
-        <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
-        <label class="full-width">Backstory and notes<textarea id="player-notes" rows="4" placeholder="Secrets, goals, safety notes, or mechanics to remember..."></textarea></label>
       </fieldset>
 
       <fieldset class="sheet-form-section">
@@ -1976,24 +2038,11 @@ function playerCharacterFormMarkup() {
             ${checkboxMarkup("player-languages", LANGUAGES)}
           </div>
         </div>
-        <label class="full-width">Equipment<textarea id="player-equipment" rows="5" placeholder="Write one item per line: dagger, leather armor, thieves' tools, explorer's pack..."></textarea></label>
-        <label class="full-width">Features and traits<textarea id="player-features" rows="5" placeholder="Race traits, class features, background feature, feats, spellcasting notes..."></textarea></label>
+        <label class="full-width">Equipment<textarea id="player-equipment-entry" rows="2" placeholder="Write an item, then press Enter: dagger, leather armor, thieves' tools..."></textarea></label>
+        <textarea id="player-equipment" hidden aria-hidden="true"></textarea>
+        <textarea id="player-features" hidden aria-hidden="true"></textarea>
       </fieldset>
 
-      <fieldset class="sheet-form-section">
-        <legend>Attacks and spellcasting</legend>
-        <div class="attack-form-grid full-width">
-          ${[1, 2, 3].map(attackInputMarkup).join("")}
-        </div>
-      </fieldset>
-
-      <div class="file-picker image-picker full-width" data-image-picker>
-        <label for="player-avatar">Optional avatar</label>
-        <input id="player-avatar" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-        <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="player-avatar">Choose image</button>
-        <span class="image-picker-status" data-image-status>No image chosen</span>
-        <img class="image-picker-preview" data-image-preview alt="Selected player avatar preview" hidden />
-      </div>
       <div class="form-message full-width" id="player-form-message" aria-live="polite"></div>
       <div class="setup-actions full-width">
         <button class="btn btn-secondary" type="button" id="add-another-player">ADD ANOTHER PLAYER</button>
@@ -2080,6 +2129,24 @@ function refreshPlayerSectionSummary(form) {
   renderAddedPlayersSummary(getCampaign(form.dataset.campaignId) || currentCampaign());
 }
 
+function appendEquipmentItemsToSheet(form, items = []) {
+  const equipment = form.querySelector("#player-equipment");
+  const nextItems = items.map((item) => item.trim()).filter(Boolean);
+  if (!equipment || !nextItems.length) return;
+  const currentItems = equipmentItems(equipment.value);
+  equipment.value = [...currentItems, ...nextItems].join("\n");
+  equipment.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function commitEquipmentDraft(form, { includeCurrent = false } = {}) {
+  const draft = form.querySelector("#player-equipment-entry");
+  if (!draft) return;
+  const lines = String(draft.value || "").split(/\n+/);
+  const completed = includeCurrent ? lines : lines.slice(0, -1);
+  appendEquipmentItemsToSheet(form, completed);
+  draft.value = includeCurrent ? "" : (lines.at(-1) || "");
+}
+
 function allowedSkillKeysForClass(info) {
   if (!info) return new Set(SKILLS.map((skill) => skill.key));
   if (info.skillChoices === "any") return new Set(SKILLS.map((skill) => skill.key));
@@ -2092,6 +2159,16 @@ function enforceSkillLimit(form, info) {
   const limit = info?.skillLimit || checked.length;
   checked.forEach((input, index) => {
     if (index >= limit) input.checked = false;
+  });
+  if (!info) return;
+  const allowedSkills = allowedSkillKeysForClass(info);
+  const selectedCount = skillInputs.filter((input) => input.checked).length;
+  const limitReached = selectedCount >= limit;
+  skillInputs.forEach((input) => {
+    if (!allowedSkills.has(input.value)) return;
+    const disabled = !input.checked && limitReached;
+    input.disabled = disabled;
+    input.closest("label")?.classList.toggle("is-disabled", disabled);
   });
 }
 
@@ -2131,6 +2208,7 @@ function applyClassRestrictions(form) {
   if (!info) {
     form.querySelectorAll?.('input[name="player-saving-throws"]').forEach((input) => {
       input.disabled = false;
+      input.closest("label")?.classList.remove("is-disabled", "is-fixed");
     });
     form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
       input.disabled = false;
@@ -2140,8 +2218,11 @@ function applyClassRestrictions(form) {
     return;
   }
   form.querySelectorAll?.('input[name="player-saving-throws"]').forEach((input) => {
-    input.checked = info.saves.includes(input.value);
+    const isFixed = info.saves.includes(input.value);
+    input.checked = isFixed;
     input.disabled = true;
+    input.closest("label")?.classList.toggle("is-fixed", isFixed);
+    input.closest("label")?.classList.toggle("is-disabled", !isFixed);
   });
   const allowedSkills = allowedSkillKeysForClass(info);
   form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
@@ -2163,14 +2244,14 @@ function initPlayerCharacterForm(form) {
   const suggestionPanel = document.getElementById("character-suggestion-panel");
   suggestionButton?.addEventListener("click", async () => {
     if (suggestionStatus) {
-      suggestionStatus.textContent = "Analyzing description...";
+      suggestionStatus.textContent = "Analyzing mechanics...";
       suggestionStatus.classList.remove("error");
     }
     suggestionButton.disabled = true;
     try {
       const payload = await requestCharacterSuggestions(form);
       renderCharacterSuggestions(suggestionPanel, payload);
-      if (suggestionStatus) suggestionStatus.textContent = "Suggestions ready.";
+      if (suggestionStatus) suggestionStatus.textContent = "Mechanical suggestions ready.";
     } catch (error) {
       if (suggestionStatus) {
         suggestionStatus.textContent = error.message;
@@ -2215,7 +2296,17 @@ function initPlayerCharacterForm(form) {
       refreshPlayerSectionSummary(form);
     });
   });
+  form.addEventListener("keydown", (event) => {
+    if (event.target?.id !== "player-equipment-entry" || event.key !== "Enter" || event.shiftKey) return;
+    event.preventDefault();
+    commitEquipmentDraft(form, { includeCurrent: true });
+    updatePlayerFormDerivedFields(form);
+    refreshPlayerSectionSummary(form);
+  });
   form.addEventListener("input", (event) => {
+    if (event.target?.id === "player-equipment-entry" && String(event.target.value || "").includes("\n")) {
+      commitEquipmentDraft(form);
+    }
     if (["player-class-role", "player-level", "player-constitution"].includes(event.target?.id)) clearRolledHitPoints(form);
     if (event.target?.id === "player-class-role" || event.target?.id === "player-race") applyClassRestrictions(form);
     updatePlayerFormDerivedFields(form);
@@ -2239,6 +2330,7 @@ function initPlayerCharacterForm(form) {
 async function saveCurrentPlayerFromSetup(form, { requireData }) {
   const message = document.getElementById("player-form-message");
   const campaignId = form.dataset.campaignId;
+  commitEquipmentDraft(form, { includeCurrent: true });
   const player = buildPlayerCharacter(form);
   const hasData = playerFormHasData(form);
   if (!requireData && !hasData) return { saved: false, campaign: getCampaign(campaignId) };
