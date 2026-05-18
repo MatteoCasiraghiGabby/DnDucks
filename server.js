@@ -59,35 +59,46 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
   await Promise.all([materialStore.ensureReady(), uploadedImageStore.ensureReady()]);
 
   return http.createServer(async (req, res) => {
+    let pathname = "";
     try {
+      console.log("[REQ]", req.method, req.url);
       const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-      const apiPathname = normalizeApiPathname(requestUrl.pathname);
+      pathname = normalizeApiPathname(requestUrl.pathname);
+      console.log("[ROUTE]", { method: req.method, url: req.url, pathname });
+      res.on("finish", () => {
+        console.log("[RES]", { method: req.method, url: req.url, pathname, status: res.statusCode, branch: res.getHeader("X-Route-Branch") || "unknown" });
+      });
 
-      if (apiPathname.startsWith("/api/")) setApiCorsHeaders(req, res);
-      if (req.method === "OPTIONS" && apiPathname.startsWith("/api/")) {
+      if (pathname.startsWith("/api/")) setApiCorsHeaders(req, res);
+      if (req.method === "OPTIONS" && pathname.startsWith("/api/")) {
+        res.setHeader("X-Route-Branch", "api-preflight");
         res.writeHead(204);
         res.end();
         return;
       }
 
-      if (apiPathname === "/api/characters/analyze") {
-        await handleCharacterAnalysisApi(req, res);
+      if (pathname === "/api/characters/analyze") {
+        res.setHeader("X-Route-Branch", "character-analysis-route");
+        await handleCharacterAnalysisApi(req, res, pathname);
         return;
       }
 
-      if (apiPathname === "/api/uploads/images") {
-        await handleImageUploadsApi(req, res, uploadedImageStore);
+      if (pathname === "/api/uploads/images") {
+        res.setHeader("X-Route-Branch", "image-upload-route");
+        await handleImageUploadsApi(req, res, uploadedImageStore, pathname);
         return;
       }
 
-      if (apiPathname.startsWith("/api/materials")) {
-        requestUrl.pathname = apiPathname;
+      if (pathname.startsWith("/api/materials")) {
+        res.setHeader("X-Route-Branch", "materials-route");
+        requestUrl.pathname = pathname;
         await handleMaterialsApi(req, res, requestUrl, materialStore);
         return;
       }
 
-      if (apiPathname.startsWith("/api/")) {
-        sendJson(res, 404, { error: "API route not found.", code: "API_ROUTE_NOT_FOUND" });
+      if (pathname.startsWith("/api/")) {
+        res.setHeader("X-Route-Branch", "api-route-not-found");
+        sendJson(res, 404, { error: "API route not found.", code: "API_ROUTE_NOT_FOUND", method: req.method, pathname, branch: "api-route-not-found" });
         return;
       }
 
@@ -100,7 +111,7 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
         return;
       }
 
-      sendMethodNotAllowed(res, ["GET", "HEAD"]);
+      sendMethodNotAllowed(req, res, ["GET", "HEAD"], { pathname, branch: "static-file-guard" });
     } catch (error) {
       if (!error.statusCode || error.statusCode >= 500) console.error(error);
       sendJson(res, error.statusCode || 500, { error: error.message || "Unexpected server error.", ...(error.code ? { code: error.code } : {}), ...(error.requestId ? { requestId: error.requestId } : {}) });
@@ -113,22 +124,35 @@ function normalizeApiPathname(pathname) {
   return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
 }
 
-function sendMethodNotAllowed(res, allowedMethods, extra = {}) {
-  res.setHeader("Allow", allowedMethods.join(", "));
-  sendJson(res, 405, { error: `Method not allowed. Use ${allowedMethods.join(" or ")}.`, code: "METHOD_NOT_ALLOWED", ...extra });
+function sendMethodNotAllowed(req, res, allowedMethods, extra = {}) {
+  const allow = [...allowedMethods];
+  const branch = extra.branch || "unknown";
+  res.setHeader("Allow", allow.join(", "));
+  res.setHeader("X-Route-Branch", branch);
+  sendJson(res, 405, {
+    error: "METHOD_NOT_ALLOWED",
+    code: "METHOD_NOT_ALLOWED",
+    message: `Method not allowed. Use ${allow.join(" or ")}.`,
+    method: req.method,
+    pathname: extra.pathname || null,
+    branch,
+    allow,
+    ...extra,
+  });
 }
 
 function setApiCorsHeaders(req, res) {
   const origin = req.headers.origin;
   res.setHeader("Access-Control-Allow-Origin", API_CORS_ORIGIN === "*" ? "*" : (origin && API_CORS_ORIGIN.split(",").map((value) => value.trim()).includes(origin) ? origin : API_CORS_ORIGIN));
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", req.headers["access-control-request-headers"] || "Content-Type");
+  res.setHeader("Access-Control-Max-Age", "600");
   res.setHeader("Vary", "Origin");
 }
 
-async function handleImageUploadsApi(req, res, uploadedImageStore) {
+async function handleImageUploadsApi(req, res, uploadedImageStore, pathname) {
   if (req.method !== "POST") {
-    sendMethodNotAllowed(res, ["POST", "OPTIONS"]);
+    sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "image-upload-method-guard" });
     return;
   }
 
@@ -198,10 +222,10 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
 }
 
 
-async function handleCharacterAnalysisApi(req, res) {
+async function handleCharacterAnalysisApi(req, res, pathname) {
   const requestId = makeRequestId();
   if (req.method !== "POST") {
-    sendMethodNotAllowed(res, ["POST", "OPTIONS"], { requestId });
+    sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "character-analysis-method-guard", requestId });
     return;
   }
 
@@ -229,7 +253,7 @@ function validateCharacterAnalysisPayload(payload, requestId) {
 }
 
 function getCharacterStoryText(payload = {}) {
-  return [payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
+  return [payload.text, payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
     .map((value) => String(value || "").trim())
     .filter(Boolean)
     .join("\n\n");
@@ -344,7 +368,7 @@ function extractOpenAIText(data = {}) {
 }
 
 function analyzeCharacterStoryLocally(payload = {}) {
-  const text = [payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
+  const text = [payload.text, payload.description, payload.traits, payload.ideals, payload.bonds, payload.flaws, payload.notes]
     .map((value) => String(value || "").trim())
     .filter(Boolean)
     .join(" ");

@@ -4,7 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 
-function createFrontendSandbox() {
+function createFrontendSandbox(options = {}) {
   const storage = new Map();
   const documentStub = {
     querySelector: () => null,
@@ -30,7 +30,19 @@ function createFrontendSandbox() {
       removeItem: (key) => storage.delete(key),
     },
     document: documentStub,
-    window: { location: { pathname: "/", href: "/", hash: "", reload: () => {} }, addEventListener: () => {} },
+    window: {
+      location: {
+        protocol: options.protocol || "http:",
+        hostname: options.hostname || "localhost",
+        port: options.port || "3000",
+        origin: `${options.protocol || "http:"}//${options.hostname || "localhost"}${options.port ? `:${options.port}` : ":3000"}`,
+        pathname: "/",
+        href: "/",
+        hash: "",
+        reload: () => {},
+      },
+      addEventListener: () => {},
+    },
     Event: class Event { constructor(type) { this.type = type; } },
     fetch: async () => { throw new Error("fetch should not be called in campaign flow unit tests"); },
     alert: () => {},
@@ -213,8 +225,29 @@ test("notes are returned in campaign chronology order", () => {
 test("character story UI posts to the backend analysis endpoint", () => {
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
 
-  assert.match(script, /fetchJson\("\/api\/characters\/analyze", \{\s*method: "POST"/);
+  assert.match(script, /resolveApiUrl\("\/api\/characters\/analyze"\)/);
+  assert.match(script, /console\.log\("\[ANALYZE REQUEST\]"/);
+  assert.match(script, /fetchJson\(url, \{\s*method: "POST"/);
   assert.match(script, /headers: \{ "Content-Type": "application\/json" \}/);
+});
+
+test("API URL resolver keeps same-origin backend requests on port 3000", () => {
+  const app = createFrontendSandbox({ hostname: "localhost", port: "3000" });
+
+  assert.equal(app.resolveApiUrl("/api/characters/analyze"), "/api/characters/analyze");
+});
+
+test("API URL resolver sends localhost frontend-dev requests to backend port 3000", () => {
+  const app = createFrontendSandbox({ hostname: "localhost", port: "5173" });
+
+  assert.equal(app.resolveApiUrl("/api/characters/analyze"), "http://localhost:3000/api/characters/analyze");
+});
+
+test("API URL resolver honors explicit backend base URL configuration", () => {
+  const app = createFrontendSandbox({ hostname: "localhost", port: "5173" });
+  app.localStorage.setItem("dnducks.apiBaseUrl", "http://127.0.0.1:3017/");
+
+  assert.equal(app.resolveApiUrl("/api/characters/analyze"), "http://127.0.0.1:3017/api/characters/analyze");
 });
 
 test("character story payload matches the backend analysis contract", () => {
