@@ -61,26 +61,33 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
   return http.createServer(async (req, res) => {
     try {
       const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+      const apiPathname = normalizeApiPathname(requestUrl.pathname);
 
-      if (requestUrl.pathname.startsWith("/api/")) setApiCorsHeaders(req, res);
-      if (req.method === "OPTIONS" && requestUrl.pathname.startsWith("/api/")) {
+      if (apiPathname.startsWith("/api/")) setApiCorsHeaders(req, res);
+      if (req.method === "OPTIONS" && apiPathname.startsWith("/api/")) {
         res.writeHead(204);
         res.end();
         return;
       }
 
-      if (requestUrl.pathname === "/api/characters/analyze") {
+      if (apiPathname === "/api/characters/analyze") {
         await handleCharacterAnalysisApi(req, res);
         return;
       }
 
-      if (requestUrl.pathname === "/api/uploads/images") {
+      if (apiPathname === "/api/uploads/images") {
         await handleImageUploadsApi(req, res, uploadedImageStore);
         return;
       }
 
-      if (requestUrl.pathname.startsWith("/api/materials")) {
+      if (apiPathname.startsWith("/api/materials")) {
+        requestUrl.pathname = apiPathname;
         await handleMaterialsApi(req, res, requestUrl, materialStore);
+        return;
+      }
+
+      if (apiPathname.startsWith("/api/")) {
+        sendJson(res, 404, { error: "API route not found.", code: "API_ROUTE_NOT_FOUND" });
         return;
       }
 
@@ -93,12 +100,22 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
         return;
       }
 
-      sendJson(res, 405, { error: "Method not allowed." });
+      sendMethodNotAllowed(res, ["GET", "HEAD"]);
     } catch (error) {
       if (!error.statusCode || error.statusCode >= 500) console.error(error);
       sendJson(res, error.statusCode || 500, { error: error.message || "Unexpected server error.", ...(error.code ? { code: error.code } : {}), ...(error.requestId ? { requestId: error.requestId } : {}) });
     }
   });
+}
+
+function normalizeApiPathname(pathname) {
+  if (!pathname.startsWith("/api/")) return pathname;
+  return pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+}
+
+function sendMethodNotAllowed(res, allowedMethods, extra = {}) {
+  res.setHeader("Allow", allowedMethods.join(", "));
+  sendJson(res, 405, { error: `Method not allowed. Use ${allowedMethods.join(" or ")}.`, code: "METHOD_NOT_ALLOWED", ...extra });
 }
 
 function setApiCorsHeaders(req, res) {
@@ -111,7 +128,7 @@ function setApiCorsHeaders(req, res) {
 
 async function handleImageUploadsApi(req, res, uploadedImageStore) {
   if (req.method !== "POST") {
-    sendJson(res, 405, { error: "Method not allowed.", code: "METHOD_NOT_ALLOWED" });
+    sendMethodNotAllowed(res, ["POST", "OPTIONS"]);
     return;
   }
 
@@ -184,7 +201,7 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
 async function handleCharacterAnalysisApi(req, res) {
   const requestId = makeRequestId();
   if (req.method !== "POST") {
-    sendJson(res, 405, { error: "Method not allowed.", code: "METHOD_NOT_ALLOWED", requestId });
+    sendMethodNotAllowed(res, ["POST", "OPTIONS"], { requestId });
     return;
   }
 

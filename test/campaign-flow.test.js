@@ -210,6 +210,13 @@ test("notes are returned in campaign chronology order", () => {
   assert.deepEqual(Array.from(app.sortedNotes().map((note) => note.title)), ["First", "Later"]);
 });
 
+test("character story UI posts to the backend analysis endpoint", () => {
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+
+  assert.match(script, /fetchJson\("\/api\/characters\/analyze", \{\s*method: "POST"/);
+  assert.match(script, /headers: \{ "Content-Type": "application\/json" \}/);
+});
+
 test("character story payload matches the backend analysis contract", () => {
   const app = createFrontendSandbox();
   const payload = app.collectCharacterStoryPayload(mockPlayerForm({
