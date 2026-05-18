@@ -1347,20 +1347,24 @@ function playerCharacterCard(player) {
   const sheetHref = playerCharacterHref(campaignId, player.id);
   return `
     <article class="content-card entry-card widget-card player-card player-preview-card" data-searchable="${escapeHtml(searchable)}" data-status="active" data-player-card-href="${escapeHtml(sheetHref)}" role="link" tabindex="0">
-      ${widgetImageDisplayMarkup(imageEntry, title)}
-      <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
-      <h3>${escapeHtml(title)}</h3>
-      ${widgetDescriptionMarkup(player.description)}
-      <dl class="player-preview-stats">
-        <div><dt>Level</dt><dd>${escapeHtml(player.level || "1")}</dd></div>
-        <div><dt>AC</dt><dd>${escapeHtml(armorClass)}</dd></div>
-        <div><dt>HP</dt><dd>${escapeHtml(hitPoints)}</dd></div>
-        <div><dt>Passive</dt><dd>${escapeHtml(passive)}</dd></div>
-      </dl>
-      ${widgetTagsMarkup([`Player: ${player.playerName}`, player.race, player.background])}
-      <div class="entry-actions">
-        <a class="btn btn-secondary" href="${escapeHtml(sheetHref)}">Open sheet</a>
-        <button class="btn btn-danger" type="button" data-delete-player-id="${escapeHtml(player.id)}" data-campaign-id="${escapeHtml(campaignId)}">Delete player</button>
+      <div class="player-preview-details">
+        <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
+        <h3>${escapeHtml(title)}</h3>
+        ${widgetDescriptionMarkup(player.description)}
+        <dl class="player-preview-stats">
+          <div><dt>Level</dt><dd>${escapeHtml(player.level || "1")}</dd></div>
+          <div><dt>AC</dt><dd>${escapeHtml(armorClass)}</dd></div>
+          <div><dt>HP</dt><dd>${escapeHtml(hitPoints)}</dd></div>
+          <div><dt>Passive</dt><dd>${escapeHtml(passive)}</dd></div>
+        </dl>
+        ${widgetTagsMarkup([`Player: ${player.playerName}`, player.race, player.background])}
+        <div class="entry-actions">
+          <a class="btn btn-secondary" href="${escapeHtml(sheetHref)}">Open sheet</a>
+          <button class="btn btn-danger" type="button" data-delete-player-id="${escapeHtml(player.id)}" data-campaign-id="${escapeHtml(campaignId)}">Delete player</button>
+        </div>
+      </div>
+      <div class="player-preview-media-column">
+        ${widgetImageDisplayMarkup(imageEntry, title)}
       </div>
     </article>`;
 }
