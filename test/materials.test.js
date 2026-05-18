@@ -257,16 +257,30 @@ test("character analysis endpoint returns a clear 405 for unsupported methods", 
   assert.match(payload.requestId, /^analysis-/);
 });
 
+test("character analysis endpoint accepts a proxy-stripped API prefix alias", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: "Test text about a brave village hero." }),
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-route-branch"), "character-analysis-alias-route");
+  assert.equal(payload.source, "local-srd-reference");
+});
+
 test("static file guard returns diagnostic 405 metadata", async (t) => {
   const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/characters/analyze`, { method: "POST" });
+  const response = await fetch(`${baseUrl}/not-an-api-route`, { method: "POST" });
   const payload = await response.json();
 
   assert.equal(response.status, 405);
   assert.equal(response.headers.get("allow"), "GET, HEAD");
   assert.equal(payload.error, "METHOD_NOT_ALLOWED");
   assert.equal(payload.method, "POST");
-  assert.equal(payload.pathname, "/characters/analyze");
+  assert.equal(payload.pathname, "/not-an-api-route");
   assert.equal(payload.branch, "static-file-guard");
   assert.deepEqual(payload.allow, ["GET", "HEAD"]);
 });

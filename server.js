@@ -77,8 +77,10 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
         return;
       }
 
-      if (pathname === "/api/characters/analyze") {
-        res.setHeader("X-Route-Branch", "character-analysis-route");
+      if (pathname === "/api/characters/analyze" || pathname === "/characters/analyze") {
+        const branch = pathname.startsWith("/api/") ? "character-analysis-route" : "character-analysis-alias-route";
+        if (!pathname.startsWith("/api/")) setApiCorsHeaders(req, res);
+        res.setHeader("X-Route-Branch", branch);
         await handleCharacterAnalysisApi(req, res, pathname);
         return;
       }
