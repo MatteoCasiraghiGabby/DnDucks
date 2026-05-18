@@ -125,6 +125,22 @@ To place an image picker in a page or widget, follow the existing `data-image-pi
 </div>
 ```
 
+## Character story suggestions
+
+The campaign setup player form can suggest personality traits, ideals, bonds, flaws, and appearance/behavior features from a backend allow-list.
+
+- `POST /api/characters/analyze` accepts JSON with `description`, optional character context, and returns validated suggestions.
+- Set `OPENAI_API_KEY` in `.env` to use OpenAI structured outputs.
+- Set `OPENAI_CHARACTER_MODEL` to override the default model.
+- Without `OPENAI_API_KEY`, the backend uses a deterministic local keyword matcher so the workflow remains testable during development.
+
+Example `.env`:
+
+```bash
+OPENAI_API_KEY=sk-...
+OPENAI_CHARACTER_MODEL=gpt-4o-mini
+```
+
 ## Development-only storage note
 
 Local filesystem storage is intended for this draft/development platform. A production version should move material files to durable object storage such as S3, Supabase Storage, Cloudinary, Firebase Storage, or a similar managed service, with database-backed metadata and authentication/authorization checks.

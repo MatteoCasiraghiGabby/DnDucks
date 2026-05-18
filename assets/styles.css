@@ -1170,6 +1170,77 @@ code { color: var(--ember-2); }
   margin: 0;
   white-space: pre-wrap;
 }
+.character-suggestion-workflow {
+  display: grid;
+  gap: 10px;
+  align-items: start;
+}
+.character-suggestion-workflow > .btn {
+  justify-self: start;
+}
+#character-suggestion-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+#character-suggestion-status.error {
+  color: var(--crimson);
+  font-weight: 800;
+}
+.character-suggestion-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255, 250, 236, 0.36);
+}
+.suggestion-panel-heading,
+.suggestion-card,
+.suggestion-footer {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.suggestion-panel-heading h3,
+.suggestion-card h4 {
+  margin: 0;
+}
+.suggestion-panel-heading p,
+.suggestion-card p,
+.suggestion-card small,
+.suggestion-empty {
+  margin: 0;
+  color: var(--muted);
+}
+.suggestion-panel-heading > span,
+.suggestion-category {
+  color: var(--ember);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.suggestion-list {
+  display: grid;
+  gap: 10px;
+}
+.suggestion-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(239, 227, 200, 0.42);
+}
+.suggestion-card small {
+  display: block;
+  margin-top: 6px;
+}
+.suggestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 160px;
+}
 .attack-form-grid { gap: 10px; }
 .attack-row {
   display: grid;

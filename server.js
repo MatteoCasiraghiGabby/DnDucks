@@ -6,6 +6,11 @@ loadEnvFile();
 
 const { MaterialStore, MAX_FILE_SIZE_BYTES, resolveUploadDir } = require("./src/materialStore");
 const { ImageStorageService, IMAGE_UPLOAD_MAX_BYTES, IMAGE_UPLOAD_MAX_FILES, resolveImageUploadDir } = require("./src/imageStorageService");
+const {
+  ALLOWED_CHARACTER_SUGGESTIONS,
+  allAllowedSuggestionIds,
+  findAllowedSuggestion,
+} = require("./src/characterSuggestionData");
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = process.cwd();
@@ -13,6 +18,8 @@ const store = new MaterialStore(resolveUploadDir());
 const imageStore = new ImageStorageService(resolveImageUploadDir());
 
 const API_CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const CHARACTER_ANALYSIS_MODEL = process.env.OPENAI_CHARACTER_MODEL || "gpt-4o-mini";
 
 const STATIC_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -54,6 +61,12 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
       if (pathname === "/api/uploads/images") {
         res.setHeader("X-Route-Branch", "image-upload-route");
         await handleImageUploadsApi(req, res, uploadedImageStore, pathname);
+        return;
+      }
+
+      if (pathname === "/api/characters/analyze") {
+        res.setHeader("X-Route-Branch", "character-analysis-route");
+        await handleCharacterAnalysisApi(req, res, pathname);
         return;
       }
 
@@ -187,6 +200,251 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
   }
 
   sendJson(res, 404, { error: "API route not found." });
+}
+
+async function handleCharacterAnalysisApi(req, res, pathname) {
+  if (req.method !== "POST") {
+    sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "character-analysis-method-guard" });
+    return;
+  }
+
+  const body = await parseJsonBody(req, { maxBodySize: 32 * 1024 });
+  const description = String(body.description || "").trim();
+  if (description.length < 12) {
+    sendJson(res, 400, { error: "Write a longer character description before requesting suggestions.", code: "DESCRIPTION_TOO_SHORT" });
+    return;
+  }
+
+  const context = {
+    characterName: String(body.characterName || "").trim(),
+    classRole: String(body.classRole || "").trim(),
+    race: String(body.race || "").trim(),
+    background: String(body.background || "").trim(),
+    notes: String(body.notes || "").trim(),
+  };
+  const rawSuggestions = process.env.OPENAI_API_KEY
+    ? await suggestCharacterDetailsWithOpenAI({ description, context })
+    : localCharacterSuggestions({ description, context });
+  const suggestions = validateCharacterSuggestions(rawSuggestions);
+
+  sendJson(res, 200, {
+    suggestions,
+    allowed: ALLOWED_CHARACTER_SUGGESTIONS,
+    model: process.env.OPENAI_API_KEY ? CHARACTER_ANALYSIS_MODEL : "local-keyword-matcher",
+  });
+}
+
+async function parseJsonBody(req, options = {}) {
+  const contentType = req.headers["content-type"] || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw Object.assign(new Error("Expected application/json."), { statusCode: 415 });
+  }
+
+  const chunks = [];
+  let total = 0;
+  const maxBodySize = options.maxBodySize || 1024 * 1024;
+  for await (const chunk of req) {
+    total += chunk.length;
+    if (total > maxBodySize) {
+      throw Object.assign(new Error("JSON request body is too large."), { statusCode: 413 });
+    }
+    chunks.push(chunk);
+  }
+
+  const text = Buffer.concat(chunks).toString("utf8").trim();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw Object.assign(new Error("Request body must be valid JSON."), { statusCode: 400 });
+  }
+}
+
+async function suggestCharacterDetailsWithOpenAI({ description, context }) {
+  const schema = characterSuggestionSchema();
+  const response = await fetch(OPENAI_RESPONSES_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: CHARACTER_ANALYSIS_MODEL,
+      input: [
+        {
+          role: "system",
+          content: [
+            "You analyze Dungeons & Dragons character descriptions for a DM character sheet.",
+            "Return JSON only through the supplied schema.",
+            "Choose only ids from the allowed lists. Do not invent traits, ideals, bonds, flaws, or features.",
+            "Prefer a small, high-confidence set: up to two personality traits, one ideal, one bond, one flaw, and up to two appearance or behavior features.",
+            "If the description does not support a category, leave that category out.",
+          ].join(" "),
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            description,
+            context,
+            allowedSuggestions: ALLOWED_CHARACTER_SUGGESTIONS,
+          }),
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "character_suggestions",
+          strict: true,
+          schema,
+        },
+      },
+    }),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = payload?.error?.message || response.statusText || "OpenAI request failed.";
+    throw Object.assign(new Error(`OpenAI character analysis failed: ${message}`), { statusCode: 502, code: "OPENAI_ANALYSIS_FAILED" });
+  }
+
+  const refusal = extractOpenAIRefusal(payload);
+  if (refusal) {
+    throw Object.assign(new Error(`OpenAI refused the character analysis request: ${refusal}`), { statusCode: 422, code: "OPENAI_REFUSAL" });
+  }
+
+  const outputText = payload?.output_text || extractOpenAIOutputText(payload);
+  if (!outputText) {
+    throw Object.assign(new Error("OpenAI did not return a JSON response."), { statusCode: 502, code: "OPENAI_EMPTY_OUTPUT" });
+  }
+
+  try {
+    return JSON.parse(outputText);
+  } catch {
+    throw Object.assign(new Error("OpenAI returned invalid JSON."), { statusCode: 502, code: "OPENAI_INVALID_JSON" });
+  }
+}
+
+function characterSuggestionSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["suggestions"],
+    properties: {
+      suggestions: {
+        type: "array",
+        maxItems: 7,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["category", "id", "confidence", "explanation"],
+          properties: {
+            category: { type: "string", enum: Object.keys(ALLOWED_CHARACTER_SUGGESTIONS) },
+            id: { type: "string", enum: allAllowedSuggestionIds() },
+            confidence: { type: "number", minimum: 0, maximum: 1 },
+            explanation: { type: "string" },
+          },
+        },
+      },
+    },
+  };
+}
+
+function extractOpenAIOutputText(payload) {
+  return (payload?.output || [])
+    .flatMap((item) => item.content || [])
+    .filter((content) => content.type === "output_text" || content.type === "text")
+    .map((content) => content.text)
+    .filter(Boolean)
+    .join("");
+}
+
+function extractOpenAIRefusal(payload) {
+  return (payload?.output || [])
+    .flatMap((item) => item.content || [])
+    .find((content) => content.type === "refusal")?.refusal || "";
+}
+
+function validateCharacterSuggestions(raw) {
+  const seen = new Set();
+  const suggestions = Array.isArray(raw?.suggestions) ? raw.suggestions : [];
+  return suggestions.reduce((valid, suggestion) => {
+    const category = String(suggestion?.category || "");
+    const id = String(suggestion?.id || "");
+    const allowed = findAllowedSuggestion(category, id);
+    if (!allowed || seen.has(`${category}:${id}`)) return valid;
+    seen.add(`${category}:${id}`);
+    valid.push({
+      category,
+      id,
+      label: allowed.label,
+      description: allowed.description,
+      confidence: clampNumber(suggestion.confidence, 0, 1),
+      explanation: cleanShortText(suggestion.explanation) || localExplanation(category, allowed),
+    });
+    return valid;
+  }, []);
+}
+
+function localCharacterSuggestions({ description, context }) {
+  const text = `${description} ${Object.values(context || {}).join(" ")}`.toLowerCase();
+  const tokens = text.match(/[a-z0-9']+/g) || [];
+  const suggestions = Object.entries(ALLOWED_CHARACTER_SUGGESTIONS)
+    .flatMap(([category, items]) => scoreSuggestionCategory(category, items, text, tokens))
+    .sort((a, b) => b.score - a.score);
+  const perCategoryLimit = { traits: 2, ideals: 1, bonds: 1, flaws: 1, features: 2 };
+  const used = {};
+  return {
+    suggestions: suggestions.filter((suggestion) => {
+      if (suggestion.score <= 0) return false;
+      used[suggestion.category] = used[suggestion.category] || 0;
+      if (used[suggestion.category] >= perCategoryLimit[suggestion.category]) return false;
+      used[suggestion.category] += 1;
+      return true;
+    }).map((suggestion) => ({
+      category: suggestion.category,
+      id: suggestion.id,
+      confidence: Math.min(0.94, 0.54 + suggestion.score * 0.08),
+      explanation: suggestion.explanation,
+    })),
+  };
+}
+
+function scoreSuggestionCategory(category, items, text, tokens) {
+  return items.map((item) => {
+    const matched = (item.tags || []).filter((tag) => tagMatchesText(tag, text, tokens));
+    const labelWords = item.label.toLowerCase().split(/\s+/).filter((word) => word.length > 3);
+    const labelMatches = labelWords.filter((word) => tagMatchesText(word, text, tokens));
+    const score = matched.length + labelMatches.length * 1.5;
+    return {
+      category,
+      id: item.id,
+      score,
+      explanation: matched.length
+        ? `Matched description cues: ${matched.slice(0, 3).join(", ")}.`
+        : localExplanation(category, item),
+    };
+  });
+}
+
+function tagMatchesText(tag, text, tokens) {
+  const normalized = String(tag || "").toLowerCase().trim();
+  if (!normalized) return false;
+  if (normalized.includes(" ")) return text.includes(normalized);
+  return tokens.some((token) => token === normalized || (normalized.length > 3 && token.startsWith(normalized)));
+}
+
+function localExplanation(category, item) {
+  return `${item.label} fits the ${category.replace(/s$/, "")} signals in the description.`;
+}
+
+function clampNumber(value, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return min;
+  return Math.max(min, Math.min(max, number));
+}
+
+function cleanShortText(value) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, 240);
 }
 
 async function parseMultipart(req, options = {}) {

@@ -222,12 +222,12 @@ test("notes are returned in campaign chronology order", () => {
   assert.deepEqual(Array.from(app.sortedNotes().map((note) => note.title)), ["First", "Later"]);
 });
 
-test("personality story completion UI is removed while analysis is rebuilt", () => {
+test("personality story analysis workflow is available on the player form", () => {
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
 
-  assert.doesNotMatch(script, /complete-story-widget/);
-  assert.doesNotMatch(script, /\/api\/characters\/analyze/);
-  assert.doesNotMatch(script, /collectCharacterStoryPayload/);
+  assert.match(script, /id="analyze-character-description"/);
+  assert.match(script, /\/api\/characters\/analyze/);
+  assert.match(script, /collectCharacterSuggestionPayload/);
 });
 
 test("API URL resolver keeps backend requests relative", () => {

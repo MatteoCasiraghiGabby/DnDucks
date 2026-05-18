@@ -1018,6 +1018,119 @@ function parseJsonResponse(text) {
   }
 }
 
+const CHARACTER_SUGGESTION_TARGETS = {
+  traits: "#player-personality-traits",
+  ideals: "#player-ideals",
+  bonds: "#player-bonds",
+  flaws: "#player-flaws",
+  features: "#player-features",
+};
+
+const CHARACTER_SUGGESTION_LABELS = {
+  traits: "Personality trait",
+  ideals: "Ideal",
+  bonds: "Bond",
+  flaws: "Flaw",
+  features: "Appearance or behavior feature",
+};
+
+function collectCharacterSuggestionPayload(form) {
+  return {
+    description: [
+      formValue(form, "#player-description"),
+      formValue(form, "#player-notes"),
+      formValue(form, "#player-personality-traits"),
+      formValue(form, "#player-ideals"),
+      formValue(form, "#player-bonds"),
+      formValue(form, "#player-flaws"),
+    ].filter(Boolean).join("\n\n"),
+    characterName: formValue(form, "#player-character-name"),
+    classRole: formValue(form, "#player-class-role"),
+    race: formValue(form, "#player-race"),
+    background: formValue(form, "#player-background"),
+    notes: formValue(form, "#player-notes"),
+  };
+}
+
+async function requestCharacterSuggestions(form) {
+  return fetchJson("/api/characters/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(collectCharacterSuggestionPayload(form)),
+  });
+}
+
+function suggestionApplyText(suggestion) {
+  return `${suggestion.label}: ${suggestion.description}`;
+}
+
+function appendTextareaValue(textarea, value) {
+  const nextValue = String(value || "").trim();
+  if (!textarea || !nextValue) return;
+  const current = String(textarea.value || "").trim();
+  if (current.toLowerCase().includes(nextValue.toLowerCase())) return;
+  textarea.value = current ? `${current}\n${nextValue}` : nextValue;
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function applyCharacterSuggestion(form, suggestion) {
+  const targetSelector = CHARACTER_SUGGESTION_TARGETS[suggestion.category];
+  const target = targetSelector ? form.querySelector(targetSelector) : null;
+  appendTextareaValue(target, suggestionApplyText(suggestion));
+}
+
+function suggestionConfidenceLabel(value) {
+  const percent = Math.round((Number(value) || 0) * 100);
+  return `${percent}% match`;
+}
+
+function renderCharacterSuggestions(panel, payload = {}) {
+  if (!panel) return;
+  const suggestions = Array.isArray(payload.suggestions) ? payload.suggestions : [];
+  if (!suggestions.length) {
+    panel.innerHTML = `<div class="suggestion-empty">No strong suggestions yet. Add more concrete motives, history, habits, or appearance details.</div>`;
+    panel.hidden = false;
+    return;
+  }
+
+  panel.innerHTML = `
+    <div class="suggestion-panel-heading">
+      <div>
+        <h3>Suggested traits and features</h3>
+        <p>Review each suggestion before adding it to the sheet.</p>
+      </div>
+      <span>${escapeHtml(payload.model || "model")}</span>
+    </div>
+    <div class="suggestion-list">
+      ${suggestions.map((suggestion, index) => `
+        <article class="suggestion-card" data-suggestion-index="${escapeHtml(index)}">
+          <div>
+            <span class="suggestion-category">${escapeHtml(CHARACTER_SUGGESTION_LABELS[suggestion.category] || suggestion.category)}</span>
+            <h4>${escapeHtml(suggestion.label)}</h4>
+            <p>${escapeHtml(suggestion.description)}</p>
+            <small>${escapeHtml(suggestion.explanation)} ${escapeHtml(suggestionConfidenceLabel(suggestion.confidence))}</small>
+          </div>
+          <div class="suggestion-actions">
+            <button class="btn btn-secondary" type="button" data-apply-suggestion="${escapeHtml(index)}">Accept</button>
+            <button class="btn btn-ghost" type="button" data-dismiss-suggestion="${escapeHtml(index)}">Reject</button>
+          </div>
+        </article>`).join("")}
+    </div>
+    <div class="suggestion-footer">
+      <button class="btn btn-secondary" type="button" data-apply-all-suggestions>Accept all</button>
+    </div>`;
+  panel.dataset.suggestions = JSON.stringify(suggestions);
+  panel.hidden = false;
+}
+
+function characterSuggestionsFromPanel(panel) {
+  try {
+    return JSON.parse(panel?.dataset.suggestions || "[]");
+  } catch {
+    return [];
+  }
+}
+
 function cardVisualLabel(value) {
   return escapeHtml(
     String(value || "DM")
@@ -1828,6 +1941,11 @@ function playerCharacterFormMarkup() {
       <fieldset class="sheet-form-section">
         <legend>Personality and story</legend>
         <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
+        <div class="character-suggestion-workflow full-width">
+          <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest traits and features</button>
+          <span id="character-suggestion-status" aria-live="polite"></span>
+          <div class="character-suggestion-panel" id="character-suggestion-panel" hidden></div>
+        </div>
         <label>Personality traits<textarea id="player-personality-traits" rows="3" placeholder="How they behave at the table and in the world..."></textarea></label>
         <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
         <label>Bonds<textarea id="player-bonds" rows="3" placeholder="Who, where, or what matters most?"></textarea></label>
@@ -2025,6 +2143,48 @@ function initPlayerCharacterForm(form) {
   updatePlayerFormDerivedFields(form);
   applyClassRestrictions(form);
   refreshPlayerSectionSummary(form);
+  const suggestionButton = document.getElementById("analyze-character-description");
+  const suggestionStatus = document.getElementById("character-suggestion-status");
+  const suggestionPanel = document.getElementById("character-suggestion-panel");
+  suggestionButton?.addEventListener("click", async () => {
+    if (suggestionStatus) {
+      suggestionStatus.textContent = "Analyzing description...";
+      suggestionStatus.classList.remove("error");
+    }
+    suggestionButton.disabled = true;
+    try {
+      const payload = await requestCharacterSuggestions(form);
+      renderCharacterSuggestions(suggestionPanel, payload);
+      if (suggestionStatus) suggestionStatus.textContent = "Suggestions ready.";
+    } catch (error) {
+      if (suggestionStatus) {
+        suggestionStatus.textContent = error.message;
+        suggestionStatus.classList.add("error");
+      }
+    } finally {
+      suggestionButton.disabled = false;
+    }
+  });
+  suggestionPanel?.addEventListener("click", (event) => {
+    const suggestions = characterSuggestionsFromPanel(suggestionPanel);
+    const applyIndex = event.target?.dataset?.applySuggestion;
+    const dismissIndex = event.target?.dataset?.dismissSuggestion;
+    if (applyIndex !== undefined) {
+      const suggestion = suggestions[Number(applyIndex)];
+      if (!suggestion) return;
+      applyCharacterSuggestion(form, suggestion);
+      event.target.closest(".suggestion-card")?.remove();
+      refreshPlayerSectionSummary(form);
+    }
+    if (dismissIndex !== undefined) {
+      event.target.closest(".suggestion-card")?.remove();
+    }
+    if (event.target?.matches("[data-apply-all-suggestions]")) {
+      suggestions.forEach((suggestion) => applyCharacterSuggestion(form, suggestion));
+      suggestionPanel.innerHTML = `<div class="suggestion-empty">Suggestions added to the sheet. Edit the text fields as needed.</div>`;
+      refreshPlayerSectionSummary(form);
+    }
+  });
   form.querySelectorAll("[data-roll-ability]").forEach((button) => {
     button.addEventListener("click", () => {
       const input = document.getElementById(`player-${button.dataset.rollAbility}`);

@@ -186,15 +186,30 @@ test("image upload returns a clear error when no image file is provided", async 
   assert.match(payload.error, /requires at least one image field/);
 });
 
-test("removed character analysis API route returns the generic API 404", async (t) => {
+test("character analysis API returns validated suggestions without exposing OpenAI to the browser", async (t) => {
+  const previousKey = process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+  t.after(() => {
+    if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousKey;
+  });
+
   const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze`, { method: "POST" });
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      characterName: "Seren",
+      description: "A devout temple healer with visible scars who protects poor families and carries a holy token.",
+    }),
+  });
   const payload = await response.json();
 
-  assert.equal(response.status, 404);
-  assert.equal(response.headers.get("x-route-branch"), "api-route-not-found");
-  assert.equal(payload.code, "API_ROUTE_NOT_FOUND");
-  assert.equal(payload.pathname, "/api/characters/analyze");
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-route-branch"), "character-analysis-route");
+  assert.equal(payload.model, "local-keyword-matcher");
+  assert.ok(payload.suggestions.length > 0);
+  assert.ok(payload.suggestions.every((suggestion) => suggestion.id && suggestion.label && suggestion.explanation));
 });
 
 test("static file guard returns diagnostic 405 metadata", async (t) => {
