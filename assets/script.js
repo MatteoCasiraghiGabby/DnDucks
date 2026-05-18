@@ -27,6 +27,36 @@ const DEFAULT_CAMPAIGN = {
   updatedAt: "Local draft",
 };
 
+const DEFAULT_BACKEND_PORT = "3000";
+const API_BASE_STORAGE_KEY = "dnducks.apiBaseUrl";
+
+function isLocalHostname(hostname = "") {
+  return ["localhost", "127.0.0.1", "::1"].includes(hostname);
+}
+
+function configuredApiBaseUrl() {
+  const globalBase = typeof window !== "undefined" ? window.DNDUCKS_API_BASE_URL : "";
+  const storedBase = typeof localStorage !== "undefined" ? localStorage.getItem(API_BASE_STORAGE_KEY) : "";
+  return String(globalBase || storedBase || "").trim().replace(/\/+$/, "");
+}
+
+function resolveApiUrl(url) {
+  if (!String(url || "").startsWith("/api/")) return url;
+
+  const configuredBase = configuredApiBaseUrl();
+  if (configuredBase) return `${configuredBase}${url}`;
+
+  const location = typeof window !== "undefined" ? window.location : null;
+  if (!location || !isLocalHostname(location.hostname || "")) return url;
+
+  const currentPort = String(location.port || "");
+  if (currentPort && currentPort !== DEFAULT_BACKEND_PORT) {
+    return `${location.protocol || "http:"}//${location.hostname}:${DEFAULT_BACKEND_PORT}${url}`;
+  }
+
+  return url;
+}
+
 const PLAYER_CLASSES = [
   { name: "Barbarian", hitDie: "d12", primary: "Strength", saves: ["strength", "constitution"], skillLimit: 2, skillChoices: ["animalHandling", "athletics", "intimidation", "nature", "perception", "survival"], fixedTools: [], toolLimit: 0, toolChoices: [] },
   { name: "Bard", hitDie: "d8", primary: "Charisma", saves: ["dexterity", "charisma"], skillLimit: 3, skillChoices: "any", fixedTools: [], toolLimit: 3, toolChoices: "musical" },
@@ -981,20 +1011,28 @@ function initImagePickers() {
 }
 
 async function fetchJson(url, options = {}) {
+  const requestUrl = resolveApiUrl(url);
+  const requestMethod = options.method || "GET";
   let response;
   try {
-    response = await fetch(url, options);
+    response = await fetch(requestUrl, options);
   } catch (error) {
-    throw new Error(`Network error while contacting ${url}: ${error.message || "request could not be sent"}. Check that the backend is running and reachable.`);
+    throw new Error(`Network error while contacting ${requestUrl}: ${error.message || "request could not be sent"}. Check that the backend is running and reachable.`);
   }
 
   const text = await response.text();
   const payload = parseJsonResponse(text);
   if (!response.ok) {
+    const branch = response.headers.get("x-route-branch");
+    const allow = response.headers.get("allow");
     const details = [payload?.error || response.statusText || "Request failed."];
+    if (payload?.message && payload.message !== payload.error) details.push(payload.message);
     if (payload?.code) details.push(`Code: ${payload.code}.`);
+    if (branch) details.push(`Route branch: ${branch}.`);
+    if (allow) details.push(`Allow: ${allow}.`);
+    if (!branch && String(url || "").startsWith("/api/")) details.push("No X-Route-Branch header was returned, so this response may not be from server.js.");
     if (payload?.requestId) details.push(`Request ID: ${payload.requestId}.`);
-    throw new Error(`HTTP ${response.status}: ${details.join(" ")}`);
+    throw new Error(`HTTP ${response.status} ${requestMethod} ${requestUrl}: ${details.join(" ")}`);
   }
   return payload;
 }
@@ -1941,10 +1979,17 @@ async function completeCharacterStoryWidget(form) {
   button.textContent = "Completing...";
   result.innerHTML = `<p class="muted">Reading the personality and story text...</p>`;
   try {
-    const analysis = await fetchJson("/api/characters/analyze", {
+    const payload = collectCharacterStoryPayload(form);
+    const url = resolveApiUrl("/api/characters/analyze");
+    console.log("[ANALYZE REQUEST]", {
+      url,
+      method: "POST",
+      payload,
+    });
+    const analysis = await fetchJson(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(collectCharacterStoryPayload(form)),
+      body: JSON.stringify(payload),
     });
     applyCharacterStoryAnalysis(form, analysis);
     updatePlayerFormDerivedFields(form);
