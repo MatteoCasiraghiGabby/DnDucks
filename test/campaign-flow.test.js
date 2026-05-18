@@ -235,3 +235,9 @@ test("API URL resolver keeps backend requests relative", () => {
 
   assert.equal(app.resolveApiUrl("/api/materials"), "/api/materials");
 });
+
+test("API URL resolver targets the backend when served from a static local port", () => {
+  const app = createFrontendSandbox({ hostname: "127.0.0.1", port: "5500" });
+
+  assert.equal(app.resolveApiUrl("/api/characters/analyze"), "http://127.0.0.1:3000/api/characters/analyze");
+});

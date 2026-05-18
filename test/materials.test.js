@@ -212,6 +212,33 @@ test("character analysis API returns validated suggestions without exposing Open
   assert.ok(payload.suggestions.every((suggestion) => suggestion.id && suggestion.label && suggestion.explanation));
 });
 
+test("character analysis API rate limits repeated requests", async (t) => {
+  const previousKey = process.env.OPENAI_API_KEY;
+  const previousMax = process.env.CHARACTER_ANALYSIS_RATE_LIMIT_MAX;
+  delete process.env.OPENAI_API_KEY;
+  process.env.CHARACTER_ANALYSIS_RATE_LIMIT_MAX = "1";
+  t.after(() => {
+    if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousKey;
+    if (previousMax === undefined) delete process.env.CHARACTER_ANALYSIS_RATE_LIMIT_MAX;
+    else process.env.CHARACTER_ANALYSIS_RATE_LIMIT_MAX = previousMax;
+  });
+
+  const { baseUrl } = await withServer(t);
+  const request = () => fetch(`${baseUrl}/api/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Forwarded-For": "203.0.113.77" },
+    body: JSON.stringify({ description: "A devout healer protects a village and carries a sacred token." }),
+  });
+
+  assert.equal((await request()).status, 200);
+  const limited = await request();
+  const payload = await limited.json();
+  assert.equal(limited.status, 429);
+  assert.equal(payload.code, "CHARACTER_ANALYSIS_RATE_LIMITED");
+  assert.ok(Number(limited.headers.get("retry-after")) > 0);
+});
+
 test("static file guard returns diagnostic 405 metadata", async (t) => {
   const { baseUrl } = await withServer(t);
   const response = await fetch(`${baseUrl}/not-an-api-route`, { method: "POST" });

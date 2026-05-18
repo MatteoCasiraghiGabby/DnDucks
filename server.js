@@ -20,6 +20,9 @@ const imageStore = new ImageStorageService(resolveImageUploadDir());
 const API_CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const CHARACTER_ANALYSIS_MODEL = process.env.OPENAI_CHARACTER_MODEL || "gpt-4o-mini";
+const CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS = positiveInteger(process.env.CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS, 60_000);
+const CHARACTER_ANALYSIS_RATE_LIMIT_MAX = positiveInteger(process.env.CHARACTER_ANALYSIS_RATE_LIMIT_MAX, 12);
+const characterAnalysisRateLimits = new Map();
 
 const STATIC_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -205,6 +208,17 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
 async function handleCharacterAnalysisApi(req, res, pathname) {
   if (req.method !== "POST") {
     sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "character-analysis-method-guard" });
+    return;
+  }
+
+  const rateLimit = checkCharacterAnalysisRateLimit(req);
+  if (!rateLimit.allowed) {
+    res.setHeader("Retry-After", String(rateLimit.retryAfterSeconds));
+    sendJson(res, 429, {
+      error: "Too many character analysis requests. Try again shortly.",
+      code: "CHARACTER_ANALYSIS_RATE_LIMITED",
+      retryAfterSeconds: rateLimit.retryAfterSeconds,
+    });
     return;
   }
 
@@ -445,6 +459,43 @@ function clampNumber(value, min, max) {
 
 function cleanShortText(value) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, 240);
+}
+
+function checkCharacterAnalysisRateLimit(req) {
+  const now = Date.now();
+  const key = rateLimitKey(req);
+  const windowMs = positiveInteger(process.env.CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS, CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS);
+  const maxRequests = positiveInteger(process.env.CHARACTER_ANALYSIS_RATE_LIMIT_MAX, CHARACTER_ANALYSIS_RATE_LIMIT_MAX);
+  for (const [entryKey, entry] of characterAnalysisRateLimits) {
+    if (entry.resetAt <= now) characterAnalysisRateLimits.delete(entryKey);
+  }
+
+  const entry = characterAnalysisRateLimits.get(key) || {
+    count: 0,
+    resetAt: now + windowMs,
+  };
+  if (entry.resetAt <= now) {
+    entry.count = 0;
+    entry.resetAt = now + windowMs;
+  }
+
+  entry.count += 1;
+  characterAnalysisRateLimits.set(key, entry);
+  if (entry.count <= maxRequests) return { allowed: true, retryAfterSeconds: 0 };
+  return {
+    allowed: false,
+    retryAfterSeconds: Math.max(1, Math.ceil((entry.resetAt - now) / 1000)),
+  };
+}
+
+function rateLimitKey(req) {
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return forwardedFor || req.socket?.remoteAddress || "unknown";
+}
+
+function positiveInteger(value, fallback) {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : fallback;
 }
 
 async function parseMultipart(req, options = {}) {

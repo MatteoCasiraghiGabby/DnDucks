@@ -132,6 +132,7 @@ The campaign setup player form can suggest personality traits, ideals, bonds, fl
 - `POST /api/characters/analyze` accepts JSON with `description`, optional character context, and returns validated suggestions.
 - Set `OPENAI_API_KEY` in `.env` to use OpenAI structured outputs.
 - Set `OPENAI_CHARACTER_MODEL` to override the default model.
+- Set `CHARACTER_ANALYSIS_RATE_LIMIT_MAX` and `CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS` to tune the in-memory per-client rate limit.
 - Without `OPENAI_API_KEY`, the backend uses a deterministic local keyword matcher so the workflow remains testable during development.
 
 Example `.env`:
@@ -139,6 +140,8 @@ Example `.env`:
 ```bash
 OPENAI_API_KEY=sk-...
 OPENAI_CHARACTER_MODEL=gpt-4o-mini
+CHARACTER_ANALYSIS_RATE_LIMIT_MAX=12
+CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS=60000
 ```
 
 ## Development-only storage note

@@ -28,7 +28,21 @@ const DEFAULT_CAMPAIGN = {
 };
 
 function resolveApiUrl(url) {
-  return url;
+  const requestPath = String(url || "");
+  if (!requestPath.startsWith("/api/")) return requestPath;
+
+  const configuredBase = String(window.DNDUCKS_API_BASE_URL || document.querySelector?.('meta[name="dnducks-api-base"]')?.content || "").trim();
+  if (configuredBase) return `${configuredBase.replace(/\/+$/, "")}${requestPath}`;
+
+  if (window.location.protocol === "file:") return `http://127.0.0.1:3000${requestPath}`;
+
+  const localHosts = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
+  const proxyCapablePorts = new Set(["", "3000", "5173"]);
+  if (localHosts.has(window.location.hostname) && !proxyCapablePorts.has(window.location.port)) {
+    return `${window.location.protocol}//${window.location.hostname}:3000${requestPath}`;
+  }
+
+  return requestPath;
 }
 
 const PLAYER_CLASSES = [
@@ -1073,10 +1087,10 @@ function appendTextareaValue(textarea, value) {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-function applyCharacterSuggestion(form, suggestion) {
+function applyCharacterSuggestion(form, suggestion, textOverride = "") {
   const targetSelector = CHARACTER_SUGGESTION_TARGETS[suggestion.category];
   const target = targetSelector ? form.querySelector(targetSelector) : null;
-  appendTextareaValue(target, suggestionApplyText(suggestion));
+  appendTextareaValue(target, textOverride || suggestionApplyText(suggestion));
 }
 
 function suggestionConfidenceLabel(value) {
@@ -1109,6 +1123,7 @@ function renderCharacterSuggestions(panel, payload = {}) {
             <h4>${escapeHtml(suggestion.label)}</h4>
             <p>${escapeHtml(suggestion.description)}</p>
             <small>${escapeHtml(suggestion.explanation)} ${escapeHtml(suggestionConfidenceLabel(suggestion.confidence))}</small>
+            <label class="suggestion-edit-label">Edit suggestion<textarea rows="2" data-suggestion-edit>${escapeHtml(suggestionApplyText(suggestion))}</textarea></label>
           </div>
           <div class="suggestion-actions">
             <button class="btn btn-secondary" type="button" data-apply-suggestion="${escapeHtml(index)}">Accept</button>
@@ -2172,15 +2187,21 @@ function initPlayerCharacterForm(form) {
     if (applyIndex !== undefined) {
       const suggestion = suggestions[Number(applyIndex)];
       if (!suggestion) return;
-      applyCharacterSuggestion(form, suggestion);
-      event.target.closest(".suggestion-card")?.remove();
+      const card = event.target.closest(".suggestion-card");
+      const editedText = card?.querySelector("[data-suggestion-edit]")?.value.trim() || "";
+      applyCharacterSuggestion(form, suggestion, editedText);
+      card?.remove();
       refreshPlayerSectionSummary(form);
     }
     if (dismissIndex !== undefined) {
       event.target.closest(".suggestion-card")?.remove();
     }
     if (event.target?.matches("[data-apply-all-suggestions]")) {
-      suggestions.forEach((suggestion) => applyCharacterSuggestion(form, suggestion));
+      suggestionPanel.querySelectorAll(".suggestion-card").forEach((card) => {
+        const index = Number(card.dataset.suggestionIndex);
+        const suggestion = suggestions[index];
+        if (suggestion) applyCharacterSuggestion(form, suggestion, card.querySelector("[data-suggestion-edit]")?.value.trim() || "");
+      });
       suggestionPanel.innerHTML = `<div class="suggestion-empty">Suggestions added to the sheet. Edit the text fields as needed.</div>`;
       refreshPlayerSectionSummary(form);
     }
