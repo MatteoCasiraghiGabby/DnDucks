@@ -526,21 +526,35 @@ textarea { resize: vertical; }
 }
 .media-page-grid-single { grid-template-columns: 1fr; }
 .media-page .media-library-grid {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 18px;
 }
 .image-card {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
-.media-page .image-card { padding: 16px; }
+.image-card .entry-actions {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.image-card .entry-actions .btn {
+  flex: 1 1 96px;
+  min-width: 0;
+}
+.media-page .image-card {
+  padding: 16px;
+  overflow: hidden;
+}
 .image-preview {
   margin: 0;
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 .image-preview img {
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 4 / 3;
   border: 1px solid var(--line);
   border-radius: 14px;

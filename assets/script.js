@@ -1370,7 +1370,6 @@ function mediaImageCardMarkup(image, options = {}) {
       <div class="entry-actions">
         ${selectable ? `<button class="btn btn-primary" type="button" data-select-media-image="${escapeHtml(image.id)}">Select</button>` : ""}
         <a class="btn btn-secondary" href="${escapeHtml(image.url)}" target="_blank" rel="noopener">Preview</a>
-        <button class="btn btn-secondary" type="button" data-copy-image-url="${escapeHtml(image.url)}">Copy URL</button>
         ${selectable ? "" : `<button class="btn btn-secondary" type="button" data-edit-image="${escapeHtml(image.id)}">Edit</button>`}
         <button class="btn btn-danger" type="button" data-delete-image="${escapeHtml(image.id)}">Delete</button>
       </div>
@@ -1445,8 +1444,6 @@ async function openMediaPicker() {
           modal.remove();
         }
       }
-      const copyUrl = event.target?.dataset?.copyImageUrl;
-      if (copyUrl) navigator.clipboard?.writeText(copyUrl).catch(() => {});
     });
     modal.querySelector("[data-refresh-media-picker]").addEventListener("click", loadPickerImages);
     loadPickerImages();
@@ -2007,10 +2004,8 @@ async function loadMediaLibrary({ mapsOnly = false } = {}) {
 function initMediaLibraryPage({ mapsOnly = false } = {}) {
   document.getElementById("media-refresh")?.addEventListener("click", () => loadMediaLibrary({ mapsOnly }));
   document.getElementById("media-library-list")?.addEventListener("click", async (event) => {
-    const copyUrl = event.target?.dataset?.copyImageUrl;
     const deleteId = event.target?.dataset?.deleteImage;
     const editId = event.target?.dataset?.editImage;
-    if (copyUrl) navigator.clipboard?.writeText(copyUrl).catch(() => {});
     if (editId) {
       const card = event.target.closest("[data-image-card]");
       const currentTitle = card?.querySelector("h3")?.textContent || "";
