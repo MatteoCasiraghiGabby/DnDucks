@@ -7,8 +7,6 @@ const { createServer } = require("../server");
 const { MaterialStore } = require("../src/materialStore");
 const { ImageStorageService } = require("../src/imageStorageService");
 
-process.env.OPENAI_API_KEY = "";
-
 async function withServer(t) {
   const uploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-materials-"));
   const imageUploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-images-"));
@@ -143,7 +141,6 @@ test("concurrent uploads preserve every metadata record", async () => {
   }
 });
 
-
 test("image upload endpoint accepts multiple images and serves public URLs", async (t) => {
   const { baseUrl, imageUploadDir } = await withServer(t);
   const form = new FormData();
@@ -189,83 +186,15 @@ test("image upload returns a clear error when no image file is provided", async 
   assert.match(payload.error, /requires at least one image field/);
 });
 
-test("character analysis endpoint completes a story with SRD-style background features", async (t) => {
+test("removed character analysis API route returns the generic API 404", async (t) => {
   const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      characterName: "Mira",
-      description: "A brave village rebel who protected common folk from a tyrant.",
-      notes: "Her family farm still needs help and she is reckless about justice.",
-    }),
-  });
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, { method: "POST" });
   const payload = await response.json();
 
-  assert.equal(response.status, 200);
-  assert.equal(payload.background, "Folk Hero");
-  assert.match(payload.features, /Rustic Hospitality/);
-  assert.deepEqual(payload.suggestedSkills, ["animalHandling", "survival"]);
-  assert.equal(payload.source, "local-srd-reference");
-});
-
-test("character analysis endpoint accepts the frontend POST method with a trailing slash", async (t) => {
-  const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      characterName: "Tamsin",
-      description: "A sailor from a storm-battered crew who still trusts the sea.",
-    }),
-  });
-  const payload = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.equal(payload.background, "Sailor");
-  assert.equal(payload.source, "local-srd-reference");
-});
-
-
-test("character analysis endpoint accepts simple text payloads for diagnostics", async (t) => {
-  const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: "Test text about a brave sailor who trusts the sea." }),
-  });
-  const payload = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.equal(payload.source, "local-srd-reference");
-});
-
-test("character analysis endpoint returns a clear 405 for unsupported methods", async (t) => {
-  const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze`, { method: "GET" });
-  const payload = await response.json();
-
-  assert.equal(response.status, 405);
-  assert.equal(response.headers.get("allow"), "POST, OPTIONS");
-  assert.equal(response.headers.get("x-route-branch"), "api-characters-analyze-405");
-  assert.equal(payload.error, "Method Not Allowed");
-  assert.equal(payload.method, "GET");
-  assert.equal(payload.path, "/api/characters/analyze");
-  assert.deepEqual(payload.allowed, ["POST", "OPTIONS"]);
-});
-
-test("character analysis endpoint accepts a proxy-stripped API prefix alias", async (t) => {
-  const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/characters/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: "Test text about a brave village hero." }),
-  });
-  const payload = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-route-branch"), "api-characters-analyze-post");
-  assert.equal(payload.source, "local-srd-reference");
+  assert.equal(response.status, 404);
+  assert.equal(response.headers.get("x-route-branch"), "api-route-not-found");
+  assert.equal(payload.code, "API_ROUTE_NOT_FOUND");
+  assert.equal(payload.pathname, "/api/characters/analyze");
 });
 
 test("static file guard returns diagnostic 405 metadata", async (t) => {
@@ -280,50 +209,4 @@ test("static file guard returns diagnostic 405 metadata", async (t) => {
   assert.equal(payload.pathname, "/not-an-api-route");
   assert.equal(payload.branch, "static-file-guard");
   assert.deepEqual(payload.allow, ["GET", "HEAD"]);
-});
-
-test("character analysis endpoint asks for story text", async (t) => {
-  const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ characterName: "Blank" }),
-  });
-  const payload = await response.json();
-
-  assert.equal(response.status, 400);
-  assert.equal(payload.code, "EMPTY_STORY");
-});
-
-test("character analysis endpoint rejects non-object JSON with clear error metadata", async (t) => {
-  const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(null),
-  });
-  const payload = await response.json();
-
-  assert.equal(response.status, 400);
-  assert.equal(payload.code, "INVALID_ANALYSIS_PAYLOAD");
-  assert.match(payload.requestId, /^analysis-/);
-});
-
-test("character analysis endpoint answers CORS preflight for split frontend/backend dev servers", async (t) => {
-  const { baseUrl } = await withServer(t);
-  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
-    method: "OPTIONS",
-    headers: {
-      Origin: "http://localhost:5173",
-      "Access-Control-Request-Method": "POST",
-      "Access-Control-Request-Headers": "content-type",
-    },
-  });
-
-  assert.equal(response.status, 204);
-  assert.equal(response.headers.get("allow"), "POST, OPTIONS");
-  assert.equal(response.headers.get("x-route-branch"), "api-characters-analyze-options");
-  assert.equal(response.headers.get("access-control-allow-origin"), "*");
-  assert.match(response.headers.get("access-control-allow-methods"), /POST/);
-  assert.match(response.headers.get("access-control-allow-headers"), /content-type/i);
 });

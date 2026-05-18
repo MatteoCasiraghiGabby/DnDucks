@@ -222,58 +222,16 @@ test("notes are returned in campaign chronology order", () => {
   assert.deepEqual(Array.from(app.sortedNotes().map((note) => note.title)), ["First", "Later"]);
 });
 
-test("character story UI posts to the backend analysis endpoint", () => {
+test("personality story completion UI is removed while analysis is rebuilt", () => {
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
 
-  assert.match(script, /const url = "\/api\/characters\/analyze"/);
-  assert.match(script, /console\.log\("\[ANALYZE REQUEST\]"/);
-  assert.match(script, /fetch\(url, \{\s*method: "POST"/);
-  assert.match(script, /"Content-Type": "application\/json"/);
+  assert.doesNotMatch(script, /complete-story-widget/);
+  assert.doesNotMatch(script, /\/api\/characters\/analyze/);
+  assert.doesNotMatch(script, /collectCharacterStoryPayload/);
 });
 
-test("API URL resolver keeps same-origin backend requests on port 3000", () => {
+test("API URL resolver keeps backend requests relative", () => {
   const app = createFrontendSandbox({ hostname: "localhost", port: "3000" });
 
-  assert.equal(app.resolveApiUrl("/api/characters/analyze"), "/api/characters/analyze");
-});
-
-test("API URL resolver keeps frontend-dev requests relative for Vite proxying", () => {
-  const app = createFrontendSandbox({ hostname: "localhost", port: "5173" });
-
-  assert.equal(app.resolveApiUrl("/api/characters/analyze"), "/api/characters/analyze");
-});
-
-test("character story payload matches the backend analysis contract", () => {
-  const app = createFrontendSandbox();
-  const payload = app.collectCharacterStoryPayload(mockPlayerForm({
-    "#player-name": "Ana",
-    "#player-character-name": "Mira",
-    "#player-class-role": "Ranger",
-    "#player-race": "Human",
-    "#player-background": "",
-    "#player-alignment": "Neutral Good",
-    "#player-description": "A brave village rebel.",
-    "#player-personality-traits": "Curious and reckless.",
-    "#player-ideals": "Justice",
-    "#player-bonds": "Family farm",
-    "#player-flaws": "Too trusting",
-    "#player-notes": "Protected common folk from a tyrant.",
-  }));
-
-  assert.deepEqual(Object.keys(payload), [
-    "playerName",
-    "characterName",
-    "classRole",
-    "race",
-    "background",
-    "alignment",
-    "description",
-    "traits",
-    "ideals",
-    "bonds",
-    "flaws",
-    "notes",
-  ]);
-  assert.equal(payload.description, "A brave village rebel.");
-  assert.equal(payload.notes, "Protected common folk from a tyrant.");
+  assert.equal(app.resolveApiUrl("/api/materials"), "/api/materials");
 });
