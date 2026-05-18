@@ -239,7 +239,16 @@
             <form class="panel form-grid" id="item-form">
               <label>Item or rule name<input id="item-name" type="text" placeholder="Item or rule name" required /></label>
               <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
-              <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Mechanical effects, lore, rarity, hooks..." required></textarea></label>
+              <fieldset class="form-grid full-width item-weapon-section" id="item-weapon-section">
+                <legend>Weapon statistics</legend>
+                <label>Damage<input id="item-weapon-damage" type="text" placeholder="1d8 slashing" /></label>
+                <label>Range<input id="item-weapon-range" type="text" placeholder="Melee, 20/60 ft., thrown..." /></label>
+                <label>Attack bonus<input id="item-weapon-attack" type="text" placeholder="+1, proficiency, finesse..." /></label>
+                <label>Properties<input id="item-weapon-properties" type="text" placeholder="Light, finesse, versatile..." /></label>
+                <label>Feature title<input id="item-weapon-feature-title" type="text" placeholder="Vampire Touch, Returning, Cleave..." /></label>
+                <label class="full-width">Feature description<textarea id="item-weapon-feature-description" rows="2" placeholder="Describe what this weapon feature does at the table."></textarea></label>
+              </fieldset>
+              <label class="full-width">Item description<textarea id="item-description" rows="3" placeholder="Appearance, lore, rarity, owner, hooks..." required></textarea></label>
               <div class="file-picker image-picker full-width" data-image-picker>
                 <label for="item-image">Optional item or monster image</label>
                 <input id="item-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />

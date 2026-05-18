@@ -976,6 +976,57 @@ function widgetTagsMarkup(tags) {
   return tagMarkup ? `<div class="tag-row widget-tags">${tagMarkup}</div>` : "";
 }
 
+function itemFeatureList(value) {
+  const normalizeFeature = (feature) => {
+    if (feature && typeof feature === "object") {
+      const title = String(feature.title || feature.name || "").trim();
+      const description = String(feature.description || feature.effect || "").trim();
+      return title || description ? { title, description } : null;
+    }
+    const title = String(feature || "").trim();
+    return title ? { title, description: "" } : null;
+  };
+
+  const features = Array.isArray(value)
+    ? value
+    : String(value || "").split(",").map((feature) => feature.trim()).filter(Boolean);
+  return features.map(normalizeFeature).filter(Boolean);
+}
+
+function itemWeaponStatsMarkup(item) {
+  if (item.type !== "Weapon") return "";
+  const stats = item.statistics || {};
+  const statItems = [
+    ["DMG", stats.damage],
+    ["RNG", stats.range],
+    ["ATK", stats.attack],
+    ["PROP", stats.properties],
+  ].filter(([, value]) => String(value || "").trim());
+  if (!statItems.length) return "";
+  return `
+          <div class="item-stat-icons" aria-label="Weapon statistics">
+            ${statItems.map(([label, value]) => `
+              <span class="item-stat-icon"><strong>${escapeHtml(label)}</strong>${escapeHtml(value)}</span>
+            `).join("")}
+          </div>`;
+}
+
+function itemFeatureBlocksMarkup(item) {
+  const features = itemFeatureList(item.features);
+  if (!features.length) return "";
+  return `
+          <div class="item-feature-list" aria-label="Weapon features">
+            ${features.map((feature, index) => {
+              const description = feature.description || (index === 0 ? String(item.description || "").trim() : "");
+              return `
+              <article class="item-feature-block">
+                <h4><span class="item-feature-icon">${escapeHtml(feature.title || "Feature")}</span></h4>
+                ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+              </article>`;
+            }).join("")}
+          </div>`;
+}
+
 function isUserProducedEntry(entry) {
   return Boolean(entry?.id) && !String(entry.id).startsWith("demo-");
 }
@@ -1650,15 +1701,25 @@ ${widgetDeleteActionMarkup(character, "Delete NPC")}
     template: (item) => {
       const status = item.type === "Monster" ? "prepared" : "active";
       const statusLabel = item.type === "Monster" ? "Prepared" : "Active";
-      const searchable = textForSearch([item.name, item.type, item.description, "item homebrew monster loot"]);
+      const stats = item.statistics || {};
+      const features = itemFeatureList(item.features);
+      const featureSearch = features.map((feature) => `${feature.title} ${feature.description}`).join(" ");
+      const showDescription = item.type !== "Weapon" || !features.length;
+      const searchable = textForSearch([item.name, item.type, item.description, stats.damage, stats.range, stats.attack, stats.properties, featureSearch, "item homebrew monster loot"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
-          ${widgetImageMarkup(item, item.name)}
-          <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
-          <h3>${escapeHtml(item.name)}</h3>
-          ${widgetDescriptionMarkup(item.description)}
-          ${widgetTagsMarkup([item.createdAt, "Loot & rules"])}
+        <article class="content-card entry-card widget-card item-card" ${widgetOriginAttribute(item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
+          <div class="item-card-details">
+            <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
+            <h3>${escapeHtml(item.name)}</h3>
+            ${itemWeaponStatsMarkup(item)}
+            ${showDescription ? widgetDescriptionMarkup(item.description) : ""}
+            ${itemFeatureBlocksMarkup(item)}
+            ${widgetTagsMarkup([item.createdAt, "Loot & rules"])}
 ${widgetDeleteActionMarkup(item, "Delete item")}
+          </div>
+          <div class="item-card-media">
+            ${widgetImageMarkup(item, item.name)}
+          </div>
         </article>`;
     },
   });
@@ -1782,7 +1843,28 @@ function wireForm(formId, key, buildEntry) {
   });
 }
 
+function initItemWeaponOptions() {
+  const typeSelect = document.getElementById("item-type");
+  const weaponSection = document.getElementById("item-weapon-section");
+  if (!typeSelect || !weaponSection) return;
+
+  const sync = () => {
+    const isWeapon = typeSelect.value === "Weapon";
+    weaponSection.hidden = !isWeapon;
+    weaponSection.querySelectorAll("input, textarea").forEach((field) => {
+      field.disabled = !isWeapon;
+      if (!isWeapon) field.value = "";
+    });
+  };
+
+  typeSelect.addEventListener("change", sync);
+  typeSelect.form?.addEventListener("reset", () => requestAnimationFrame(sync));
+  sync();
+}
+
 function initDashboardForms() {
+  initItemWeaponOptions();
+
   wireForm("encounter-form", "encounters", async () => {
     const title = document.getElementById("encounter-title").value.trim();
     const image = await imageFromFileInput(document.getElementById("encounter-image"), { title });
@@ -1838,11 +1920,24 @@ function initDashboardForms() {
 
   wireForm("item-form", "items", async () => {
     const name = document.getElementById("item-name").value.trim();
+    const type = document.getElementById("item-type").value;
     const image = await imageFromFileInput(document.getElementById("item-image"), { title: name });
+    const statistics = type === "Weapon" ? {
+      damage: document.getElementById("item-weapon-damage").value.trim(),
+      range: document.getElementById("item-weapon-range").value.trim(),
+      attack: document.getElementById("item-weapon-attack").value.trim(),
+      properties: document.getElementById("item-weapon-properties").value.trim(),
+    } : {};
+    const feature = type === "Weapon" ? {
+      title: document.getElementById("item-weapon-feature-title").value.trim(),
+      description: document.getElementById("item-weapon-feature-description").value.trim(),
+    } : null;
     return {
       id: createId("item"),
       name,
-      type: document.getElementById("item-type").value,
+      type,
+      statistics,
+      features: feature && (feature.title || feature.description) ? [feature] : [],
       description: document.getElementById("item-description").value.trim(),
       ...imageFields(image),
       createdAt: readableDate(),
