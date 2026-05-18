@@ -144,6 +144,7 @@ test("concurrent uploads preserve every metadata record", async () => {
 test("image upload endpoint accepts multiple images and serves public URLs", async (t) => {
   const { baseUrl, imageUploadDir } = await withServer(t);
   const form = new FormData();
+  form.set("title", "Encounter Splash");
   form.append("images", new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47])], { type: "image/png" }), "map.png");
   form.append("images", new Blob(["portrait"], { type: "image/webp" }), "npc.webp");
 
@@ -152,7 +153,12 @@ test("image upload endpoint accepts multiple images and serves public URLs", asy
 
   assert.equal(response.status, 201);
   assert.equal(payload.count, 2);
+  assert.ok(payload.images[0].id);
   assert.equal(payload.images[0].originalFilename, "map.png");
+  assert.equal(payload.images[0].title, "Encounter Splash");
+  assert.equal(payload.images[0].category, undefined);
+  assert.equal(payload.images[0].altText, undefined);
+  assert.equal(payload.images[0].description, undefined);
   assert.match(payload.images[0].savedFilename, /^[0-9]+-[0-9a-f-]+\.png$/);
   assert.equal(payload.images[0].url, `/uploads/images/${encodeURIComponent(payload.images[0].savedFilename)}`);
   assert.equal(await fs.readFile(path.join(imageUploadDir, payload.images[1].savedFilename), "utf8"), "portrait");
@@ -160,6 +166,39 @@ test("image upload endpoint accepts multiple images and serves public URLs", asy
   const served = await fetch(`${baseUrl}${payload.images[0].url}`);
   assert.equal(served.status, 200);
   assert.equal(served.headers.get("content-type"), "image/png");
+});
+
+test("image library lists, updates title, gets, and deletes image records", async (t) => {
+  const { baseUrl, imageUploadDir } = await withServer(t);
+  const form = new FormData();
+  form.set("title", "Sunken Vault Map");
+  form.append("images", new Blob(["map-bytes"], { type: "image/png" }), "vault.png");
+
+  const createdResponse = await fetch(`${baseUrl}/api/uploads/images`, { method: "POST", body: form });
+  const createdPayload = await createdResponse.json();
+  const image = createdPayload.images[0];
+
+  const list = await fetch(`${baseUrl}/api/uploads/images`).then((res) => res.json());
+  assert.equal(list.count, 1);
+  assert.equal(list.images[0].id, image.id);
+
+  const fetched = await fetch(`${baseUrl}/api/uploads/images/${image.id}`).then((res) => res.json());
+  assert.equal(fetched.title, "Sunken Vault Map");
+
+  const updatedResponse = await fetch(`${baseUrl}/api/uploads/images/${image.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: "Flooded Vault Map" }),
+  });
+  const updated = await updatedResponse.json();
+  assert.equal(updated.title, "Flooded Vault Map");
+  assert.equal(updated.altText, undefined);
+
+  const deletion = await fetch(`${baseUrl}/api/uploads/images/${image.id}`, { method: "DELETE" });
+  assert.equal(deletion.status, 200);
+  await assert.rejects(fs.access(path.join(imageUploadDir, image.savedFilename)), /ENOENT/);
+  const afterDelete = await fetch(`${baseUrl}/api/uploads/images`).then((res) => res.json());
+  assert.equal(afterDelete.count, 0);
 });
 
 test("image upload rejects non-image files", async (t) => {

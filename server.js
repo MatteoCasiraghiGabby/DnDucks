@@ -61,9 +61,10 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
         return;
       }
 
-      if (pathname === "/api/uploads/images") {
+      if (pathname.startsWith("/api/uploads/images")) {
         res.setHeader("X-Route-Branch", "image-upload-route");
-        await handleImageUploadsApi(req, res, uploadedImageStore, pathname);
+        requestUrl.pathname = pathname;
+        await handleImageUploadsApi(req, res, uploadedImageStore, requestUrl);
         return;
       }
 
@@ -128,23 +129,68 @@ function sendMethodNotAllowed(req, res, allowedMethods, extra = {}) {
 function setApiCorsHeaders(req, res) {
   const origin = req.headers.origin;
   res.setHeader("Access-Control-Allow-Origin", API_CORS_ORIGIN === "*" ? "*" : (origin && API_CORS_ORIGIN.split(",").map((value) => value.trim()).includes(origin) ? origin : API_CORS_ORIGIN));
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,PUT,DELETE,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", req.headers["access-control-request-headers"] || "Content-Type");
   res.setHeader("Access-Control-Max-Age", "600");
   res.setHeader("Vary", "Origin");
 }
 
-async function handleImageUploadsApi(req, res, uploadedImageStore, pathname) {
-  if (req.method !== "POST") {
-    sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "image-upload-method-guard" });
+async function handleImageUploadsApi(req, res, uploadedImageStore, requestUrl) {
+  const parts = requestUrl.pathname.split("/").filter(Boolean);
+  const id = parts[3];
+
+  if (req.method === "POST" && requestUrl.pathname === "/api/uploads/images") {
+    const { files, fields } = await parseMultipart(req, {
+      maxBodySize: IMAGE_UPLOAD_MAX_BYTES * IMAGE_UPLOAD_MAX_FILES + 1024 * 1024,
+    });
+    const images = await uploadedImageStore.saveMany(files, fields);
+    sendJson(res, 201, { images, count: images.length });
     return;
   }
 
-  const { files } = await parseMultipart(req, {
-    maxBodySize: IMAGE_UPLOAD_MAX_BYTES * IMAGE_UPLOAD_MAX_FILES + 1024 * 1024,
-  });
-  const images = await uploadedImageStore.saveMany(files);
-  sendJson(res, 201, { images, count: images.length });
+  if (req.method === "GET" && requestUrl.pathname === "/api/uploads/images") {
+    const images = await uploadedImageStore.list();
+    sendJson(res, 200, { images, count: images.length });
+    return;
+  }
+
+  if (req.method === "GET" && id) {
+    const image = await uploadedImageStore.get(id);
+    if (!image) {
+      sendJson(res, 404, { error: "Image not found.", code: "IMAGE_NOT_FOUND" });
+      return;
+    }
+    sendJson(res, 200, image);
+    return;
+  }
+
+  if ((req.method === "PATCH" || req.method === "PUT") && id) {
+    const fields = await parseJsonBody(req, { maxBodySize: 16 * 1024 });
+    const image = await uploadedImageStore.update(id, fields);
+    if (!image) {
+      sendJson(res, 404, { error: "Image not found.", code: "IMAGE_NOT_FOUND" });
+      return;
+    }
+    sendJson(res, 200, image);
+    return;
+  }
+
+  if (req.method === "DELETE" && id) {
+    const image = await uploadedImageStore.delete(id);
+    if (!image) {
+      sendJson(res, 404, { error: "Image not found.", code: "IMAGE_NOT_FOUND" });
+      return;
+    }
+    sendJson(res, 200, { ok: true, deleted: image });
+    return;
+  }
+
+  if (!["GET", "POST", "PATCH", "PUT", "DELETE"].includes(req.method)) {
+    sendMethodNotAllowed(req, res, ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"], { pathname: requestUrl.pathname, branch: "image-upload-method-guard" });
+    return;
+  }
+
+  sendJson(res, 404, { error: "API route not found.", code: "API_ROUTE_NOT_FOUND", pathname: requestUrl.pathname });
 }
 
 async function handleMaterialsApi(req, res, requestUrl, materialStore) {

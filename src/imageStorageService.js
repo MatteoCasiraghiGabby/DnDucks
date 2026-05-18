@@ -3,6 +3,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 
 const DEFAULT_IMAGE_UPLOAD_DIR = "./uploads/images";
+const IMAGE_METADATA_FILENAME = "index.json";
 const IMAGE_UPLOAD_MAX_BYTES = Number(process.env.IMAGE_UPLOAD_MAX_BYTES || process.env.UPLOAD_MAX_BYTES || 5 * 1024 * 1024);
 const IMAGE_UPLOAD_MAX_FILES = Number(process.env.IMAGE_UPLOAD_MAX_FILES || 12);
 const IMAGE_UPLOAD_FIELD_NAMES = new Set(["image", "images", "file", "files"]);
@@ -56,13 +57,27 @@ function validateImageUpload(file) {
   return { safeOriginal, extension: imageExtensionFor(mimeType, extension), mimeType, size };
 }
 
+function cleanMetadataText(value, maxLength = 240) {
+  return String(value || "").replace(/[\0\r\n]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength);
+}
+
+function imagePublicUrl(savedFilename) {
+  return `/uploads/images/${encodeURIComponent(savedFilename)}`;
+}
+
 class ImageStorageService {
   constructor(uploadDir = resolveImageUploadDir()) {
     this.uploadDir = uploadDir;
+    this.indexPath = path.join(uploadDir, IMAGE_METADATA_FILENAME);
   }
 
   async ensureReady() {
     await fs.mkdir(this.uploadDir, { recursive: true });
+    try {
+      await fs.access(this.indexPath);
+    } catch {
+      await this.writeIndex([]);
+    }
   }
 
   resolveStoredPath(savedFilename) {
@@ -74,22 +89,34 @@ class ImageStorageService {
   }
 
   async save(file) {
+    return this.create(file);
+  }
+
+  async create(file, fields = {}) {
     const { safeOriginal, extension, mimeType, size } = validateImageUpload(file);
+    const id = crypto.randomUUID();
     const savedFilename = `${Date.now()}-${crypto.randomUUID()}${extension}`;
     const destination = this.resolveStoredPath(savedFilename);
     await fs.writeFile(destination, file.buffer, { flag: "wx" });
-    return {
+    const image = {
+      id,
       originalFilename: safeOriginal,
       savedFilename,
-      url: `/uploads/images/${encodeURIComponent(savedFilename)}`,
+      url: imagePublicUrl(savedFilename),
       path: `/uploads/images/${savedFilename}`,
       fileSize: size,
       mimeType,
+      title: cleanMetadataText(fields.title || fields.name || safeOriginal),
       uploadedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
+    const index = await this.readIndex();
+    index.unshift(image);
+    await this.writeIndex(index);
+    return image;
   }
 
-  async saveMany(files) {
+  async saveMany(files, fields = {}) {
     const imageFiles = files.filter((file) => IMAGE_UPLOAD_FIELD_NAMES.has(file.fieldName));
     if (!imageFiles.length) {
       throw Object.assign(new Error("Upload requires at least one image field named images, image, files, or file."), { statusCode: 400, code: "MISSING_IMAGES" });
@@ -100,18 +127,72 @@ class ImageStorageService {
 
     const saved = [];
     try {
-      for (const file of imageFiles) saved.push(await this.save(file));
+      for (const file of imageFiles) saved.push(await this.create(file, fields));
       return saved;
     } catch (error) {
-      await Promise.all(saved.map((image) => fs.unlink(this.resolveStoredPath(image.savedFilename)).catch(() => {})));
+      await Promise.all(saved.map((image) => this.delete(image.id).catch(() => fs.unlink(this.resolveStoredPath(image.savedFilename)).catch(() => {}))));
       throw error;
     }
+  }
+
+  async list() {
+    return this.readIndex();
+  }
+
+  async get(id) {
+    const images = await this.readIndex();
+    return images.find((image) => image.id === id) || null;
+  }
+
+  async update(id, fields = {}) {
+    const images = await this.readIndex();
+    const index = images.findIndex((image) => image.id === id);
+    if (index === -1) return null;
+    images[index] = {
+      ...images[index],
+      ...(fields.title !== undefined ? { title: cleanMetadataText(fields.title || images[index].originalFilename) } : {}),
+      updatedAt: new Date().toISOString(),
+    };
+    await this.writeIndex(images);
+    return images[index];
+  }
+
+  async delete(id) {
+    const images = await this.readIndex();
+    const image = images.find((item) => item.id === id);
+    if (!image) return null;
+    await fs.unlink(this.resolveStoredPath(image.savedFilename)).catch((error) => {
+      if (error.code !== "ENOENT") throw error;
+    });
+    await this.writeIndex(images.filter((item) => item.id !== id));
+    return image;
+  }
+
+  async readIndex() {
+    try {
+      const raw = await fs.readFile(this.indexPath, "utf8");
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter((image) => image && image.id && image.savedFilename) : [];
+    } catch (error) {
+      if (error.code === "ENOENT") return [];
+      if (error instanceof SyntaxError) {
+        throw Object.assign(new Error("Image metadata index is corrupted."), { statusCode: 500, code: "IMAGE_INDEX_CORRUPTED" });
+      }
+      throw error;
+    }
+  }
+
+  async writeIndex(images) {
+    const tempPath = `${this.indexPath}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tempPath, JSON.stringify(images, null, 2));
+    await fs.rename(tempPath, this.indexPath);
   }
 }
 
 module.exports = {
   ALLOWED_IMAGE_EXTENSIONS,
   ALLOWED_IMAGE_MIME_TYPES,
+  IMAGE_METADATA_FILENAME,
   IMAGE_UPLOAD_FIELD_NAMES,
   IMAGE_UPLOAD_MAX_BYTES,
   IMAGE_UPLOAD_MAX_FILES,

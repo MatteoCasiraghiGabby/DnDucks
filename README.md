@@ -87,8 +87,13 @@ If `IMAGE_UPLOAD_MAX_BYTES` is not set, the image service falls back to `UPLOAD_
 - `POST /api/uploads/images` accepts `multipart/form-data` fields named `images`, `image`, `files`, or `file`.
 - The endpoint supports one or multiple images in the same request.
 - Accepted formats are `jpg`, `jpeg`, `png`, `webp`, and `gif` with matching image MIME types.
-- The response is normalized as `{ images, count }`. Each image includes `originalFilename`, `savedFilename`, `url`, `path`, `fileSize`, `mimeType`, and `uploadedAt`.
+- The response is normalized as `{ images, count }`. Each image includes `id`, `originalFilename`, `savedFilename`, `url`, `path`, `fileSize`, `mimeType`, `title`, and upload/update timestamps.
 - Public image display is limited to generated filenames under `/uploads/images/:savedFilename`; arbitrary local filesystem paths are never exposed.
+- Image metadata is persisted in `uploads/images/index.json`.
+- `GET /api/uploads/images` lists uploaded images.
+- `GET /api/uploads/images/:id` returns one image metadata record.
+- `PATCH /api/uploads/images/:id` updates `title`.
+- `DELETE /api/uploads/images/:id` removes metadata and deletes the stored image file.
 
 Example response:
 
@@ -97,13 +102,16 @@ Example response:
   "count": 1,
   "images": [
     {
+      "id": "00000000-0000-4000-8000-000000000000",
       "originalFilename": "npc.png",
       "savedFilename": "1710000000000-00000000-0000-4000-8000-000000000000.png",
       "url": "/uploads/images/1710000000000-00000000-0000-4000-8000-000000000000.png",
       "path": "/uploads/images/1710000000000-00000000-0000-4000-8000-000000000000.png",
       "fileSize": 12345,
       "mimeType": "image/png",
-      "uploadedAt": "2026-05-14T00:00:00.000Z"
+      "title": "NPC portrait",
+      "uploadedAt": "2026-05-14T00:00:00.000Z",
+      "updatedAt": "2026-05-14T00:00:00.000Z"
     }
   ]
 }
@@ -111,7 +119,9 @@ Example response:
 
 ### Frontend use
 
-The frontend uses one vanilla JavaScript upload service, `uploadImages(files)`, which sends selected files with `FormData` to `/api/uploads/images`. Widget forms use the same image picker pattern and now persist uploaded image URLs instead of embedding new images as base64 data.
+The frontend uses one vanilla JavaScript upload service, `uploadImages(files, metadata)`, which sends selected files with `FormData` to `/api/uploads/images`. Widget forms use the same image picker pattern and now persist uploaded image ids plus uploaded image URLs instead of embedding new images as base64 data.
+
+Open `index.html#/media` for the reusable image library. Open `index.html#/maps` for a map-focused entry point into the same shared library. Widgets can upload directly or select an existing image through the shared media picker.
 
 To place an image picker in a page or widget, follow the existing `data-image-picker` pattern:
 

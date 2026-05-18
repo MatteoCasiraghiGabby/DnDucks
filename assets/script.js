@@ -815,23 +815,58 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-async function uploadImages(files) {
+async function uploadImages(files, metadata = {}) {
   const selected = Array.from(files || []).filter(Boolean);
   if (!selected.length) return [];
   const formData = new FormData();
   selected.forEach((file) => formData.append("images", file));
+  Object.entries(metadata).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim()) formData.append(key, value);
+  });
   const payload = await fetchJson("/api/uploads/images", { method: "POST", body: formData });
   return payload.images || [];
 }
 
-async function imageToDataUrl(fileInput) {
+async function listImages(filters = {}) {
+  const payload = await fetchJson("/api/uploads/images");
+  return payload.images || [];
+}
+
+async function deleteImage(imageId) {
+  return fetchJson(`/api/uploads/images/${encodeURIComponent(imageId)}`, { method: "DELETE" });
+}
+
+async function updateImageMetadata(imageId, metadata) {
+  return fetchJson(`/api/uploads/images/${encodeURIComponent(imageId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(metadata),
+  });
+}
+
+async function imageFromFileInput(fileInput, metadata = {}) {
   const file = fileInput?.files?.[0];
-  if (!file) return "";
+  if (!file) return null;
   if (!file.type.startsWith("image/")) {
     throw new Error("Widget images must be image files.");
   }
-  const [image] = await uploadImages([file]);
+  const [image] = await uploadImages([file], metadata);
+  return image || null;
+}
+
+async function imageToDataUrl(fileInput) {
+  const image = await imageFromFileInput(fileInput);
   return image?.url || "";
+}
+
+function imageFields(image) {
+  if (!image) return {};
+  return {
+    imageId: image.id || "",
+    imageUrl: image.url || "",
+    imageDataUrl: image.url || "",
+    image,
+  };
 }
 
 function displayText(value, fallback) {
@@ -846,7 +881,7 @@ function firstDisplayText(values, fallback) {
 
 function widgetImageMarkup(entry, label) {
   const title = displayText(label, "Widget");
-  const alt = escapeHtml(`${title} image`);
+  const alt = escapeHtml(entry.image?.title || `${title} image`);
   const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
   const imageActionLabel = imageUrl ? `Change image for ${title}` : `Add image for ${title}`;
   const actionAttributes = entry.id
@@ -871,7 +906,7 @@ function widgetImageMarkup(entry, label) {
 
 function widgetImageDisplayMarkup(entry, label) {
   const title = displayText(label, "Widget");
-  const alt = escapeHtml(`${title} image`);
+  const alt = escapeHtml(entry.image?.title || `${title} image`);
   const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
 
   if (imageUrl) {
@@ -1021,8 +1056,8 @@ function selectedFilePreviews(files) {
   }));
 }
 
-function initImagePickers() {
-  document.querySelectorAll("[data-image-picker]").forEach((picker) => {
+function initImagePickers(root = document) {
+  root.querySelectorAll("[data-image-picker]").forEach((picker) => {
     const input = picker.querySelector('input[type="file"]');
     const trigger = picker.querySelector("[data-image-trigger]");
     const status = picker.querySelector("[data-image-status]");
@@ -1281,19 +1316,132 @@ function initCommandInterface() {
 
 }
 
-function chooseWidgetImage() {
+function imagePreviewMarkup(image, label = "") {
+  const title = image.title || image.originalFilename || label || "Uploaded image";
+  return `
+    <figure class="image-preview">
+      <img src="${escapeHtml(image.url)}" alt="${escapeHtml(title)}" loading="lazy" />
+      <figcaption>${escapeHtml(title)}</figcaption>
+    </figure>`;
+}
+
+function mediaImageCardMarkup(image, options = {}) {
+  const title = image.title || image.originalFilename || "Uploaded image";
+  const selectable = Boolean(options.selectable);
+  return `
+    <article class="content-card entry-card image-card" data-image-card="${escapeHtml(image.id)}">
+      ${imagePreviewMarkup(image, title)}
+      <div class="card-kicker"><span class="status-badge status-active">Image</span><span>${escapeHtml(formatBytes(image.fileSize))}</span></div>
+      <h3>${escapeHtml(title)}</h3>
+      ${widgetTagsMarkup([formatUploadedAt(image.uploadedAt)])}
+      <label class="image-url-copy">Image URL<input value="${escapeHtml(image.url)}" readonly /></label>
+      <div class="entry-actions">
+        ${selectable ? `<button class="btn btn-primary" type="button" data-select-media-image="${escapeHtml(image.id)}">Select</button>` : ""}
+        <a class="btn btn-secondary" href="${escapeHtml(image.url)}" target="_blank" rel="noopener">Preview</a>
+        <button class="btn btn-secondary" type="button" data-copy-image-url="${escapeHtml(image.url)}">Copy URL</button>
+        ${selectable ? "" : `<button class="btn btn-secondary" type="button" data-edit-image="${escapeHtml(image.id)}">Edit</button>`}
+        <button class="btn btn-danger" type="button" data-delete-image="${escapeHtml(image.id)}">Delete</button>
+      </div>
+    </article>`;
+}
+
+function imageUploadMarkup({ submitLabel = "Upload image" } = {}) {
+  return `
+    <form class="panel form-grid image-upload-form" data-image-upload-form>
+      <label class="full-width">Title<input name="title" type="text" placeholder="Image title" /></label>
+      <div class="file-picker image-picker full-width" data-image-picker>
+        <label>Image file</label>
+        <input class="image-input" name="images" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required />
+        <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger>Choose image</button>
+        <span class="image-picker-status" data-image-status>No image chosen</span>
+        <img class="image-picker-preview" data-image-preview alt="Selected image preview" hidden />
+      </div>
+      <div class="form-message full-width" data-image-upload-status aria-live="polite"></div>
+      <button class="btn btn-primary" type="submit">${escapeHtml(submitLabel)}</button>
+    </form>`;
+}
+
+async function chooseWidgetImage() {
+  return openMediaPicker();
+}
+
+async function openMediaPicker() {
+  const modal = document.createElement("div");
+  modal.className = "media-picker-modal";
+  modal.innerHTML = `
+    <div class="media-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="media-picker-title">
+      <div class="media-picker-header">
+        <div><p class="eyebrow">Media picker</p><h2 id="media-picker-title">Choose an image</h2></div>
+        <button class="btn btn-ghost" type="button" data-close-media-picker>Close</button>
+      </div>
+      <div class="media-picker-layout">
+        ${imageUploadMarkup({ submitLabel: "Upload and select" })}
+        <section>
+          <div class="media-toolbar">
+            <button class="btn btn-secondary" type="button" data-refresh-media-picker>Refresh</button>
+          </div>
+          <div class="media-library-grid" data-media-picker-list></div>
+        </section>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  initImagePickers(modal);
+
   return new Promise((resolve, reject) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/jpeg,image/png,image/webp,image/gif";
-    input.addEventListener("change", async () => {
+    const close = (value) => {
+      modal.remove();
+      resolve(value || null);
+    };
+    const list = modal.querySelector("[data-media-picker-list]");
+    const form = modal.querySelector("[data-image-upload-form]");
+    const status = modal.querySelector("[data-image-upload-status]");
+
+    async function loadPickerImages() {
+      list.innerHTML = `<div class="empty-state">Loading images...</div>`;
       try {
-        resolve(await imageToDataUrl(input));
+        const images = await listImages();
+        list.innerHTML = images.length
+          ? images.map((image) => mediaImageCardMarkup(image, { selectable: true })).join("")
+          : `<div class="empty-state">No uploaded images yet.</div>`;
       } catch (error) {
-        reject(error);
+        list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
       }
-    }, { once: true });
-    input.click();
+    }
+
+    modal.addEventListener("click", async (event) => {
+      if (event.target === modal || event.target.closest("[data-close-media-picker]")) close(null);
+      const selectId = event.target?.dataset?.selectMediaImage;
+      if (selectId) {
+        try {
+          close(await fetchJson(`/api/uploads/images/${encodeURIComponent(selectId)}`));
+        } catch (error) {
+          reject(error);
+          modal.remove();
+        }
+      }
+      const copyUrl = event.target?.dataset?.copyImageUrl;
+      if (copyUrl) navigator.clipboard?.writeText(copyUrl).catch(() => {});
+    });
+    modal.querySelector("[data-refresh-media-picker]").addEventListener("click", loadPickerImages);
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const file = form.querySelector('input[type="file"]')?.files?.[0];
+      if (!file) return;
+      if (status) status.textContent = "Uploading image...";
+      try {
+        const [image] = await uploadImages([file], {
+          title: formData.get("title"),
+        });
+        close(image);
+      } catch (error) {
+        if (status) {
+          status.textContent = error.message;
+          status.classList.add("error");
+        }
+      }
+    });
+    loadPickerImages();
   });
 }
 
@@ -1312,10 +1460,10 @@ function renderCollection({ key, listId, emptyText, template, getCollection }) {
   list.querySelectorAll("[data-image-upload-id]").forEach((button) => {
     button.addEventListener("click", async () => {
       try {
-        const imageDataUrl = await chooseWidgetImage();
-        if (!imageDataUrl) return;
+        const image = await chooseWidgetImage();
+        if (!image) return;
         const nextCollection = getStoredCollection(key).map((entry) => (
-          entry.id === button.dataset.imageUploadId ? { ...entry, imageDataUrl } : entry
+          entry.id === button.dataset.imageUploadId ? { ...entry, ...imageFields(image) } : entry
         ));
         saveCollection(key, nextCollection);
         renderDashboard();
@@ -1633,27 +1781,35 @@ function wireForm(formId, key, buildEntry) {
 }
 
 function initDashboardForms() {
-  wireForm("encounter-form", "encounters", async () => ({
-    id: createId("encounter"),
-    title: document.getElementById("encounter-title").value.trim(),
-    tier: document.getElementById("encounter-tier").value.trim(),
-    status: document.getElementById("encounter-status").value,
-    description: document.getElementById("encounter-description").value.trim(),
-    tags: document.getElementById("encounter-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
-    imageDataUrl: await imageToDataUrl(document.getElementById("encounter-image")),
-    createdAt: readableDate(),
-  }));
+  wireForm("encounter-form", "encounters", async () => {
+    const title = document.getElementById("encounter-title").value.trim();
+    const image = await imageFromFileInput(document.getElementById("encounter-image"), { title });
+    return {
+      id: createId("encounter"),
+      title,
+      tier: document.getElementById("encounter-tier").value.trim(),
+      status: document.getElementById("encounter-status").value,
+      description: document.getElementById("encounter-description").value.trim(),
+      tags: document.getElementById("encounter-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
+      ...imageFields(image),
+      createdAt: readableDate(),
+    };
+  });
 
-  wireForm("location-form", "locations", async () => ({
-    id: createId("location"),
-    name: document.getElementById("location-name").value.trim(),
-    type: document.getElementById("location-type").value.trim(),
-    status: document.getElementById("location-status").value,
-    description: document.getElementById("location-description").value.trim(),
-    tags: document.getElementById("location-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
-    imageDataUrl: await imageToDataUrl(document.getElementById("location-image")),
-    createdAt: readableDate(),
-  }));
+  wireForm("location-form", "locations", async () => {
+    const name = document.getElementById("location-name").value.trim();
+    const image = await imageFromFileInput(document.getElementById("location-image"), { title: name });
+    return {
+      id: createId("location"),
+      name,
+      type: document.getElementById("location-type").value.trim(),
+      status: document.getElementById("location-status").value,
+      description: document.getElementById("location-description").value.trim(),
+      tags: document.getElementById("location-tags").value.split(",").map((tag) => tag.trim()).filter(Boolean),
+      ...imageFields(image),
+      createdAt: readableDate(),
+    };
+  });
 
   wireForm("note-form", "notes", async () => ({
     id: createId("note"),
@@ -1664,38 +1820,48 @@ function initDashboardForms() {
     sortAt: Date.now(),
   }));
 
-  wireForm("character-form", "characters", async () => ({
-    id: createId("character"),
-    name: document.getElementById("character-name").value.trim(),
-    role: document.getElementById("character-role").value.trim(),
-    faction: document.getElementById("character-faction").value.trim(),
-    notes: document.getElementById("character-notes").value.trim(),
-    imageDataUrl: await imageToDataUrl(document.getElementById("character-image")),
-    createdAt: readableDate(),
-  }));
+  wireForm("character-form", "characters", async () => {
+    const name = document.getElementById("character-name").value.trim();
+    const image = await imageFromFileInput(document.getElementById("character-image"), { title: name });
+    return {
+      id: createId("character"),
+      name,
+      role: document.getElementById("character-role").value.trim(),
+      faction: document.getElementById("character-faction").value.trim(),
+      notes: document.getElementById("character-notes").value.trim(),
+      ...imageFields(image),
+      createdAt: readableDate(),
+    };
+  });
 
-  wireForm("item-form", "items", async () => ({
-    id: createId("item"),
-    name: document.getElementById("item-name").value.trim(),
-    type: document.getElementById("item-type").value,
-    description: document.getElementById("item-description").value.trim(),
-    imageDataUrl: await imageToDataUrl(document.getElementById("item-image")),
-    createdAt: readableDate(),
-  }));
+  wireForm("item-form", "items", async () => {
+    const name = document.getElementById("item-name").value.trim();
+    const image = await imageFromFileInput(document.getElementById("item-image"), { title: name });
+    return {
+      id: createId("item"),
+      name,
+      type: document.getElementById("item-type").value,
+      description: document.getElementById("item-description").value.trim(),
+      ...imageFields(image),
+      createdAt: readableDate(),
+    };
+  });
 
   wireForm("event-form", "events", async () => {
     const settings = getCalendarSettings();
     const monthIndex = Number(document.getElementById("event-month")?.value ?? settings.currentMonthIndex);
     const day = Number(document.getElementById("event-day")?.value ?? 1);
     const year = Number(document.getElementById("event-year")?.value ?? settings.currentYear);
+    const title = document.getElementById("event-title").value.trim();
+    const image = await imageFromFileInput(document.getElementById("event-image"), { title });
     const event = {
       id: createId("event"),
-      title: document.getElementById("event-title").value.trim(),
+      title,
       monthIndex,
       day,
       year,
       description: document.getElementById("event-description").value.trim(),
-      imageDataUrl: await imageToDataUrl(document.getElementById("event-image")),
+      ...imageFields(image),
       createdAt: readableDate(),
     };
     event.date = eventDateLabel(event, settings);
@@ -1789,6 +1955,115 @@ function initMaterials() {
   });
 
   loadMaterials();
+}
+
+function renderMediaLibraryShell({ mapsOnly = false } = {}) {
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell media-page">
+      <div class="page-hero">
+        <p class="eyebrow">${mapsOnly ? "Map images" : "Media library"}</p>
+        <h1>${mapsOnly ? "Map Library" : "Image Library"}</h1>
+        <p>${mapsOnly ? "Upload map images into the same shared library used by widgets and dashboard sections." : "Upload reusable images once, then select them from widgets and dedicated pages."}</p>
+      </div>
+      <div class="media-page-grid">
+        <section class="setup-form-panel">
+          <div class="section-heading"><div><p class="eyebrow">Upload</p><h2>${mapsOnly ? "Add map image" : "Add image"}</h2></div></div>
+          ${imageUploadMarkup({ submitLabel: mapsOnly ? "Upload Map" : "Upload Image" })}
+        </section>
+        <section class="setup-summary-panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">Library</p><h2>${mapsOnly ? "Maps" : "Images"}</h2></div>
+            <span id="media-count" class="muted"></span>
+          </div>
+          <div class="media-toolbar">
+            <button class="btn btn-secondary" type="button" id="media-refresh">Refresh</button>
+          </div>
+          <div class="media-library-grid" id="media-library-list" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>`;
+  initImagePickers();
+  initMediaLibraryPage({ mapsOnly });
+}
+
+async function loadMediaLibrary({ mapsOnly = false } = {}) {
+  const list = document.getElementById("media-library-list");
+  const count = document.getElementById("media-count");
+  if (!list) return;
+  list.innerHTML = `<div class="empty-state">Loading images...</div>`;
+  try {
+    const images = await listImages();
+    if (count) count.textContent = `${images.length} image${images.length === 1 ? "" : "s"}`;
+    list.innerHTML = images.length
+      ? images.map((image) => mediaImageCardMarkup(image, { selectable: false })).join("")
+      : `<div class="empty-state">No uploaded images yet.</div>`;
+  } catch (error) {
+    list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+    if (count) count.textContent = "Backend offline";
+  }
+}
+
+function initMediaLibraryPage({ mapsOnly = false } = {}) {
+  const form = document.querySelector("[data-image-upload-form]");
+  const fileInput = form?.querySelector('input[type="file"]');
+  const status = form?.querySelector("[data-image-upload-status]");
+  fileInput?.addEventListener("change", () => {
+    const file = fileInput.files?.[0];
+    if (status) status.textContent = file ? `Ready to upload ${file.name} (${formatBytes(file.size)}).` : "";
+  });
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = fileInput?.files?.[0];
+    if (!file) return;
+    if (status) {
+      status.textContent = "Uploading image...";
+      status.classList.remove("error");
+    }
+    const formData = new FormData(form);
+    try {
+      const [image] = await uploadImages([file], {
+        title: formData.get("title"),
+      });
+      form.reset();
+      resetImagePickers(form);
+      if (status) status.textContent = `Uploaded ${image.originalFilename}.`;
+      await loadMediaLibrary({ mapsOnly });
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+        status.classList.add("error");
+      }
+    }
+  });
+  document.getElementById("media-refresh")?.addEventListener("click", () => loadMediaLibrary({ mapsOnly }));
+  document.getElementById("media-library-list")?.addEventListener("click", async (event) => {
+    const copyUrl = event.target?.dataset?.copyImageUrl;
+    const deleteId = event.target?.dataset?.deleteImage;
+    const editId = event.target?.dataset?.editImage;
+    if (copyUrl) navigator.clipboard?.writeText(copyUrl).catch(() => {});
+    if (editId) {
+      const card = event.target.closest("[data-image-card]");
+      const currentTitle = card?.querySelector("h3")?.textContent || "";
+      const title = prompt("Image title", currentTitle);
+      if (title === null) return;
+      try {
+        await updateImageMetadata(editId, { title });
+        await loadMediaLibrary({ mapsOnly });
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+    if (deleteId) {
+      if (!confirm("Delete this image and remove the stored file from disk?")) return;
+      try {
+        await deleteImage(deleteId);
+        await loadMediaLibrary({ mapsOnly });
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  });
+  loadMediaLibrary({ mapsOnly });
 }
 
 function initAiPlaceholder() {
@@ -2366,7 +2641,14 @@ async function saveCurrentPlayerFromSetup(form, { requireData }) {
     }
     return { saved: false, errors };
   }
-  player.avatarUrl = await imageToDataUrl(document.getElementById("player-avatar"));
+  const avatar = await imageFromFileInput(document.getElementById("player-avatar"), {
+    title: player.characterName,
+  });
+  if (avatar) {
+    player.avatarImageId = avatar.id;
+    player.avatarUrl = avatar.url;
+    player.image = avatar;
+  }
   const campaign = savePlayerToCampaign(campaignId, player);
   form.reset();
   resetImagePickers(form);
@@ -2635,6 +2917,20 @@ function initCampaignRoutes() {
   return true;
 }
 
+function initAppRoutes() {
+  const parts = routeParts();
+  if (parts[0] === "campaigns") return initCampaignRoutes();
+  if (parts[0] === "media") {
+    renderMediaLibraryShell();
+    return true;
+  }
+  if (parts[0] === "maps") {
+    renderMediaLibraryShell({ mapsOnly: true });
+    return true;
+  }
+  return false;
+}
+
 function renderCampaignCalendar() {
   const grid = document.getElementById("calendar-grid");
   const title = document.getElementById("calendar-current-title");
@@ -2748,7 +3044,7 @@ function initCalendarPage() {
 }
 
 initMobileNavigation();
-if (!initCampaignRoutes()) {
+if (!initAppRoutes()) {
   initCommandInterface();
   initImagePickers();
   populateCalendarFormDefaults();
@@ -2759,8 +3055,8 @@ if (!initCampaignRoutes()) {
   renderDashboard();
 }
 window.addEventListener("hashchange", () => {
-  if (window.location.hash.startsWith("#/campaigns")) initCampaignRoutes();
-  else if (document.querySelector(".character-page, .setup-page")) window.location.reload();
+  if (window.location.hash.startsWith("#/")) initAppRoutes();
+  else if (document.querySelector(".character-page, .setup-page, .media-page")) window.location.reload();
 });
 
 /*
