@@ -159,7 +159,8 @@ test("completing setup saves the first campaign note only once", () => {
   assert.equal(notes[0].title, "The Verdant Road");
   assert.equal(notes[0].campaignStartDate, "2026-05-15");
   assert.match(notes[0].content, /The party meets at the city gate/);
-  assert.match(notes[0].content, /Riley: Bramble, Druid level 4/);
+  assert.doesNotMatch(notes[0].content, /Riley|Bramble|Druid level 4/);
+  assert.equal(completed.description, "The party meets at the city gate.");
 
   app.completeCampaignSetup("local", {
     title: "The Verdant Road",
@@ -206,9 +207,11 @@ test("campaign setup links use hash routes that static servers can serve", () =>
   const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
   assert.match(html, /href="index\.html#\/campaigns\/local\/setup"/);
+  assert.match(html, /id="campaigns"/);
   assert.doesNotMatch(html, /href="\/campaigns\/local\/setup"/);
   assert.match(script, /id="back-to-dashboard-button"/);
   assert.match(script, /addEventListener\("click", goToDashboard\)/);
+  assert.match(script, /data-player-card-href/);
 });
 
 test("notes are returned in campaign chronology order", () => {

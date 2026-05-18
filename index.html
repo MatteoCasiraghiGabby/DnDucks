@@ -86,6 +86,7 @@
         <aside class="sidebar" aria-label="Dashboard sections">
           <div class="sidebar-title">Table Tools</div>
           <nav class="sidebar-nav">
+            <a href="#party-overview">Players</a>
             <a href="#encounters">Encounters</a>
             <a href="#quests">Quests</a>
             <a href="#locations">Locations</a>
@@ -98,6 +99,17 @@
         </aside>
 
         <div class="dashboard-content">
+          <section class="workspace-section campaign-party-overview" id="party-overview">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Party overview</p>
+                <h2>Player Characters</h2>
+              </div>
+              <p>Started campaign player widgets appear here. Select a character to open the full sheet.</p>
+            </div>
+            <div class="dashboard-grid player-overview-grid" id="campaigns" aria-live="polite"></div>
+          </section>
+
           <aside class="filter-panel" id="filter-panel" aria-label="Advanced filters" hidden>
             <div>
               <p class="eyebrow">Filters</p>

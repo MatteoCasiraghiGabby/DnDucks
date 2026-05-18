@@ -129,6 +129,8 @@ To place an image picker in a page or widget, follow the existing `data-image-pi
 
 The campaign setup player form can suggest personality traits, ideals, bonds, flaws, and appearance/behavior features from a backend allow-list.
 
+- Edit `data/character-suggestions.tsv` to manually add background features, racial traits, feats, or background packages without changing code.
+- See `data/README.md` for the allowed categories and row format.
 - `POST /api/characters/analyze` accepts JSON with `description`, optional character context, and returns validated suggestions.
 - Set `OPENAI_API_KEY` in `.env` to use OpenAI structured outputs.
 - Set `OPENAI_CHARACTER_MODEL` to override the default model.

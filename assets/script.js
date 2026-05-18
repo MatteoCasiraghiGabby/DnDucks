@@ -605,12 +605,8 @@ function deletePlayerFromCampaign(campaignId, playerId) {
   return upsertCampaign({ ...campaign, players: campaign.players.filter((player) => player.id !== playerId) });
 }
 
-function campaignStartContent(players, description = "") {
-  const summary = players.length
-    ? `\n\nParty summary:\n${players.map((player) => `- ${player.playerName}: ${player.characterName}${player.classRole ? `, ${player.classRole}` : ""}${player.level ? ` level ${player.level}` : ""}`).join("\n")}`
-    : "";
-  const intro = description.trim() || "The campaign has started. Party members have been created and are ready for the adventure.";
-  return `${intro}${summary}`;
+function campaignStartContent(description = "") {
+  return description.trim() || "The campaign has started.";
 }
 
 function getCampaignStartNote(campaign) {
@@ -636,7 +632,7 @@ function saveCampaignStartNote(campaign, noteData = {}) {
     generatedBy: "campaign-setup-start",
     title,
     category: "Session Note",
-    content: campaignStartContent(campaign.players, description),
+    content: campaignStartContent(description),
     campaignStartDate: startDate,
     createdAt: readableDateFromIso(startDate),
     sortAt: Date.parse(`${startDate}T00:00:00`),
@@ -652,7 +648,8 @@ function completeCampaignSetup(campaignId, noteData = {}) {
   const campaign = getCampaign(campaignId);
   if (!campaign) return null;
   const campaignName = noteData.title?.trim() || campaign.name;
-  const nextCampaign = { ...campaign, name: campaignName };
+  const campaignDescription = noteData.description?.trim() || campaign.description;
+  const nextCampaign = { ...campaign, name: campaignName, description: campaignDescription };
   const { noteId } = saveCampaignStartNote(nextCampaign, noteData);
   return upsertCampaign({ ...nextCampaign, setupCompleted: true, campaignStartNoteId: noteId });
 }
@@ -1347,8 +1344,9 @@ function playerCharacterCard(player) {
   const armorClass = player.combat?.armorClass || "AC";
   const hitPoints = player.combat?.hitPointMaximum || "HP";
   const passive = playerPassivePerception(player);
+  const sheetHref = playerCharacterHref(campaignId, player.id);
   return `
-    <article class="content-card entry-card widget-card player-card player-preview-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+    <article class="content-card entry-card widget-card player-card player-preview-card" data-searchable="${escapeHtml(searchable)}" data-status="active" data-player-card-href="${escapeHtml(sheetHref)}" role="link" tabindex="0">
       ${widgetImageDisplayMarkup(imageEntry, title)}
       <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
       <h3>${escapeHtml(title)}</h3>
@@ -1361,7 +1359,7 @@ function playerCharacterCard(player) {
       </dl>
       ${widgetTagsMarkup([`Player: ${player.playerName}`, player.race, player.background])}
       <div class="entry-actions">
-        <a class="btn btn-secondary" href="${escapeHtml(playerCharacterHref(campaignId, player.id))}">Open sheet</a>
+        <a class="btn btn-secondary" href="${escapeHtml(sheetHref)}">Open sheet</a>
         <button class="btn btn-danger" type="button" data-delete-player-id="${escapeHtml(player.id)}" data-campaign-id="${escapeHtml(campaignId)}">Delete player</button>
       </div>
     </article>`;
@@ -1371,10 +1369,32 @@ function renderDashboardOverview() {
   const grid = document.getElementById("campaigns");
   if (!grid) return;
   const campaign = currentCampaign();
+  const section = grid.closest(".campaign-party-overview");
+  const ready = campaignReady(campaign);
+  if (section) section.hidden = !ready;
+  if (!ready) {
+    grid.innerHTML = "";
+    return;
+  }
   const playerCards = (campaign.players || []).map(playerCharacterCard);
   grid.innerHTML = playerCards.length
     ? playerCards.join("")
     : `<div class="empty-state">No player widgets yet. Create player characters to populate this campaign overview.</div>`;
+  grid.querySelectorAll("[data-player-card-href]").forEach((card) => {
+    const openCard = () => {
+      window.location.href = card.dataset.playerCardHref;
+    };
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) return;
+      openCard();
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.target.closest("a, button")) return;
+      event.preventDefault();
+      openCard();
+    });
+  });
   grid.querySelectorAll("[data-delete-player-id]").forEach((button) => {
     button.addEventListener("click", () => {
       deletePlayerFromCampaign(button.dataset.campaignId || DEFAULT_CAMPAIGN_ID, button.dataset.deletePlayerId);

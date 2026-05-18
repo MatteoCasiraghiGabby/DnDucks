@@ -858,7 +858,16 @@ code { color: var(--ember-2); }
 }
 .campaign-action-button { white-space: nowrap; }
 .compact-stats { margin-top: 18px; }
-.player-card { color: inherit; }
+.campaign-party-overview[hidden] { display: none; }
+.player-overview-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.player-card {
+  color: inherit;
+  cursor: pointer;
+}
+.player-card:focus-visible {
+  outline: 3px solid rgba(47, 140, 128, 0.46);
+  outline-offset: 3px;
+}
 .setup-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
