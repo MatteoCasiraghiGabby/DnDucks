@@ -226,6 +226,20 @@ test("character analysis endpoint accepts the frontend POST method with a traili
   assert.equal(payload.source, "local-srd-reference");
 });
 
+
+test("character analysis endpoint accepts simple text payloads for diagnostics", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: "Test text about a brave sailor who trusts the sea." }),
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.source, "local-srd-reference");
+});
+
 test("character analysis endpoint returns a clear 405 for unsupported methods", async (t) => {
   const { baseUrl } = await withServer(t);
   const response = await fetch(`${baseUrl}/api/characters/analyze`, { method: "GET" });
@@ -234,8 +248,41 @@ test("character analysis endpoint returns a clear 405 for unsupported methods", 
   assert.equal(response.status, 405);
   assert.equal(response.headers.get("allow"), "POST, OPTIONS");
   assert.equal(payload.code, "METHOD_NOT_ALLOWED");
-  assert.match(payload.error, /Use POST or OPTIONS/);
+  assert.equal(payload.error, "METHOD_NOT_ALLOWED");
+  assert.match(payload.message, /Use POST or OPTIONS/);
+  assert.equal(payload.method, "GET");
+  assert.equal(payload.pathname, "/api/characters/analyze");
+  assert.equal(payload.branch, "character-analysis-method-guard");
+  assert.deepEqual(payload.allow, ["POST", "OPTIONS"]);
   assert.match(payload.requestId, /^analysis-/);
+});
+
+test("character analysis endpoint accepts a proxy-stripped API prefix alias", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/characters/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: "Test text about a brave village hero." }),
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-route-branch"), "character-analysis-alias-route");
+  assert.equal(payload.source, "local-srd-reference");
+});
+
+test("static file guard returns diagnostic 405 metadata", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/not-an-api-route`, { method: "POST" });
+  const payload = await response.json();
+
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("allow"), "GET, HEAD");
+  assert.equal(payload.error, "METHOD_NOT_ALLOWED");
+  assert.equal(payload.method, "POST");
+  assert.equal(payload.pathname, "/not-an-api-route");
+  assert.equal(payload.branch, "static-file-guard");
+  assert.deepEqual(payload.allow, ["GET", "HEAD"]);
 });
 
 test("character analysis endpoint asks for story text", async (t) => {
@@ -279,5 +326,5 @@ test("character analysis endpoint answers CORS preflight for split frontend/back
   assert.equal(response.status, 204);
   assert.equal(response.headers.get("access-control-allow-origin"), "*");
   assert.match(response.headers.get("access-control-allow-methods"), /POST/);
-  assert.match(response.headers.get("access-control-allow-headers"), /Content-Type/);
+  assert.match(response.headers.get("access-control-allow-headers"), /content-type/i);
 });
