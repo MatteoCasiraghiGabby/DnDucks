@@ -524,10 +524,16 @@ textarea { resize: vertical; }
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
+.media-page-grid-single { grid-template-columns: 1fr; }
+.media-page .media-library-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
 .image-card {
   display: grid;
   gap: 10px;
 }
+.media-page .image-card { padding: 16px; }
 .image-preview {
   margin: 0;
   display: grid;
@@ -540,6 +546,10 @@ textarea { resize: vertical; }
   border-radius: 14px;
   object-fit: contain;
   background: rgba(15, 17, 21, 0.16);
+}
+.media-page .image-preview img {
+  min-height: 220px;
+  background: rgba(255, 250, 236, 0.62);
 }
 .image-preview figcaption,
 .image-url-copy {
@@ -946,7 +956,7 @@ code { color: var(--ember-2); }
 .player-overview-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .player-card {
   color: inherit;
-  cursor: pointer;
+  cursor: default;
 }
 .player-card:focus-visible {
   outline: 3px solid rgba(47, 140, 128, 0.46);

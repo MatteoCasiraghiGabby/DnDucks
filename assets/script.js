@@ -605,6 +605,20 @@ function deletePlayerFromCampaign(campaignId, playerId) {
   return upsertCampaign({ ...campaign, players: campaign.players.filter((player) => player.id !== playerId) });
 }
 
+function updatePlayerImage(campaignId, playerId, image) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  const nextImageFields = imageFields(image);
+  return upsertCampaign({
+    ...campaign,
+    players: campaign.players.map((player) => (
+      player.id === playerId
+        ? { ...player, ...nextImageFields, avatarUrl: nextImageFields.imageUrl || "" }
+        : player
+    )),
+  });
+}
+
 function campaignStartContent(description = "") {
   return description.trim() || "The campaign has started.";
 }
@@ -668,6 +682,25 @@ function playerCharacterHref(campaignId, playerId) {
 
 function dashboardHref() {
   return "index.html#dashboard";
+}
+
+function updateTopNavActivePage(page) {
+  const nav = document.querySelector(".topnav");
+  if (!nav) return;
+  const normalizedPage = page || document.body?.dataset?.page || "dashboard";
+  const activeHrefByPage = {
+    dashboard: "index.html",
+    media: "index.html#/media",
+    maps: "index.html#/maps",
+    calendar: "calendar.html",
+    about: "about.html",
+  };
+  nav.querySelectorAll("a").forEach((link) => {
+    const isActive = link.getAttribute("href") === activeHrefByPage[normalizedPage];
+    if (isActive) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+  if (document.body?.dataset) document.body.dataset.page = normalizedPage;
 }
 
 function goToDashboard() {
@@ -1334,7 +1367,6 @@ function mediaImageCardMarkup(image, options = {}) {
       <div class="card-kicker"><span class="status-badge status-active">Image</span><span>${escapeHtml(formatBytes(image.fileSize))}</span></div>
       <h3>${escapeHtml(title)}</h3>
       ${widgetTagsMarkup([formatUploadedAt(image.uploadedAt)])}
-      <label class="image-url-copy">Image URL<input value="${escapeHtml(image.url)}" readonly /></label>
       <div class="entry-actions">
         ${selectable ? `<button class="btn btn-primary" type="button" data-select-media-image="${escapeHtml(image.id)}">Select</button>` : ""}
         <a class="btn btn-secondary" href="${escapeHtml(image.url)}" target="_blank" rel="noopener">Preview</a>
@@ -1374,18 +1406,14 @@ async function openMediaPicker() {
         <div><p class="eyebrow">Media picker</p><h2 id="media-picker-title">Choose an image</h2></div>
         <button class="btn btn-ghost" type="button" data-close-media-picker>Close</button>
       </div>
-      <div class="media-picker-layout">
-        ${imageUploadMarkup({ submitLabel: "Upload and select" })}
-        <section>
-          <div class="media-toolbar">
-            <button class="btn btn-secondary" type="button" data-refresh-media-picker>Refresh</button>
-          </div>
-          <div class="media-library-grid" data-media-picker-list></div>
-        </section>
-      </div>
+      <section>
+        <div class="media-toolbar">
+          <button class="btn btn-secondary" type="button" data-refresh-media-picker>Refresh</button>
+        </div>
+        <div class="media-library-grid" data-media-picker-list></div>
+      </section>
     </div>`;
   document.body.appendChild(modal);
-  initImagePickers(modal);
 
   return new Promise((resolve, reject) => {
     const close = (value) => {
@@ -1393,8 +1421,6 @@ async function openMediaPicker() {
       resolve(value || null);
     };
     const list = modal.querySelector("[data-media-picker-list]");
-    const form = modal.querySelector("[data-image-upload-form]");
-    const status = modal.querySelector("[data-image-upload-status]");
 
     async function loadPickerImages() {
       list.innerHTML = `<div class="empty-state">Loading images...</div>`;
@@ -1402,7 +1428,7 @@ async function openMediaPicker() {
         const images = await listImages();
         list.innerHTML = images.length
           ? images.map((image) => mediaImageCardMarkup(image, { selectable: true })).join("")
-          : `<div class="empty-state">No uploaded images yet.</div>`;
+          : `<div class="empty-state">No media images yet. Add images from campaign content forms, then select them here.</div>`;
       } catch (error) {
         list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
       }
@@ -1423,24 +1449,6 @@ async function openMediaPicker() {
       if (copyUrl) navigator.clipboard?.writeText(copyUrl).catch(() => {});
     });
     modal.querySelector("[data-refresh-media-picker]").addEventListener("click", loadPickerImages);
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const formData = new FormData(form);
-      const file = form.querySelector('input[type="file"]')?.files?.[0];
-      if (!file) return;
-      if (status) status.textContent = "Uploading image...";
-      try {
-        const [image] = await uploadImages([file], {
-          title: formData.get("title"),
-        });
-        close(image);
-      } catch (error) {
-        if (status) {
-          status.textContent = error.message;
-          status.classList.add("error");
-        }
-      }
-    });
     loadPickerImages();
   });
 }
@@ -1487,14 +1495,14 @@ function renderCollection({ key, listId, emptyText, template, getCollection }) {
 function playerCharacterCard(player) {
   const title = playerDisplayName(player);
   const searchable = textForSearch([player.playerName, player.characterName, player.classRole, player.race, player.background, "player character party"]);
-  const imageEntry = { imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl };
+  const imageEntry = { id: player.id, imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl, image: player.image };
   const campaignId = player.campaignId || DEFAULT_CAMPAIGN_ID;
   const armorClass = player.combat?.armorClass || "AC";
   const hitPoints = player.combat?.hitPointMaximum || "HP";
   const passive = playerPassivePerception(player);
   const sheetHref = playerCharacterHref(campaignId, player.id);
   return `
-    <article class="content-card entry-card widget-card player-card player-preview-card" data-searchable="${escapeHtml(searchable)}" data-status="active" data-player-card-href="${escapeHtml(sheetHref)}" role="link" tabindex="0">
+    <article class="content-card entry-card widget-card player-card player-preview-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
       <div class="player-preview-details">
         <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
         <h3>${escapeHtml(title)}</h3>
@@ -1512,7 +1520,7 @@ function playerCharacterCard(player) {
         </div>
       </div>
       <div class="player-preview-media-column">
-        ${widgetImageDisplayMarkup(imageEntry, title)}
+        ${widgetImageMarkup(imageEntry, title)}
       </div>
     </article>`;
 }
@@ -1532,19 +1540,16 @@ function renderDashboardOverview() {
   grid.innerHTML = playerCards.length
     ? playerCards.join("")
     : `<div class="empty-state">No player widgets yet. Create player characters to populate this campaign overview.</div>`;
-  grid.querySelectorAll("[data-player-card-href]").forEach((card) => {
-    const openCard = () => {
-      window.location.href = card.dataset.playerCardHref;
-    };
-    card.addEventListener("click", (event) => {
-      if (event.target.closest("a, button")) return;
-      openCard();
-    });
-    card.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      if (event.target.closest("a, button")) return;
-      event.preventDefault();
-      openCard();
+  grid.querySelectorAll("[data-image-upload-id]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        const image = await chooseWidgetImage();
+        if (!image) return;
+        updatePlayerImage(campaign.id, button.dataset.imageUploadId, image);
+        renderDashboard();
+      } catch (error) {
+        alert(error.message);
+      }
     });
   });
   grid.querySelectorAll("[data-delete-player-id]").forEach((button) => {
@@ -1958,18 +1963,15 @@ function initMaterials() {
 }
 
 function renderMediaLibraryShell({ mapsOnly = false } = {}) {
+  updateTopNavActivePage(mapsOnly ? "maps" : "media");
   document.querySelector("main").innerHTML = `
     <section class="page-layout section-shell media-page">
       <div class="page-hero">
         <p class="eyebrow">${mapsOnly ? "Map images" : "Media library"}</p>
         <h1>${mapsOnly ? "Map Library" : "Image Library"}</h1>
-        <p>${mapsOnly ? "Upload map images into the same shared library used by widgets and dashboard sections." : "Upload reusable images once, then select them from widgets and dedicated pages."}</p>
+        <p>${mapsOnly ? "Browse map images saved into the shared library used by widgets and dashboard sections." : "Browse reusable images saved from widgets and campaign content."}</p>
       </div>
-      <div class="media-page-grid">
-        <section class="setup-form-panel">
-          <div class="section-heading"><div><p class="eyebrow">Upload</p><h2>${mapsOnly ? "Add map image" : "Add image"}</h2></div></div>
-          ${imageUploadMarkup({ submitLabel: mapsOnly ? "Upload Map" : "Upload Image" })}
-        </section>
+      <div class="media-page-grid media-page-grid-single">
         <section class="setup-summary-panel">
           <div class="section-heading">
             <div><p class="eyebrow">Library</p><h2>${mapsOnly ? "Maps" : "Images"}</h2></div>
@@ -1982,7 +1984,6 @@ function renderMediaLibraryShell({ mapsOnly = false } = {}) {
         </section>
       </div>
     </section>`;
-  initImagePickers();
   initMediaLibraryPage({ mapsOnly });
 }
 
@@ -1996,7 +1997,7 @@ async function loadMediaLibrary({ mapsOnly = false } = {}) {
     if (count) count.textContent = `${images.length} image${images.length === 1 ? "" : "s"}`;
     list.innerHTML = images.length
       ? images.map((image) => mediaImageCardMarkup(image, { selectable: false })).join("")
-      : `<div class="empty-state">No uploaded images yet.</div>`;
+      : `<div class="empty-state">No media images yet. Add images from campaign content forms, then browse them here.</div>`;
   } catch (error) {
     list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
     if (count) count.textContent = "Backend offline";
@@ -2004,37 +2005,6 @@ async function loadMediaLibrary({ mapsOnly = false } = {}) {
 }
 
 function initMediaLibraryPage({ mapsOnly = false } = {}) {
-  const form = document.querySelector("[data-image-upload-form]");
-  const fileInput = form?.querySelector('input[type="file"]');
-  const status = form?.querySelector("[data-image-upload-status]");
-  fileInput?.addEventListener("change", () => {
-    const file = fileInput.files?.[0];
-    if (status) status.textContent = file ? `Ready to upload ${file.name} (${formatBytes(file.size)}).` : "";
-  });
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const file = fileInput?.files?.[0];
-    if (!file) return;
-    if (status) {
-      status.textContent = "Uploading image...";
-      status.classList.remove("error");
-    }
-    const formData = new FormData(form);
-    try {
-      const [image] = await uploadImages([file], {
-        title: formData.get("title"),
-      });
-      form.reset();
-      resetImagePickers(form);
-      if (status) status.textContent = `Uploaded ${image.originalFilename}.`;
-      await loadMediaLibrary({ mapsOnly });
-    } catch (error) {
-      if (status) {
-        status.textContent = error.message;
-        status.classList.add("error");
-      }
-    }
-  });
   document.getElementById("media-refresh")?.addEventListener("click", () => loadMediaLibrary({ mapsOnly }));
   document.getElementById("media-library-list")?.addEventListener("click", async (event) => {
     const copyUrl = event.target?.dataset?.copyImageUrl;
@@ -2900,6 +2870,7 @@ function renderPlayerCharacterPage(campaignId, playerId) {
 function initCampaignRoutes() {
   const parts = routeParts();
   if (parts[0] !== "campaigns") return false;
+  updateTopNavActivePage("dashboard");
   const campaignId = parts[1] || DEFAULT_CAMPAIGN_ID;
   if (parts[2] === "setup") {
     renderCampaignSetupPage(campaignId);
@@ -3045,6 +3016,7 @@ function initCalendarPage() {
 
 initMobileNavigation();
 if (!initAppRoutes()) {
+  updateTopNavActivePage(document.body?.dataset?.page || "dashboard");
   initCommandInterface();
   initImagePickers();
   populateCalendarFormDefaults();

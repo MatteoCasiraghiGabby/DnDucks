@@ -211,7 +211,8 @@ test("campaign setup links use hash routes that static servers can serve", () =>
   assert.doesNotMatch(html, /href="\/campaigns\/local\/setup"/);
   assert.match(script, /id="back-to-dashboard-button"/);
   assert.match(script, /addEventListener\("click", goToDashboard\)/);
-  assert.match(script, /data-player-card-href/);
+  assert.match(script, /Open sheet/);
+  assert.doesNotMatch(script, /data-player-card-href/);
 });
 
 test("notes are returned in campaign chronology order", () => {
