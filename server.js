@@ -6,6 +6,8 @@ loadEnvFile();
 
 const { MaterialStore, MAX_FILE_SIZE_BYTES, resolveUploadDir } = require("./src/materialStore");
 const { ImageStorageService, IMAGE_UPLOAD_MAX_BYTES, IMAGE_UPLOAD_MAX_FILES, resolveImageUploadDir } = require("./src/imageStorageService");
+const { MapStorageService, MAP_UPLOAD_FIELD_NAMES, MAP_UPLOAD_MAX_BYTES, resolveMapUploadDir } = require("./src/mapStorageService");
+const { processMapImage } = require("./src/mapProcessingService");
 const {
   ALLOWED_CHARACTER_SUGGESTIONS,
   allAllowedSuggestionIds,
@@ -16,6 +18,7 @@ const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = process.cwd();
 const store = new MaterialStore(resolveUploadDir());
 const imageStore = new ImageStorageService(resolveImageUploadDir());
+const mapStore = new MapStorageService(resolveMapUploadDir());
 
 const API_CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
@@ -38,8 +41,8 @@ const STATIC_TYPES = {
   ".ico": "image/x-icon",
 };
 
-async function createServer(materialStore = store, uploadedImageStore = imageStore) {
-  await Promise.all([materialStore.ensureReady(), uploadedImageStore.ensureReady()]);
+async function createServer(materialStore = store, uploadedImageStore = imageStore, interactiveMapStore = mapStore) {
+  await Promise.all([materialStore.ensureReady(), uploadedImageStore.ensureReady(), interactiveMapStore.ensureReady()]);
 
   return http.createServer(async (req, res) => {
     let pathname = "";
@@ -68,6 +71,13 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
         return;
       }
 
+      if (pathname.startsWith("/api/maps")) {
+        res.setHeader("X-Route-Branch", "maps-route");
+        requestUrl.pathname = pathname;
+        await handleMapsApi(req, res, requestUrl, interactiveMapStore);
+        return;
+      }
+
       if (pathname === "/api/characters/analyze") {
         res.setHeader("X-Route-Branch", "character-analysis-route");
         await handleCharacterAnalysisApi(req, res, pathname);
@@ -90,6 +100,8 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
       if (req.method === "GET" || req.method === "HEAD") {
         if (requestUrl.pathname.startsWith("/uploads/images/")) {
           await serveUploadedImage(req, res, requestUrl, uploadedImageStore);
+        } else if (requestUrl.pathname.startsWith("/uploads/maps/")) {
+          await serveUploadedMapImage(req, res, requestUrl, interactiveMapStore);
         } else {
           await serveStatic(req, res, requestUrl);
         }
@@ -187,6 +199,182 @@ async function handleImageUploadsApi(req, res, uploadedImageStore, requestUrl) {
 
   if (!["GET", "POST", "PATCH", "PUT", "DELETE"].includes(req.method)) {
     sendMethodNotAllowed(req, res, ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"], { pathname: requestUrl.pathname, branch: "image-upload-method-guard" });
+    return;
+  }
+
+  sendJson(res, 404, { error: "API route not found.", code: "API_ROUTE_NOT_FOUND", pathname: requestUrl.pathname });
+}
+
+async function handleMapsApi(req, res, requestUrl, interactiveMapStore) {
+  const parts = requestUrl.pathname.split("/").filter(Boolean);
+  const mapId = parts[2];
+  const action = parts[3];
+  const cityId = parts[4];
+  const cityAction = parts[5];
+  const noteId = parts[6];
+
+  if (req.method === "POST" && requestUrl.pathname === "/api/maps") {
+    const { files, fields } = await parseMultipart(req, {
+      maxBodySize: MAP_UPLOAD_MAX_BYTES + 1024 * 1024,
+    });
+    const file = files.find((item) => MAP_UPLOAD_FIELD_NAMES.has(item.fieldName));
+    if (!file) {
+      sendJson(res, 400, { error: "Upload requires one map image field named map, image, or file.", code: "MISSING_MAP_IMAGE" });
+      return;
+    }
+    const map = await interactiveMapStore.createMap({ file, fields });
+    const processing = await processMapImage(interactiveMapStore, map.id);
+    sendJson(res, 201, { map: processing.map, processing });
+    return;
+  }
+
+  if (req.method === "GET" && requestUrl.pathname === "/api/maps") {
+    const maps = await interactiveMapStore.listMaps();
+    sendJson(res, 200, { maps, count: maps.length });
+    return;
+  }
+
+  if (!mapId) {
+    sendJson(res, 404, { error: "API route not found.", code: "API_ROUTE_NOT_FOUND", pathname: requestUrl.pathname });
+    return;
+  }
+
+  if (req.method === "GET" && !action) {
+    const map = await interactiveMapStore.getMap(mapId);
+    if (!map) {
+      sendJson(res, 404, { error: "Map not found.", code: "MAP_NOT_FOUND" });
+      return;
+    }
+    const cities = await interactiveMapStore.listCities(mapId);
+    sendJson(res, 200, { map, cities });
+    return;
+  }
+
+  if (req.method === "DELETE" && !action) {
+    const map = await interactiveMapStore.deleteMap(mapId);
+    if (!map) {
+      sendJson(res, 404, { error: "Map not found.", code: "MAP_NOT_FOUND" });
+      return;
+    }
+    sendJson(res, 200, { ok: true, deleted: map });
+    return;
+  }
+
+  if (req.method === "POST" && action === "process" && !cityId) {
+    const processing = await processMapImage(interactiveMapStore, mapId);
+    sendJson(res, 200, processing);
+    return;
+  }
+
+  if (action === "cities" && !cityId) {
+    if (req.method === "GET") {
+      const map = await interactiveMapStore.getMap(mapId);
+      if (!map) {
+        sendJson(res, 404, { error: "Map not found.", code: "MAP_NOT_FOUND" });
+        return;
+      }
+      const cities = await interactiveMapStore.listCities(mapId);
+      sendJson(res, 200, { cities, count: cities.length });
+      return;
+    }
+
+    if (req.method === "POST") {
+      const fields = await parseJsonBody(req, { maxBodySize: 32 * 1024 });
+      const city = await interactiveMapStore.createCity(mapId, fields);
+      if (!city) {
+        sendJson(res, 404, { error: "Map not found.", code: "MAP_NOT_FOUND" });
+        return;
+      }
+      sendJson(res, 201, city);
+      return;
+    }
+  }
+
+  if (action === "cities" && cityId && !cityAction) {
+    if (req.method === "GET") {
+      const city = await interactiveMapStore.getCity(mapId, cityId);
+      if (!city) {
+        sendJson(res, 404, { error: "City not found.", code: "CITY_NOT_FOUND" });
+        return;
+      }
+      sendJson(res, 200, city);
+      return;
+    }
+
+    if (req.method === "PATCH" || req.method === "PUT") {
+      const fields = await parseJsonBody(req, { maxBodySize: 32 * 1024 });
+      const city = await interactiveMapStore.updateCity(mapId, cityId, fields);
+      if (!city) {
+        sendJson(res, 404, { error: "City not found.", code: "CITY_NOT_FOUND" });
+        return;
+      }
+      sendJson(res, 200, city);
+      return;
+    }
+
+    if (req.method === "DELETE") {
+      const city = await interactiveMapStore.deleteCity(mapId, cityId);
+      if (!city) {
+        sendJson(res, 404, { error: "City not found.", code: "CITY_NOT_FOUND" });
+        return;
+      }
+      sendJson(res, 200, { ok: true, deleted: city });
+      return;
+    }
+  }
+
+  if (action === "cities" && cityId && cityAction === "notes" && !noteId) {
+    const city = await interactiveMapStore.getCity(mapId, cityId);
+    if (!city) {
+      sendJson(res, 404, { error: "City not found.", code: "CITY_NOT_FOUND" });
+      return;
+    }
+
+    if (req.method === "GET") {
+      const notes = await interactiveMapStore.listNotes(cityId);
+      sendJson(res, 200, { notes, count: notes.length });
+      return;
+    }
+
+    if (req.method === "POST") {
+      const fields = await parseJsonBody(req, { maxBodySize: 64 * 1024 });
+      const note = await interactiveMapStore.createNote(cityId, fields);
+      sendJson(res, 201, note);
+      return;
+    }
+  }
+
+  if (action === "cities" && cityId && cityAction === "notes" && noteId) {
+    const city = await interactiveMapStore.getCity(mapId, cityId);
+    if (!city) {
+      sendJson(res, 404, { error: "City not found.", code: "CITY_NOT_FOUND" });
+      return;
+    }
+
+    if (req.method === "PATCH" || req.method === "PUT") {
+      const fields = await parseJsonBody(req, { maxBodySize: 64 * 1024 });
+      const note = await interactiveMapStore.updateNote(cityId, noteId, fields);
+      if (!note) {
+        sendJson(res, 404, { error: "City note not found.", code: "CITY_NOTE_NOT_FOUND" });
+        return;
+      }
+      sendJson(res, 200, note);
+      return;
+    }
+
+    if (req.method === "DELETE") {
+      const note = await interactiveMapStore.deleteNote(cityId, noteId);
+      if (!note) {
+        sendJson(res, 404, { error: "City note not found.", code: "CITY_NOTE_NOT_FOUND" });
+        return;
+      }
+      sendJson(res, 200, { ok: true, deleted: note });
+      return;
+    }
+  }
+
+  if (!["GET", "POST", "PATCH", "PUT", "DELETE"].includes(req.method)) {
+    sendMethodNotAllowed(req, res, ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"], { pathname: requestUrl.pathname, branch: "maps-method-guard" });
     return;
   }
 
@@ -653,6 +841,45 @@ async function serveUploadedImage(req, res, requestUrl, uploadedImageStore) {
   }
 }
 
+async function serveUploadedMapImage(req, res, requestUrl, interactiveMapStore) {
+  const encodedName = requestUrl.pathname.slice("/uploads/maps/".length);
+  let savedFilename;
+  try {
+    savedFilename = decodeURIComponent(encodedName);
+  } catch {
+    sendText(res, 404, "Not found");
+    return;
+  }
+
+  if (!/^[0-9]+-[0-9a-f-]+\.(?:jpg|jpeg|png|webp|gif)$/i.test(savedFilename)) {
+    sendText(res, 404, "Not found");
+    return;
+  }
+
+  const filePath = interactiveMapStore.resolveStoredPath(savedFilename);
+  try {
+    const stats = await fsp.stat(filePath);
+    if (!stats.isFile()) {
+      sendText(res, 404, "Not found");
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": STATIC_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream",
+      "Content-Length": stats.size,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
+    });
+    if (req.method === "HEAD") res.end();
+    else fs.createReadStream(filePath).pipe(res);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      sendText(res, 404, "Not found");
+      return;
+    }
+    throw error;
+  }
+}
+
 async function streamMaterial(res, material, filePath) {
   try {
     const stats = await fsp.stat(filePath);
@@ -751,6 +978,7 @@ if (require.main === module) {
       console.log(`Backend listening on ${PORT}`);
       console.log(`Campaign material uploads stored in ${resolveUploadDir()}`);
       console.log(`Image uploads stored in ${resolveImageUploadDir()}`);
+      console.log(`Interactive maps stored in ${resolveMapUploadDir()}`);
     });
   });
 }

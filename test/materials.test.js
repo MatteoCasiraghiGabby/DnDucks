@@ -6,20 +6,44 @@ const test = require("node:test");
 const { createServer } = require("../server");
 const { MaterialStore } = require("../src/materialStore");
 const { ImageStorageService } = require("../src/imageStorageService");
+const { MapStorageService } = require("../src/mapStorageService");
 
 async function withServer(t) {
   const uploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-materials-"));
   const imageUploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-images-"));
+  const mapUploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-maps-"));
   const store = new MaterialStore(uploadDir);
   const imageStore = new ImageStorageService(imageUploadDir);
-  const server = await createServer(store, imageStore);
+  const mapStore = new MapStorageService(mapUploadDir);
+  const server = await createServer(store, imageStore, mapStore);
   await new Promise((resolve) => server.listen(0, resolve));
   t.after(async () => {
     await new Promise((resolve) => server.close(resolve));
     await fs.rm(uploadDir, { recursive: true, force: true });
     await fs.rm(imageUploadDir, { recursive: true, force: true });
+    await fs.rm(mapUploadDir, { recursive: true, force: true });
   });
-  return { baseUrl: `http://127.0.0.1:${server.address().port}`, uploadDir, imageUploadDir };
+  return { baseUrl: `http://127.0.0.1:${server.address().port}`, uploadDir, imageUploadDir, mapUploadDir };
+}
+
+function pngHeader(width = 800, height = 600) {
+  const buffer = Buffer.alloc(33);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(buffer, 0);
+  buffer.writeUInt32BE(13, 8);
+  buffer.write("IHDR", 12, "ascii");
+  buffer.writeUInt32BE(width, 16);
+  buffer.writeUInt32BE(height, 20);
+  buffer[24] = 8;
+  buffer[25] = 2;
+  return buffer;
+}
+
+async function uploadMap(baseUrl, filename = "world.png") {
+  const form = new FormData();
+  form.set("title", "Ashen Coast");
+  form.set("map", new Blob([pngHeader(1000, 500)], { type: "image/png" }), filename);
+  const response = await fetch(`${baseUrl}/api/maps`, { method: "POST", body: form });
+  return { response, body: await response.json() };
 }
 
 async function uploadMaterial(baseUrl, filename = "map.txt", content = "hidden gate") {
@@ -223,6 +247,118 @@ test("image upload returns a clear error when no image file is provided", async 
 
   assert.equal(response.status, 400);
   assert.match(payload.error, /requires at least one image field/);
+});
+
+test("dedicated map upload processes to manual-ready status without using media routes", async (t) => {
+  const { baseUrl, mapUploadDir } = await withServer(t);
+  const { response, body } = await uploadMap(baseUrl);
+
+  assert.equal(response.status, 201);
+  assert.equal(response.headers.get("x-route-branch"), "maps-route");
+  assert.equal(body.map.title, "Ashen Coast");
+  assert.equal(body.map.originalFilename, "world.png");
+  assert.equal(body.map.imageWidth, 1000);
+  assert.equal(body.map.imageHeight, 500);
+  assert.equal(body.map.status, "ready");
+  assert.equal(body.processing.detectionImplemented, false);
+  assert.match(body.map.imageUrl, /^\/uploads\/maps\//);
+  assert.ok(await fs.readFile(path.join(mapUploadDir, body.map.savedFilename)));
+
+  const mediaList = await fetch(`${baseUrl}/api/uploads/images`).then((res) => res.json());
+  assert.equal(mediaList.count, 0);
+
+  const served = await fetch(`${baseUrl}${body.map.imageUrl}`);
+  assert.equal(served.status, 200);
+  assert.equal(served.headers.get("content-type"), "image/png");
+});
+
+test("map city pins and city notes use dedicated map records", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const { body } = await uploadMap(baseUrl);
+  const mapId = body.map.id;
+
+  const cityResponse = await fetch(`${baseUrl}/api/maps/${mapId}/cities`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cityName: "Brightwater", x: 250, y: 125 }),
+  });
+  const city = await cityResponse.json();
+  assert.equal(cityResponse.status, 201);
+  assert.equal(city.cityName, "Brightwater");
+  assert.equal(city.x, 250);
+  assert.equal(city.y, 125);
+  assert.equal(city.normalizedX, 0.25);
+  assert.equal(city.normalizedY, 0.25);
+
+  const noteResponse = await fetch(`${baseUrl}/api/maps/${mapId}/cities/${city.id}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: "Harbor rumor", content: "The old bell rings before storms." }),
+  });
+  const note = await noteResponse.json();
+  assert.equal(noteResponse.status, 201);
+  assert.equal(note.mapCityId, city.id);
+
+  const detail = await fetch(`${baseUrl}/api/maps/${mapId}`).then((res) => res.json());
+  assert.equal(detail.cities.length, 1);
+  assert.equal(detail.cities[0].id, city.id);
+
+  const notes = await fetch(`${baseUrl}/api/maps/${mapId}/cities/${city.id}/notes`).then((res) => res.json());
+  assert.equal(notes.count, 1);
+  assert.equal(notes.notes[0].title, "Harbor rumor");
+
+  const updated = await fetch(`${baseUrl}/api/maps/${mapId}/cities/${city.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cityName: "Brightwater Port", normalizedX: 0.5, normalizedY: 0.6 }),
+  }).then((res) => res.json());
+  assert.equal(updated.cityName, "Brightwater Port");
+  assert.equal(updated.x, 500);
+  assert.equal(updated.y, 300);
+
+  const deleted = await fetch(`${baseUrl}/api/maps/${mapId}/cities/${city.id}`, { method: "DELETE" });
+  assert.equal(deleted.status, 200);
+  const afterDelete = await fetch(`${baseUrl}/api/maps/${mapId}/cities`).then((res) => res.json());
+  assert.equal(afterDelete.count, 0);
+});
+
+test("deleting a map removes its stored file and nested map records", async (t) => {
+  const { baseUrl, mapUploadDir } = await withServer(t);
+  const { body } = await uploadMap(baseUrl);
+  const map = body.map;
+
+  const city = await fetch(`${baseUrl}/api/maps/${map.id}/cities`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cityName: "Stoneford", normalizedX: 0.4, normalizedY: 0.5 }),
+  }).then((res) => res.json());
+  await fetch(`${baseUrl}/api/maps/${map.id}/cities/${city.id}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: "Gatehouse", content: "Locked at sundown." }),
+  });
+
+  const deletion = await fetch(`${baseUrl}/api/maps/${map.id}`, { method: "DELETE" });
+  assert.equal(deletion.status, 200);
+  await assert.rejects(fs.access(path.join(mapUploadDir, map.savedFilename)), /ENOENT/);
+
+  const maps = await fetch(`${baseUrl}/api/maps`).then((res) => res.json());
+  assert.equal(maps.count, 0);
+  const missing = await fetch(`${baseUrl}/api/maps/${map.id}`);
+  assert.equal(missing.status, 404);
+});
+
+test("map upload rejects non-image files", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const form = new FormData();
+  form.set("title", "Bad map");
+  form.set("map", new Blob(["not a map"], { type: "text/plain" }), "notes.txt");
+
+  const response = await fetch(`${baseUrl}/api/maps`, { method: "POST", body: form });
+  const payload = await response.json();
+
+  assert.equal(response.status, 415);
+  assert.match(payload.error, /Only jpg/);
 });
 
 test("character analysis API returns validated suggestions without exposing OpenAI to the browser", async (t) => {

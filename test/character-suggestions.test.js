@@ -8,8 +8,9 @@ const {
 
 test("character suggestions load from the editable TSV file", () => {
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgroundFeatures.some((item) => item.id === "background-feature-researcher"));
-  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits.some((item) => item.id === "racial-trait-darkvision"));
-  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.some((item) => item.tags.includes("watch")));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits.some((item) => item.id === "racial-trait-darkvision-60"));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.some((item) => item.id === "feat-alert-2024" && item.tags.includes("watchful")));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-acolyte-2024" && item.mechanics.includes("Origin feat")));
 });
 
 test("manual TSV entries parse into suggestion categories", () => {

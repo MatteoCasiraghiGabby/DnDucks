@@ -579,6 +579,155 @@ textarea { resize: vertical; }
   min-height: 34px;
   font-size: 0.8rem;
 }
+.map-page-grid,
+.map-detail-grid,
+.city-page-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+  gap: 20px;
+  align-items: start;
+}
+.map-detail-grid { grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr); }
+.city-page-grid { grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr); }
+.map-list-grid,
+.city-list {
+  display: grid;
+  gap: 14px;
+}
+.map-list-grid { grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); }
+.map-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+.map-card-preview {
+  display: grid;
+  place-items: center;
+  min-height: 210px;
+  margin: -1px -1px 8px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 1px);
+  background: rgba(255, 250, 236, 0.62);
+  overflow: hidden;
+}
+.map-card-preview img {
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+}
+.map-file-picker {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.map-file-picker > label { grid-column: 1 / -1; }
+.map-file-picker input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.interactive-map-shell {
+  display: grid;
+  gap: 12px;
+}
+.interactive-map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.interactive-map-viewport {
+  width: 100%;
+  max-height: min(72vh, 780px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(15, 17, 21, 0.40);
+}
+.interactive-map-canvas {
+  --map-scale: 1;
+  position: relative;
+  width: calc(100% * var(--map-scale));
+  min-width: 100%;
+  line-height: 0;
+}
+.interactive-map-canvas img {
+  width: 100%;
+  height: auto;
+  min-height: 260px;
+  object-fit: contain;
+  background: rgba(255, 250, 236, 0.62);
+}
+.map-pin,
+.map-click-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 2;
+}
+.map-pin {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: #fff6e6;
+  line-height: 1.1;
+  text-align: center;
+}
+.map-pin span,
+.map-click-marker {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fff6e6;
+  border-radius: 999px;
+  background: var(--ember-2);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.32);
+}
+.map-pin strong {
+  max-width: 140px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #fff6e6;
+  font-size: 0.76rem;
+  line-height: 1.15;
+  background: rgba(18, 13, 10, 0.76);
+  white-space: normal;
+}
+.map-pin:hover span,
+.map-pin.is-selected span {
+  background: var(--arcane);
+  transform: scale(1.18);
+}
+.map-click-marker {
+  border: 2px solid var(--text);
+  background: var(--gold);
+}
+.map-side-panel,
+.city-preview-panel,
+.city-notes-panel,
+.map-view-panel {
+  display: grid;
+  gap: 16px;
+}
+.city-list-item {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background: rgba(15, 17, 21, 0.22);
+}
+.city-list-item h3 { margin: 0; }
+.city-list-item p { margin: 0; color: var(--muted); }
+.map-preview {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(15, 17, 21, 0.34);
+}
+.city-note-form { margin-bottom: 16px; }
 .media-picker-modal {
   position: fixed;
   inset: 0;
@@ -660,7 +809,10 @@ textarea { resize: vertical; }
   .card-visual span { font-size: 3.4rem; }
   .hero,
   .app-shell,
-  .map-placeholder { grid-template-columns: 1fr; }
+  .map-placeholder,
+  .map-page-grid,
+  .map-detail-grid,
+  .city-page-grid { grid-template-columns: 1fr; }
   .sidebar { position: static; }
   .dashboard-grid,
   .filter-grid,
@@ -694,6 +846,9 @@ textarea { resize: vertical; }
   .info-grid,
   .filter-grid,
   .session-grid,
+  .map-page-grid,
+  .map-detail-grid,
+  .city-page-grid,
   .campaign-card { grid-template-columns: 1fr; }
   .span-2,
   .full-width { grid-column: auto; }

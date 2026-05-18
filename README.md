@@ -121,7 +121,7 @@ Example response:
 
 The frontend uses one vanilla JavaScript upload service, `uploadImages(files, metadata)`, which sends selected files with `FormData` to `/api/uploads/images`. Widget forms use the same image picker pattern and now persist uploaded image ids plus uploaded image URLs instead of embedding new images as base64 data.
 
-Open `index.html#/media` for the reusable image library. Open `index.html#/maps` for a map-focused entry point into the same shared library. Widgets can upload directly or select an existing image through the shared media picker.
+Open `index.html#/media` for the reusable image library. Widgets can upload directly or select an existing image through the shared media picker.
 
 To place an image picker in a page or widget, follow the existing `data-image-picker` pattern:
 
@@ -134,6 +134,50 @@ To place an image picker in a page or widget, follow the existing `data-image-pi
   <img class="image-picker-preview" data-image-preview alt="Selected image preview" hidden />
 </div>
 ```
+
+## Interactive maps
+
+Interactive maps are a separate module from the general media/image library. Map uploads do not use `/api/uploads/images`, media metadata, media categories, or the shared media picker.
+
+### Storage location
+
+Dedicated map images and map metadata are stored in:
+
+```bash
+./uploads/maps
+```
+
+Configure the folder and limit with:
+
+```bash
+MAP_UPLOAD_DIR=./uploads/maps
+MAP_UPLOAD_MAX_BYTES=12582912
+```
+
+The map index stores three dedicated record groups: `maps`, `cities`, and `notes`.
+
+### Maps API
+
+- `POST /api/maps` uploads one multipart map image field named `map`, `image`, or `file`, creates a map record, and runs the map processing service.
+- `GET /api/maps` lists maps.
+- `GET /api/maps/:mapId` returns one map with its cities.
+- `DELETE /api/maps/:mapId` deletes the map image, map record, cities, and city notes.
+- `POST /api/maps/:mapId/process` runs map processing again.
+- `GET /api/maps/:mapId/cities` lists city pins.
+- `POST /api/maps/:mapId/cities` creates a city pin with pixel and normalized coordinates.
+- `GET /api/maps/:mapId/cities/:cityId` returns one city pin.
+- `PATCH /api/maps/:mapId/cities/:cityId` updates the city name or coordinates.
+- `DELETE /api/maps/:mapId/cities/:cityId` deletes the city pin and its notes.
+- `GET /api/maps/:mapId/cities/:cityId/notes` lists city notes.
+- `POST /api/maps/:mapId/cities/:cityId/notes` creates a city note.
+- `PATCH /api/maps/:mapId/cities/:cityId/notes/:noteId` updates a city note.
+- `DELETE /api/maps/:mapId/cities/:cityId/notes/:noteId` deletes a city note.
+
+The current map processing service is intentionally isolated in `src/mapProcessingService.js`. It marks uploaded maps as `ready` for manual pin placement and does not fake OCR/computer-vision city detection. Future detection should be added inside that service and should create `MapCity` records with pixel and normalized coordinates.
+
+### Frontend use
+
+Open `index.html#/maps` for the dedicated Map Studio. From there users can upload maps, open an interactive map viewer, click the map image to place city pins, and open city pages for notes. City pins store both image pixel coordinates and normalized coordinates so pins stay aligned as the map resizes.
 
 ## Character story suggestions
 

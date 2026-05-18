@@ -1959,19 +1959,19 @@ function initMaterials() {
   loadMaterials();
 }
 
-function renderMediaLibraryShell({ mapsOnly = false } = {}) {
-  updateTopNavActivePage(mapsOnly ? "maps" : "media");
+function renderMediaLibraryShell() {
+  updateTopNavActivePage("media");
   document.querySelector("main").innerHTML = `
     <section class="page-layout section-shell media-page">
       <div class="page-hero">
-        <p class="eyebrow">${mapsOnly ? "Map images" : "Media library"}</p>
-        <h1>${mapsOnly ? "Map Library" : "Image Library"}</h1>
-        <p>${mapsOnly ? "Browse map images saved into the shared library used by widgets and dashboard sections." : "Browse reusable images saved from widgets and campaign content."}</p>
+        <p class="eyebrow">Media library</p>
+        <h1>Image Library</h1>
+        <p>Browse reusable images saved from widgets and campaign content.</p>
       </div>
       <div class="media-page-grid media-page-grid-single">
         <section class="setup-summary-panel">
           <div class="section-heading">
-            <div><p class="eyebrow">Library</p><h2>${mapsOnly ? "Maps" : "Images"}</h2></div>
+            <div><p class="eyebrow">Library</p><h2>Images</h2></div>
             <span id="media-count" class="muted"></span>
           </div>
           <div class="media-toolbar">
@@ -1981,10 +1981,10 @@ function renderMediaLibraryShell({ mapsOnly = false } = {}) {
         </section>
       </div>
     </section>`;
-  initMediaLibraryPage({ mapsOnly });
+  initMediaLibraryPage();
 }
 
-async function loadMediaLibrary({ mapsOnly = false } = {}) {
+async function loadMediaLibrary() {
   const list = document.getElementById("media-library-list");
   const count = document.getElementById("media-count");
   if (!list) return;
@@ -2001,8 +2001,8 @@ async function loadMediaLibrary({ mapsOnly = false } = {}) {
   }
 }
 
-function initMediaLibraryPage({ mapsOnly = false } = {}) {
-  document.getElementById("media-refresh")?.addEventListener("click", () => loadMediaLibrary({ mapsOnly }));
+function initMediaLibraryPage() {
+  document.getElementById("media-refresh")?.addEventListener("click", () => loadMediaLibrary());
   document.getElementById("media-library-list")?.addEventListener("click", async (event) => {
     const deleteId = event.target?.dataset?.deleteImage;
     const editId = event.target?.dataset?.editImage;
@@ -2013,7 +2013,7 @@ function initMediaLibraryPage({ mapsOnly = false } = {}) {
       if (title === null) return;
       try {
         await updateImageMetadata(editId, { title });
-        await loadMediaLibrary({ mapsOnly });
+        await loadMediaLibrary();
       } catch (error) {
         alert(error.message);
       }
@@ -2022,13 +2022,618 @@ function initMediaLibraryPage({ mapsOnly = false } = {}) {
       if (!confirm("Delete this image and remove the stored file from disk?")) return;
       try {
         await deleteImage(deleteId);
-        await loadMediaLibrary({ mapsOnly });
+        await loadMediaLibrary();
       } catch (error) {
         alert(error.message);
       }
     }
   });
-  loadMediaLibrary({ mapsOnly });
+  loadMediaLibrary();
+}
+
+function mapDetailHref(mapId) {
+  return `index.html#/maps/${encodeURIComponent(mapId)}`;
+}
+
+function cityDetailHref(mapId, cityId) {
+  return `index.html#/maps/${encodeURIComponent(mapId)}/cities/${encodeURIComponent(cityId)}`;
+}
+
+async function uploadInteractiveMap(formData) {
+  return fetchJson("/api/maps", { method: "POST", body: formData });
+}
+
+async function listInteractiveMaps() {
+  const payload = await fetchJson("/api/maps");
+  return payload.maps || [];
+}
+
+async function getInteractiveMap(mapId) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}`);
+}
+
+async function deleteInteractiveMap(mapId) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}`, { method: "DELETE" });
+}
+
+async function processInteractiveMap(mapId) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}/process`, { method: "POST" });
+}
+
+async function createMapCity(mapId, city) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}/cities`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(city),
+  });
+}
+
+async function updateMapCity(mapId, cityId, city) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}/cities/${encodeURIComponent(cityId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(city),
+  });
+}
+
+async function deleteMapCity(mapId, cityId) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}/cities/${encodeURIComponent(cityId)}`, { method: "DELETE" });
+}
+
+async function listCityNotes(mapId, cityId) {
+  const payload = await fetchJson(`/api/maps/${encodeURIComponent(mapId)}/cities/${encodeURIComponent(cityId)}/notes`);
+  return payload.notes || [];
+}
+
+async function createCityNote(mapId, cityId, note) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}/cities/${encodeURIComponent(cityId)}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(note),
+  });
+}
+
+async function updateCityNote(mapId, cityId, noteId, note) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}/cities/${encodeURIComponent(cityId)}/notes/${encodeURIComponent(noteId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(note),
+  });
+}
+
+async function deleteCityNote(mapId, cityId, noteId) {
+  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}/cities/${encodeURIComponent(cityId)}/notes/${encodeURIComponent(noteId)}`, { method: "DELETE" });
+}
+
+function mapUploadFormMarkup() {
+  return `
+    <form class="panel form-grid map-upload-form" id="map-upload-form">
+      <label>Map title<input id="map-title" name="title" type="text" placeholder="Sword Coast region" required /></label>
+      <div class="file-picker map-file-picker full-width">
+        <label>Map image</label>
+        <input id="map-file" name="map" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required />
+        <button class="btn btn-secondary" type="button" id="map-file-trigger">Choose map image</button>
+        <span class="image-picker-status" id="map-file-status">No map image chosen</span>
+        <img class="image-picker-preview" id="map-file-preview" alt="Selected map preview" hidden />
+      </div>
+      <div class="form-message full-width" id="map-upload-status" aria-live="polite"></div>
+      <button class="btn btn-primary" type="submit">Upload map</button>
+    </form>`;
+}
+
+function mapCardMarkup(map) {
+  const title = map.title || map.originalFilename || "Untitled map";
+  return `
+    <article class="content-card entry-card map-card" data-map-card="${escapeHtml(map.id)}">
+      <a class="map-card-preview" href="${escapeHtml(mapDetailHref(map.id))}">
+        <img src="${escapeHtml(map.imageUrl)}" alt="${escapeHtml(title)}" loading="lazy" />
+      </a>
+      <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(map.status || "ready")}</span><span>${escapeHtml(formatBytes(map.fileSize))}</span></div>
+      <h3>${escapeHtml(title)}</h3>
+      ${widgetTagsMarkup([map.imageWidth && map.imageHeight ? `${map.imageWidth} x ${map.imageHeight}` : "Dimensions pending", formatUploadedAt(map.createdAt)])}
+      <div class="entry-actions">
+        <a class="btn btn-primary" href="${escapeHtml(mapDetailHref(map.id))}">Open map</a>
+        <button class="btn btn-secondary" type="button" data-process-map="${escapeHtml(map.id)}">Process</button>
+        <button class="btn btn-danger" type="button" data-delete-map="${escapeHtml(map.id)}">Delete</button>
+      </div>
+    </article>`;
+}
+
+function renderMapsOverviewPage() {
+  updateTopNavActivePage("maps");
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell map-page">
+      <div class="page-hero">
+        <p class="eyebrow">Interactive maps</p>
+        <h1>Map Studio</h1>
+        <p>Upload world, region, or city maps here. This module stores maps, city pins, and city notes separately from the general media library.</p>
+      </div>
+      <div class="map-page-grid">
+        <section class="setup-form-panel">
+          <div class="section-heading"><div><p class="eyebrow">Upload</p><h2>New map</h2></div></div>
+          ${mapUploadFormMarkup()}
+        </section>
+        <section class="setup-summary-panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">Maps</p><h2>Uploaded maps</h2></div>
+            <span id="map-count" class="muted"></span>
+          </div>
+          <div class="media-toolbar">
+            <button class="btn btn-secondary" type="button" id="map-refresh">Refresh</button>
+          </div>
+          <div class="map-list-grid" id="map-list" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>`;
+  initMapsOverviewPage();
+}
+
+async function loadMapsOverview() {
+  const list = document.getElementById("map-list");
+  const count = document.getElementById("map-count");
+  if (!list) return;
+  list.innerHTML = `<div class="empty-state">Loading maps...</div>`;
+  try {
+    const maps = await listInteractiveMaps();
+    if (count) count.textContent = `${maps.length} map${maps.length === 1 ? "" : "s"}`;
+    list.innerHTML = maps.length
+      ? maps.map(mapCardMarkup).join("")
+      : `<div class="empty-state">No interactive maps yet. Upload a map image to create the first map viewer.</div>`;
+  } catch (error) {
+    list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+    if (count) count.textContent = "Backend offline";
+  }
+}
+
+function initMapFilePreview() {
+  const input = document.getElementById("map-file");
+  const trigger = document.getElementById("map-file-trigger");
+  const status = document.getElementById("map-file-status");
+  const preview = document.getElementById("map-file-preview");
+  if (!input || !trigger) return;
+
+  trigger.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (status) {
+      status.textContent = file ? `${file.name} ready (${formatBytes(file.size)}).` : "No map image chosen";
+      status.classList.toggle("error", Boolean(file && !file.type.startsWith("image/")));
+    }
+    if (!preview) return;
+    if (!file || !file.type.startsWith("image/")) {
+      preview.removeAttribute("src");
+      preview.hidden = true;
+      return;
+    }
+    preview.src = URL.createObjectURL(file);
+    preview.hidden = false;
+  });
+}
+
+function initMapsOverviewPage() {
+  initMapFilePreview();
+  document.getElementById("map-refresh")?.addEventListener("click", loadMapsOverview);
+  document.getElementById("map-list")?.addEventListener("click", async (event) => {
+    const deleteId = event.target?.dataset?.deleteMap;
+    const processId = event.target?.dataset?.processMap;
+    if (deleteId) {
+      if (!confirm("Delete this interactive map, its city pins, notes, and stored image?")) return;
+      try {
+        await deleteInteractiveMap(deleteId);
+        await loadMapsOverview();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+    if (processId) {
+      try {
+        await processInteractiveMap(processId);
+        await loadMapsOverview();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  });
+
+  document.getElementById("map-upload-form")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = document.getElementById("map-upload-status");
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const file = document.getElementById("map-file")?.files?.[0];
+    if (!file?.type?.startsWith("image/")) {
+      if (status) {
+        status.textContent = "Choose a jpg, png, webp, or gif map image.";
+        status.classList.add("error");
+      }
+      return;
+    }
+    if (status) {
+      status.textContent = "Uploading and preparing map...";
+      status.classList.remove("error");
+    }
+    try {
+      const payload = await uploadInteractiveMap(new FormData(form));
+      if (status) status.textContent = payload.processing?.message || "Map ready for city pins.";
+      form.reset();
+      const preview = document.getElementById("map-file-preview");
+      if (preview) {
+        preview.removeAttribute("src");
+        preview.hidden = true;
+      }
+      const fileStatus = document.getElementById("map-file-status");
+      if (fileStatus) fileStatus.textContent = "No map image chosen";
+      await loadMapsOverview();
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+        status.classList.add("error");
+      }
+    }
+  });
+
+  loadMapsOverview();
+}
+
+function mapPinMarkup(city, options = {}) {
+  const selected = options.selectedCityId === city.id;
+  return `
+    <a class="map-pin${selected ? " is-selected" : ""}" href="${escapeHtml(cityDetailHref(city.mapId, city.id))}" style="left:${Number(city.normalizedX) * 100}%;top:${Number(city.normalizedY) * 100}%;" title="${escapeHtml(city.cityName)}">
+      <span></span>
+      <strong>${escapeHtml(city.cityName)}</strong>
+    </a>`;
+}
+
+function interactiveMapViewerMarkup(map, cities = [], options = {}) {
+  const title = map.title || map.originalFilename || "Map";
+  return `
+    <div class="interactive-map-shell" data-map-viewer>
+      <div class="interactive-map-toolbar">
+        <button class="btn btn-secondary" type="button" data-map-zoom-out>Zoom out</button>
+        <button class="btn btn-secondary" type="button" data-map-zoom-reset>Reset</button>
+        <button class="btn btn-secondary" type="button" data-map-zoom-in>Zoom in</button>
+      </div>
+      <div class="interactive-map-viewport">
+        <div class="interactive-map-canvas" style="--map-scale: 1;" data-map-canvas>
+          <img data-map-image src="${escapeHtml(map.imageUrl)}" alt="${escapeHtml(title)}" />
+          ${cities.map((city) => mapPinMarkup(city, options)).join("")}
+          <button class="map-click-marker" type="button" data-map-click-marker hidden></button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function cityPinFormMarkup() {
+  return `
+    <form class="panel form-grid city-pin-form" id="city-pin-form">
+      <label class="full-width">City name<input id="city-name" type="text" placeholder="Neverwinter" required /></label>
+      <input id="city-x" type="hidden" />
+      <input id="city-y" type="hidden" />
+      <input id="city-normalized-x" type="hidden" />
+      <input id="city-normalized-y" type="hidden" />
+      <div class="form-message full-width" id="city-pin-status" aria-live="polite">Click the map to choose a city location.</div>
+      <button class="btn btn-primary" type="submit">Save city pin</button>
+    </form>`;
+}
+
+function cityListMarkup(map, cities) {
+  if (!cities.length) return `<div class="empty-state">No city pins yet. Click the map image to place the first city.</div>`;
+  return cities.map((city) => `
+    <article class="city-list-item" data-city-id="${escapeHtml(city.id)}">
+      <div>
+        <h3>${escapeHtml(city.cityName)}</h3>
+        <p>${Math.round(Number(city.normalizedX) * 100)}%, ${Math.round(Number(city.normalizedY) * 100)}% on map</p>
+      </div>
+      <div class="entry-actions">
+        <a class="btn btn-primary" href="${escapeHtml(cityDetailHref(map.id, city.id))}">Open</a>
+        <button class="btn btn-secondary" type="button" data-edit-city="${escapeHtml(city.id)}">Edit</button>
+        <button class="btn btn-danger" type="button" data-delete-city="${escapeHtml(city.id)}">Delete</button>
+      </div>
+    </article>`).join("");
+}
+
+async function renderMapDetailPage(mapId) {
+  updateTopNavActivePage("maps");
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell map-detail-page">
+      <div class="page-hero">
+        <p class="eyebrow">Interactive map</p>
+        <h1>Loading map...</h1>
+        <p>Preparing city pins and notes.</p>
+      </div>
+    </section>`;
+
+  try {
+    const { map, cities = [] } = await getInteractiveMap(mapId);
+    const title = map.title || map.originalFilename || "Map";
+    document.querySelector("main").innerHTML = `
+      <section class="page-layout section-shell map-detail-page">
+        <div class="page-hero">
+          <p class="eyebrow">Interactive map</p>
+          <h1>${escapeHtml(title)}</h1>
+          <p>${map.status === "ready" ? "Click the map to add city pins. Existing pins open dedicated city note pages." : `Map status: ${escapeHtml(map.status)}.`}</p>
+          <div class="hero-actions">
+            <a class="btn btn-secondary" href="index.html#/maps">Back to maps</a>
+            <button class="btn btn-secondary" type="button" id="process-current-map">Process map</button>
+          </div>
+        </div>
+        <div class="map-detail-grid">
+          <section class="map-view-panel">
+            ${interactiveMapViewerMarkup(map, cities)}
+          </section>
+          <aside class="map-side-panel">
+            <div class="section-heading"><div><p class="eyebrow">Manual pins</p><h2>Add a city</h2></div></div>
+            ${cityPinFormMarkup()}
+            <div class="section-heading"><div><p class="eyebrow">Cities</p><h2>City pins</h2></div></div>
+            <div class="city-list" id="city-list" aria-live="polite">${cityListMarkup(map, cities)}</div>
+          </aside>
+        </div>
+      </section>`;
+    initMapDetailPage(map, cities);
+  } catch (error) {
+    renderNotFoundPage(error.message);
+  }
+}
+
+function setCityPinFormPoint(map, normalizedX, normalizedY) {
+  const x = Math.round(normalizedX * (Number(map.imageWidth) || 0));
+  const y = Math.round(normalizedY * (Number(map.imageHeight) || 0));
+  const fields = {
+    "city-x": x,
+    "city-y": y,
+    "city-normalized-x": normalizedX,
+    "city-normalized-y": normalizedY,
+  };
+  Object.entries(fields).forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (input) input.value = String(value);
+  });
+  const status = document.getElementById("city-pin-status");
+  if (status) {
+    status.textContent = `Pin selected at ${Math.round(normalizedX * 100)}%, ${Math.round(normalizedY * 100)}% on the map.`;
+    status.classList.remove("error");
+  }
+  const marker = document.querySelector("[data-map-click-marker]");
+  if (marker) {
+    marker.style.left = `${normalizedX * 100}%`;
+    marker.style.top = `${normalizedY * 100}%`;
+    marker.hidden = false;
+  }
+}
+
+function initMapDetailPage(map, cities) {
+  let zoom = 1;
+  const canvas = document.querySelector("[data-map-canvas]");
+  const image = document.querySelector("[data-map-image]");
+  const applyZoom = () => {
+    if (canvas) canvas.style.setProperty("--map-scale", String(zoom));
+  };
+
+  document.querySelector("[data-map-zoom-in]")?.addEventListener("click", () => {
+    zoom = Math.min(2.5, Math.round((zoom + 0.25) * 100) / 100);
+    applyZoom();
+  });
+  document.querySelector("[data-map-zoom-out]")?.addEventListener("click", () => {
+    zoom = Math.max(0.75, Math.round((zoom - 0.25) * 100) / 100);
+    applyZoom();
+  });
+  document.querySelector("[data-map-zoom-reset]")?.addEventListener("click", () => {
+    zoom = 1;
+    applyZoom();
+  });
+  document.getElementById("process-current-map")?.addEventListener("click", async () => {
+    try {
+      const result = await processInteractiveMap(map.id);
+      alert(result.message || "Map processing finished.");
+      renderMapDetailPage(map.id);
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  image?.addEventListener("click", (event) => {
+    const rect = image.getBoundingClientRect();
+    const normalizedX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const normalizedY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+    setCityPinFormPoint(map, normalizedX, normalizedY);
+    document.getElementById("city-name")?.focus();
+  });
+
+  document.getElementById("city-pin-form")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const status = document.getElementById("city-pin-status");
+    const payload = {
+      cityName: document.getElementById("city-name")?.value.trim(),
+      x: Number(document.getElementById("city-x")?.value),
+      y: Number(document.getElementById("city-y")?.value),
+      normalizedX: Number(document.getElementById("city-normalized-x")?.value),
+      normalizedY: Number(document.getElementById("city-normalized-y")?.value),
+    };
+    if (!payload.cityName || !Number.isFinite(payload.normalizedX) || !Number.isFinite(payload.normalizedY)) {
+      if (status) {
+        status.textContent = "Click the map and enter a city name before saving.";
+        status.classList.add("error");
+      }
+      return;
+    }
+    try {
+      await createMapCity(map.id, payload);
+      renderMapDetailPage(map.id);
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+        status.classList.add("error");
+      }
+    }
+  });
+
+  document.getElementById("city-list")?.addEventListener("click", async (event) => {
+    const editId = event.target?.dataset?.editCity;
+    const deleteId = event.target?.dataset?.deleteCity;
+    if (editId) {
+      const city = cities.find((item) => item.id === editId);
+      const cityName = prompt("City name", city?.cityName || "");
+      if (cityName === null) return;
+      try {
+        await updateMapCity(map.id, editId, { cityName });
+        renderMapDetailPage(map.id);
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+    if (deleteId) {
+      if (!confirm("Delete this city pin and its notes?")) return;
+      try {
+        await deleteMapCity(map.id, deleteId);
+        renderMapDetailPage(map.id);
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  });
+}
+
+function mapPreviewMarkup(map, cities, selectedCity) {
+  return `
+    <div class="map-preview">
+      <div class="interactive-map-canvas" style="--map-scale: 1;">
+        <img src="${escapeHtml(map.imageUrl)}" alt="${escapeHtml(map.title || "Map preview")}" />
+        ${cities.map((city) => mapPinMarkup(city, { selectedCityId: selectedCity.id })).join("")}
+      </div>
+    </div>`;
+}
+
+function cityNoteEditorMarkup() {
+  return `
+    <form class="panel form-grid city-note-form" id="city-note-form">
+      <label>Note title<input id="city-note-title" type="text" placeholder="Faction, rumor, district, quest..." required /></label>
+      <label class="full-width">Content<textarea id="city-note-content" rows="4" placeholder="Notes for this city..." required></textarea></label>
+      <input id="city-note-edit-id" type="hidden" />
+      <div class="form-message full-width" id="city-note-status" aria-live="polite"></div>
+      <button class="btn btn-primary" type="submit">Save city note</button>
+      <button class="btn btn-secondary" type="button" id="city-note-cancel-edit" hidden>Cancel edit</button>
+    </form>`;
+}
+
+function cityNotesListMarkup(notes) {
+  if (!notes.length) return `<div class="empty-state">No notes for this city yet.</div>`;
+  return notes.map((note) => `
+    <article class="content-card entry-card city-note-card" data-city-note-id="${escapeHtml(note.id)}">
+      <div class="card-kicker"><span class="status-badge status-active">City note</span><span>${escapeHtml(formatUploadedAt(note.updatedAt || note.createdAt))}</span></div>
+      <h3>${escapeHtml(note.title)}</h3>
+      ${widgetDescriptionMarkup(note.content)}
+      <div class="entry-actions">
+        <button class="btn btn-secondary" type="button" data-edit-city-note="${escapeHtml(note.id)}">Edit</button>
+        <button class="btn btn-danger" type="button" data-delete-city-note="${escapeHtml(note.id)}">Delete</button>
+      </div>
+    </article>`).join("");
+}
+
+async function renderCityDetailPage(mapId, cityId) {
+  updateTopNavActivePage("maps");
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell city-page">
+      <div class="page-hero">
+        <p class="eyebrow">City notes</p>
+        <h1>Loading city...</h1>
+      </div>
+    </section>`;
+
+  try {
+    const { map, cities = [] } = await getInteractiveMap(mapId);
+    const city = cities.find((item) => item.id === cityId);
+    if (!city) {
+      renderNotFoundPage("That city pin is not saved on this map.");
+      return;
+    }
+    const notes = await listCityNotes(mapId, cityId);
+    document.querySelector("main").innerHTML = `
+      <section class="page-layout section-shell city-page">
+        <div class="page-hero">
+          <p class="eyebrow">Map city</p>
+          <h1>${escapeHtml(city.cityName)}</h1>
+          <p>${escapeHtml(map.title || "Map")} city notes and map preview.</p>
+          <div class="hero-actions">
+            <a class="btn btn-secondary" href="${escapeHtml(mapDetailHref(map.id))}">Back to map</a>
+            <a class="btn btn-ghost" href="index.html#/maps">All maps</a>
+          </div>
+        </div>
+        <div class="city-page-grid">
+          <aside class="city-preview-panel">
+            <div class="section-heading"><div><p class="eyebrow">Location</p><h2>Map preview</h2></div></div>
+            ${mapPreviewMarkup(map, cities, city)}
+          </aside>
+          <section class="city-notes-panel">
+            <div class="section-heading"><div><p class="eyebrow">Notes</p><h2>City notes</h2></div></div>
+            ${cityNoteEditorMarkup()}
+            <div class="collection-grid city-notes-list" id="city-notes-list" aria-live="polite">${cityNotesListMarkup(notes)}</div>
+          </section>
+        </div>
+      </section>`;
+    initCityDetailPage(map, city, notes);
+  } catch (error) {
+    renderNotFoundPage(error.message);
+  }
+}
+
+function setCityNoteForm(note = null) {
+  const idInput = document.getElementById("city-note-edit-id");
+  const titleInput = document.getElementById("city-note-title");
+  const contentInput = document.getElementById("city-note-content");
+  const cancel = document.getElementById("city-note-cancel-edit");
+  if (idInput) idInput.value = note?.id || "";
+  if (titleInput) titleInput.value = note?.title || "";
+  if (contentInput) contentInput.value = note?.content || "";
+  if (cancel) cancel.hidden = !note;
+}
+
+function initCityDetailPage(map, city, notes) {
+  document.getElementById("city-note-form")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const status = document.getElementById("city-note-status");
+    const noteId = document.getElementById("city-note-edit-id")?.value;
+    const payload = {
+      title: document.getElementById("city-note-title")?.value.trim(),
+      content: document.getElementById("city-note-content")?.value.trim(),
+    };
+    if (status) {
+      status.textContent = "Saving city note...";
+      status.classList.remove("error");
+    }
+    try {
+      if (noteId) await updateCityNote(map.id, city.id, noteId, payload);
+      else await createCityNote(map.id, city.id, payload);
+      renderCityDetailPage(map.id, city.id);
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+        status.classList.add("error");
+      }
+    }
+  });
+
+  document.getElementById("city-note-cancel-edit")?.addEventListener("click", () => setCityNoteForm(null));
+  document.getElementById("city-notes-list")?.addEventListener("click", async (event) => {
+    const editId = event.target?.dataset?.editCityNote;
+    const deleteId = event.target?.dataset?.deleteCityNote;
+    if (editId) {
+      const note = notes.find((item) => item.id === editId);
+      setCityNoteForm(note);
+      document.getElementById("city-note-title")?.focus();
+    }
+    if (deleteId) {
+      if (!confirm("Delete this city note?")) return;
+      try {
+        await deleteCityNote(map.id, city.id, deleteId);
+        renderCityDetailPage(map.id, city.id);
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  });
 }
 
 function initAiPlaceholder() {
@@ -2060,7 +2665,7 @@ function renderNotFoundPage(message) {
     <section class="page-layout section-shell">
       <div class="page-hero">
         <p class="eyebrow">Not found</p>
-        <h1>We could not find that campaign page.</h1>
+        <h1>We could not find that page.</h1>
         <p>${escapeHtml(message)}</p>
         <a class="btn btn-primary" href="index.html">Back to dashboard</a>
       </div>
@@ -2891,7 +3496,15 @@ function initAppRoutes() {
     return true;
   }
   if (parts[0] === "maps") {
-    renderMediaLibraryShell({ mapsOnly: true });
+    if (parts[1] && parts[2] === "cities" && parts[3]) {
+      renderCityDetailPage(parts[1], parts[3]);
+      return true;
+    }
+    if (parts[1]) {
+      renderMapDetailPage(parts[1]);
+      return true;
+    }
+    renderMapsOverviewPage();
     return true;
   }
   return false;
@@ -3023,7 +3636,7 @@ if (!initAppRoutes()) {
 }
 window.addEventListener("hashchange", () => {
   if (window.location.hash.startsWith("#/")) initAppRoutes();
-  else if (document.querySelector(".character-page, .setup-page, .media-page")) window.location.reload();
+  else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page")) window.location.reload();
 });
 
 /*
