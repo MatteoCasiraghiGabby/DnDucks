@@ -209,6 +209,35 @@ test("character analysis endpoint completes a story with SRD-style background fe
   assert.equal(payload.source, "local-srd-reference");
 });
 
+test("character analysis endpoint accepts the frontend POST method with a trailing slash", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/api/characters/analyze/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      characterName: "Tamsin",
+      description: "A sailor from a storm-battered crew who still trusts the sea.",
+    }),
+  });
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.background, "Sailor");
+  assert.equal(payload.source, "local-srd-reference");
+});
+
+test("character analysis endpoint returns a clear 405 for unsupported methods", async (t) => {
+  const { baseUrl } = await withServer(t);
+  const response = await fetch(`${baseUrl}/api/characters/analyze`, { method: "GET" });
+  const payload = await response.json();
+
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("allow"), "POST, OPTIONS");
+  assert.equal(payload.code, "METHOD_NOT_ALLOWED");
+  assert.match(payload.error, /Use POST or OPTIONS/);
+  assert.match(payload.requestId, /^analysis-/);
+});
+
 test("character analysis endpoint asks for story text", async (t) => {
   const { baseUrl } = await withServer(t);
   const response = await fetch(`${baseUrl}/api/characters/analyze`, {
