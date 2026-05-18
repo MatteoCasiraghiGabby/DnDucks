@@ -48,7 +48,6 @@ const PLAYER_CLASSES = [
 
 const PLAYER_RACES = ["Dragonborn", "Dwarf", "Elf", "Gnome", "Half-Elf", "Halfling", "Half-Orc", "Human", "Tiefling"];
 const PLAYER_ALIGNMENTS = ["Lawful Good", "Neutral Good", "Chaotic Good", "Lawful Neutral", "True Neutral", "Chaotic Neutral", "Lawful Evil", "Neutral Evil", "Chaotic Evil", "Unaligned"];
-const PLAYER_BACKGROUNDS = ["Acolyte", "Charlatan", "Criminal", "Entertainer", "Folk Hero", "Guild Artisan", "Hermit", "Noble", "Outlander", "Sage", "Sailor", "Soldier", "Urchin"];
 
 const LANGUAGES = [
   { key: "common", label: "Common" },
@@ -1784,7 +1783,6 @@ function playerCharacterFormMarkup() {
       ${datalistMarkup("player-class-options", PLAYER_CLASSES.map((item) => item.name))}
       ${datalistMarkup("player-race-options", PLAYER_RACES)}
       ${datalistMarkup("player-alignment-options", PLAYER_ALIGNMENTS)}
-      ${datalistMarkup("player-background-options", PLAYER_BACKGROUNDS)}
 
       <fieldset class="sheet-form-section sheet-form-identity">
         <legend>Character sheet header</legend>
@@ -1794,7 +1792,6 @@ function playerCharacterFormMarkup() {
         <label>Level<input id="player-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
         <label>Race<input id="player-race" type="text" list="player-race-options" placeholder="Human" /></label>
         <label>Alignment<input id="player-alignment" type="text" list="player-alignment-options" placeholder="Neutral Good" /></label>
-        <label>Background<input id="player-background" type="text" list="player-background-options" placeholder="Folk Hero" /></label>
       </fieldset>
 
       <fieldset class="sheet-form-section">
