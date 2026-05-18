@@ -70,6 +70,13 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
       });
 
       if (pathname.startsWith("/api/")) setApiCorsHeaders(req, res);
+
+      // Keep the analyze endpoint explicit and ahead of every generic /api handler.
+      if (pathname === "/api/characters/analyze") {
+        await handleCharacterAnalysisApi(req, res, pathname);
+        return;
+      }
+
       if (req.method === "OPTIONS" && pathname.startsWith("/api/")) {
         res.setHeader("X-Route-Branch", "api-preflight");
         res.writeHead(204);
@@ -77,8 +84,8 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
         return;
       }
 
-      if (pathname === "/api/characters/analyze" || pathname === "/characters/analyze") {
-        if (!pathname.startsWith("/api/")) setApiCorsHeaders(req, res);
+      if (pathname === "/characters/analyze") {
+        setApiCorsHeaders(req, res);
         await handleCharacterAnalysisApi(req, res, pathname);
         return;
       }
@@ -223,29 +230,53 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
 
 
 async function handleCharacterAnalysisApi(req, res, pathname) {
-  const requestId = makeRequestId();
+  if (req.method === "OPTIONS") {
+    console.log("[ANALYZE OPTIONS]", req.method, req.url);
+    res.setHeader("Allow", "POST, OPTIONS");
+    res.setHeader("X-Route-Branch", "api-characters-analyze-options");
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   if (req.method !== "POST") {
-    sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "api-characters-analyze-405", requestId });
+    console.log("[ANALYZE 405]", req.method, req.url);
+    res.setHeader("Allow", "POST, OPTIONS");
+    res.setHeader("X-Route-Branch", "api-characters-analyze-405");
+    sendJson(res, 405, {
+      error: "Method Not Allowed",
+      method: req.method,
+      path: req.url,
+      allowed: ["POST", "OPTIONS"],
+    });
     return;
   }
 
-  res.setHeader("X-Route-Branch", "api-characters-analyze-post");
+  const requestId = makeRequestId();
+  try {
+    const payload = await parseJsonBody(req, { requestId });
+    console.log("[ANALYZE POST]", req.method, req.url, payload);
 
-  const payload = await parseJsonBody(req, { requestId });
-  validateCharacterAnalysisPayload(payload, requestId);
-  const storyText = getCharacterStoryText(payload);
-  if (!storyText) {
-    console.info(`[analysis:${requestId}] rejected empty story text`);
-    sendJson(res, 400, { error: "Add personality or story text before completing the character widget.", code: "EMPTY_STORY", requestId });
-    return;
+    res.setHeader("X-Route-Branch", "api-characters-analyze-post");
+
+    validateCharacterAnalysisPayload(payload, requestId);
+    const storyText = getCharacterStoryText(payload);
+    if (!storyText) {
+      console.info(`[analysis:${requestId}] rejected empty story text`);
+      sendJson(res, 400, { error: "Add personality or story text before completing the character widget.", code: "EMPTY_STORY", requestId });
+      return;
+    }
+
+    console.info(`[analysis:${requestId}] received story analysis request storyChars=${storyText.length} hasOpenAIKey=${Boolean(process.env.OPENAI_API_KEY)} model=${OPENAI_MODEL}`);
+    const fallback = analyzeCharacterStoryLocally(payload);
+    const aiAnalysis = await analyzeCharacterStoryWithOpenAI(payload, fallback, requestId);
+    const analysis = aiAnalysis || fallback;
+    console.info(`[analysis:${requestId}] completed source=${analysis.source} background=${analysis.background || "unknown"}`);
+    sendJson(res, 200, { ...analysis, requestId });
+  } catch (error) {
+    console.error("[ANALYZE ERROR]", error);
+    throw error;
   }
-
-  console.info(`[analysis:${requestId}] received story analysis request storyChars=${storyText.length} hasOpenAIKey=${Boolean(process.env.OPENAI_API_KEY)} model=${OPENAI_MODEL}`);
-  const fallback = analyzeCharacterStoryLocally(payload);
-  const aiAnalysis = await analyzeCharacterStoryWithOpenAI(payload, fallback, requestId);
-  const analysis = aiAnalysis || fallback;
-  console.info(`[analysis:${requestId}] completed source=${analysis.source} background=${analysis.background || "unknown"}`);
-  sendJson(res, 200, { ...analysis, requestId });
 }
 
 function validateCharacterAnalysisPayload(payload, requestId) {

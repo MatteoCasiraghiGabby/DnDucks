@@ -247,14 +247,11 @@ test("character analysis endpoint returns a clear 405 for unsupported methods", 
 
   assert.equal(response.status, 405);
   assert.equal(response.headers.get("allow"), "POST, OPTIONS");
-  assert.equal(payload.code, "METHOD_NOT_ALLOWED");
-  assert.equal(payload.error, "METHOD_NOT_ALLOWED");
-  assert.match(payload.message, /Use POST or OPTIONS/);
+  assert.equal(response.headers.get("x-route-branch"), "api-characters-analyze-405");
+  assert.equal(payload.error, "Method Not Allowed");
   assert.equal(payload.method, "GET");
-  assert.equal(payload.pathname, "/api/characters/analyze");
-  assert.equal(payload.branch, "api-characters-analyze-405");
-  assert.deepEqual(payload.allow, ["POST", "OPTIONS"]);
-  assert.match(payload.requestId, /^analysis-/);
+  assert.equal(payload.path, "/api/characters/analyze");
+  assert.deepEqual(payload.allowed, ["POST", "OPTIONS"]);
 });
 
 test("character analysis endpoint accepts a proxy-stripped API prefix alias", async (t) => {
@@ -324,6 +321,8 @@ test("character analysis endpoint answers CORS preflight for split frontend/back
   });
 
   assert.equal(response.status, 204);
+  assert.equal(response.headers.get("allow"), "POST, OPTIONS");
+  assert.equal(response.headers.get("x-route-branch"), "api-characters-analyze-options");
   assert.equal(response.headers.get("access-control-allow-origin"), "*");
   assert.match(response.headers.get("access-control-allow-methods"), /POST/);
   assert.match(response.headers.get("access-control-allow-headers"), /content-type/i);
