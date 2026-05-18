@@ -27,33 +27,7 @@ const DEFAULT_CAMPAIGN = {
   updatedAt: "Local draft",
 };
 
-const DEFAULT_BACKEND_PORT = "3000";
-const API_BASE_STORAGE_KEY = "dnducks.apiBaseUrl";
-
-function isLocalHostname(hostname = "") {
-  return ["localhost", "127.0.0.1", "::1"].includes(hostname);
-}
-
-function configuredApiBaseUrl() {
-  const globalBase = typeof window !== "undefined" ? window.DNDUCKS_API_BASE_URL : "";
-  const storedBase = typeof localStorage !== "undefined" ? localStorage.getItem(API_BASE_STORAGE_KEY) : "";
-  return String(globalBase || storedBase || "").trim().replace(/\/+$/, "");
-}
-
 function resolveApiUrl(url) {
-  if (!String(url || "").startsWith("/api/")) return url;
-
-  const configuredBase = configuredApiBaseUrl();
-  if (configuredBase) return `${configuredBase}${url}`;
-
-  const location = typeof window !== "undefined" ? window.location : null;
-  if (!location || !isLocalHostname(location.hostname || "")) return url;
-
-  const currentPort = String(location.port || "");
-  if (currentPort && currentPort !== DEFAULT_BACKEND_PORT) {
-    return `${location.protocol || "http:"}//${location.hostname}:${DEFAULT_BACKEND_PORT}${url}`;
-  }
-
   return url;
 }
 
@@ -1980,17 +1954,24 @@ async function completeCharacterStoryWidget(form) {
   result.innerHTML = `<p class="muted">Reading the personality and story text...</p>`;
   try {
     const payload = collectCharacterStoryPayload(form);
-    const url = resolveApiUrl("/api/characters/analyze");
+    const url = "/api/characters/analyze";
     console.log("[ANALYZE REQUEST]", {
       url,
       method: "POST",
-      payload,
+      payload
     });
-    const analysis = await fetchJson(url, {
+    const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
     });
+    const text = await response.text();
+    const analysis = parseJsonResponse(text);
+    if (!response.ok) {
+      throw new Error(analysis?.message || analysis?.error || `Request failed with status ${response.status}.`);
+    }
     applyCharacterStoryAnalysis(form, analysis);
     updatePlayerFormDerivedFields(form);
     refreshPlayerSectionSummary(form);

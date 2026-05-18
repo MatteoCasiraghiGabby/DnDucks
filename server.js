@@ -7,7 +7,7 @@ loadEnvFile();
 const { MaterialStore, MAX_FILE_SIZE_BYTES, resolveUploadDir } = require("./src/materialStore");
 const { ImageStorageService, IMAGE_UPLOAD_MAX_BYTES, IMAGE_UPLOAD_MAX_FILES, resolveImageUploadDir } = require("./src/imageStorageService");
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = process.cwd();
 const store = new MaterialStore(resolveUploadDir());
 const imageStore = new ImageStorageService(resolveImageUploadDir());
@@ -78,9 +78,7 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
       }
 
       if (pathname === "/api/characters/analyze" || pathname === "/characters/analyze") {
-        const branch = pathname.startsWith("/api/") ? "character-analysis-route" : "character-analysis-alias-route";
         if (!pathname.startsWith("/api/")) setApiCorsHeaders(req, res);
-        res.setHeader("X-Route-Branch", branch);
         await handleCharacterAnalysisApi(req, res, pathname);
         return;
       }
@@ -227,9 +225,11 @@ async function handleMaterialsApi(req, res, requestUrl, materialStore) {
 async function handleCharacterAnalysisApi(req, res, pathname) {
   const requestId = makeRequestId();
   if (req.method !== "POST") {
-    sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "character-analysis-method-guard", requestId });
+    sendMethodNotAllowed(req, res, ["POST", "OPTIONS"], { pathname, branch: "api-characters-analyze-405", requestId });
     return;
   }
+
+  res.setHeader("X-Route-Branch", "api-characters-analyze-post");
 
   const payload = await parseJsonBody(req, { requestId });
   validateCharacterAnalysisPayload(payload, requestId);
@@ -652,8 +652,8 @@ function loadEnvFile() {
 
 if (require.main === module) {
   createServer().then((server) => {
-    server.listen(PORT, () => {
-      console.log(`DnDucks running at http://localhost:${PORT}`);
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`Backend listening on ${PORT}`);
       console.log(`Campaign material uploads stored in ${resolveUploadDir()}`);
       console.log(`Image uploads stored in ${resolveImageUploadDir()}`);
     });
