@@ -717,13 +717,40 @@ function routeParts() {
   return routePath.split("/").filter(Boolean).map(decodeURIComponent);
 }
 
+function storageIdSegment(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+}
+
+function normalizeUserCollectionEntry(key, entry, index = 0) {
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+  const id = String(entry.id || "").trim();
+  if (id.startsWith("demo-")) return null;
+  if (id) return { ...entry, id };
+
+  const identity = [
+    entry.name,
+    entry.title,
+    entry.type,
+    entry.category,
+    entry.createdAt,
+  ].map(storageIdSegment).filter(Boolean).join("-");
+  return { ...entry, id: `legacy-${key}-${identity || "entry"}-${index + 1}` };
+}
+
 function getStoredCollection(key) {
   const raw = localStorage.getItem(STORAGE_KEYS[key]);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return USER_WIDGET_COLLECTIONS.has(key) ? parsed.filter(isUserProducedEntry) : parsed;
+    return USER_WIDGET_COLLECTIONS.has(key)
+      ? parsed.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean)
+      : parsed;
   } catch (error) {
     console.warn(`Could not parse ${key} from localStorage`, error);
     return [];
@@ -731,7 +758,9 @@ function getStoredCollection(key) {
 }
 
 function saveCollection(key, collection) {
-  const nextCollection = USER_WIDGET_COLLECTIONS.has(key) ? collection.filter(isUserProducedEntry) : collection;
+  const nextCollection = USER_WIDGET_COLLECTIONS.has(key)
+    ? collection.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean)
+    : collection;
   localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(nextCollection));
 }
 

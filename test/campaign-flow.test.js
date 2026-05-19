@@ -226,6 +226,23 @@ test("notes are returned in campaign chronology order", () => {
   assert.deepEqual(Array.from(app.sortedNotes().map((note) => note.title)), ["First", "Later"]);
 });
 
+test("legacy homebrew items without ids survive storage normalization", () => {
+  const app = createFrontendSandbox();
+
+  app.localStorage.setItem("dnducks.items", JSON.stringify([
+    { name: "Moonlit Blade", type: "Weapon", description: "A silvered sword.", createdAt: "May 19, 2026" },
+  ]));
+
+  const items = app.getStoredCollection("items");
+  assert.equal(items.length, 1);
+  assert.equal(items[0].name, "Moonlit Blade");
+  assert.match(items[0].id, /^legacy-items-moonlit-blade-weapon-may-19-2026-1$/);
+
+  app.saveCollection("items", items);
+  const persisted = JSON.parse(app.localStorage.getItem("dnducks.items"));
+  assert.equal(persisted[0].id, items[0].id);
+});
+
 test("personality story analysis workflow is available on the player form", () => {
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
 
