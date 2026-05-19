@@ -913,13 +913,18 @@ async function imageFromFileInput(fileInput, metadata = {}) {
   if (!file.type.startsWith("image/")) {
     throw new Error("Widget images must be image files.");
   }
-  const [image] = await uploadImages([file], metadata);
-  return image || null;
+  try {
+    const [image] = await uploadImages([file], metadata);
+    return image || null;
+  } catch (error) {
+    if (!canUseLocalImageFallback(error)) throw error;
+    return localImageFromFile(file, metadata);
+  }
 }
 
 async function imageToDataUrl(fileInput) {
-  const image = await imageFromFileInput(fileInput);
-  return image?.url || "";
+  const file = fileInput?.files?.[0];
+  return file ? fileToDataUrl(file) : "";
 }
 
 function imageFields(image) {
@@ -929,6 +934,38 @@ function imageFields(image) {
     imageUrl: image.url || "",
     imageDataUrl: image.url || "",
     image,
+  };
+}
+
+function canUseLocalImageFallback(error) {
+  return /Network error while contacting .*\/api\/uploads\/images/.test(error?.message || "");
+}
+
+function fileToDataUrl(file) {
+  if (typeof FileReader === "undefined") {
+    return Promise.reject(new Error("This browser cannot save local image previews without the backend."));
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result || "")));
+    reader.addEventListener("error", () => reject(reader.error || new Error("Could not read the selected image.")));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function localImageFromFile(file, metadata = {}) {
+  const url = await fileToDataUrl(file);
+  const title = String(metadata.title || file.name || "Local widget image").trim();
+  return {
+    id: createId("local-image"),
+    title,
+    originalFilename: file.name || title,
+    fileSize: file.size || 0,
+    mimeType: file.type || "",
+    url,
+    path: url,
+    localOnly: true,
+    uploadedAt: new Date().toISOString(),
   };
 }
 

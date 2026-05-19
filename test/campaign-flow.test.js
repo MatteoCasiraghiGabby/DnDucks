@@ -243,6 +243,35 @@ test("legacy homebrew items without ids survive storage normalization", () => {
   assert.equal(persisted[0].id, items[0].id);
 });
 
+test("widget image picker falls back to local data urls when backend uploads are unavailable", async () => {
+  const app = createFrontendSandbox();
+  app.fetch = async () => { throw new Error("Load failed"); };
+  app.FileReader = class FileReader {
+    constructor() {
+      this.listeners = {};
+      this.result = "";
+    }
+
+    addEventListener(type, listener) {
+      this.listeners[type] = listener;
+    }
+
+    readAsDataURL(file) {
+      this.result = `data:${file.type};base64,bW9vbg==`;
+      this.listeners.load();
+    }
+  };
+
+  const image = await app.imageFromFileInput({
+    files: [{ name: "moon.png", type: "image/png", size: 4 }],
+  }, { title: "Moonlit Blade" });
+
+  assert.equal(image.localOnly, true);
+  assert.equal(image.title, "Moonlit Blade");
+  assert.equal(image.url, "data:image/png;base64,bW9vbg==");
+  assert.match(image.id, /^local-image-/);
+});
+
 test("personality story analysis workflow is available on the player form", () => {
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
 
