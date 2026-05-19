@@ -1067,6 +1067,12 @@ function setDmOnlyTarget(target, isDmOnly = true) {
   saveDmOnlyTargets(targets);
 }
 
+function toggleDmOnlyTarget(target) {
+  const cleanTarget = String(target || "").trim();
+  if (!cleanTarget) return;
+  setDmOnlyTarget(cleanTarget, !isDmOnlyTarget(cleanTarget));
+}
+
 function isDmOnlyTarget(target, targets = getDmOnlyTargets()) {
   return Boolean(targets[String(target || "")]);
 }
@@ -1431,7 +1437,7 @@ function initCommandInterface() {
     event.preventDefault();
     event.stopPropagation();
     const target = part?.dataset.dmPartTarget || card?.dataset.dmWidgetId;
-    setDmOnlyTarget(target, true);
+    toggleDmOnlyTarget(target);
     applyFilters();
   }
 
@@ -1560,18 +1566,18 @@ function wireDmOnlyWidgetTargets(root = document) {
   root.querySelectorAll("[data-dm-widget-id]").forEach((card) => {
     const widgetTarget = card.dataset.dmWidgetId;
     if (!widgetTarget) return;
-    card.setAttribute("title", "DM-only mode: select this widget to hide it from players");
+    card.setAttribute("title", "DM-only mode: select or unselect this widget for player visibility");
     card.querySelectorAll(".widget-media, .widget-description").forEach((part) => {
       part.dataset.dmPartTarget = `${widgetTarget}:details`;
-      part.setAttribute("title", "DM-only mode: select this icon and description to hide them from players");
+      part.setAttribute("title", "DM-only mode: select or unselect this icon and description for player visibility");
     });
     card.querySelectorAll(".item-stat-icons").forEach((part) => {
       part.dataset.dmPartTarget = `${widgetTarget}:stats`;
-      part.setAttribute("title", "DM-only mode: select these statistics to hide them from players");
+      part.setAttribute("title", "DM-only mode: select or unselect these statistics for player visibility");
     });
     card.querySelectorAll(".item-feature-block").forEach((part, index) => {
       part.dataset.dmPartTarget = `${widgetTarget}:feature:${index}`;
-      part.setAttribute("title", "DM-only mode: select this feature to hide it from players");
+      part.setAttribute("title", "DM-only mode: select or unselect this feature for player visibility");
     });
   });
 }
