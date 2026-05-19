@@ -275,6 +275,73 @@ test("legacy homebrew items without ids survive storage normalization", () => {
   assert.equal(persisted[0].id, items[0].id);
 });
 
+test("homebrew dashboard weapons are recognized from character equipment", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-blood-spear",
+    name: "Blood Spear",
+    type: "Weapon",
+    description: "A cursed frozen spear.",
+    statistics: {
+      damage: "1d8 cold",
+      range: "Melee",
+      attack: "+1",
+      properties: "Cursed, icy",
+    },
+    features: [{ title: "Bound Spirit", description: "The spirit haunts the wielder." }],
+  }]));
+
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "3",
+    "#player-equipment": "Blood Spear",
+  }));
+  const summaries = app.equipmentWeaponSummaries(player);
+  const formMarkup = app.playerCharacterFormMarkup();
+
+  assert.equal(player.attacks.length, 1);
+  assert.equal(player.attacks[0].name, "Blood Spear");
+  assert.equal(player.attacks[0].attackBonus, "+1");
+  assert.equal(player.attacks[0].damageType, "1d8 cold");
+  assert.equal(player.attacks[0].homebrew, true);
+  assert.match(player.features, /Blood Spear \(Homebrew item\)/);
+  assert.match(player.features, /Damage: 1d8 cold/);
+  assert.match(player.features, /Bound Spirit: The spirit haunts the wielder\./);
+  assert.equal(summaries[0].name, "Blood Spear");
+  assert.equal(summaries[0].mode, "Melee");
+  assert.match(formMarkup, /id="player-equipment-entry" type="text" list="player-equipment-options"/);
+  assert.match(formMarkup, /<option value="Blood Spear"><\/option>/);
+});
+
+test("equipment entry imports homebrew item details into the hidden sheet fields", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-blood-spear",
+    name: "Blood Spear",
+    type: "Weapon",
+    statistics: { damage: "1d8 cold", attack: "+1" },
+    features: [{ title: "Bound Spirit", description: "The spirit haunts the wielder." }],
+  }]));
+  const fields = {
+    "#player-equipment": { value: "", dispatchEvent(event) { this.lastEvent = event.type; } },
+    "#player-features": { value: "", dispatchEvent(event) { this.lastEvent = event.type; } },
+  };
+  const form = {
+    querySelector(selector) {
+      return fields[selector] || null;
+    },
+  };
+
+  app.appendEquipmentItemsToSheet(form, ["blood spear"]);
+
+  assert.equal(fields["#player-equipment"].value, "Blood Spear");
+  assert.equal(fields["#player-equipment"].lastEvent, "input");
+  assert.match(fields["#player-features"].value, /Blood Spear \(Homebrew item\)/);
+  assert.match(fields["#player-features"].value, /Attack: \+1/);
+  assert.match(fields["#player-features"].value, /Bound Spirit: The spirit haunts the wielder\./);
+});
+
 test("widget image picker falls back to local data urls when backend uploads are unavailable", async () => {
   const app = createFrontendSandbox();
   app.fetch = async () => { throw new Error("Load failed"); };
@@ -327,6 +394,70 @@ test("oversized local fallback images show a clear storage message", async () =>
     app.imageFromFileInput({ files: [{ name: "giant.png", type: "image/png", size: 2000000 }] }),
     /too large for browser-only storage/
   );
+});
+
+test("dashboard widget image fields select from media instead of uploading files", () => {
+  const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+
+  assert.match(html, /data-media-select/);
+  assert.match(html, /Choose from media/);
+  assert.doesNotMatch(html, /id="encounter-image"|id="location-image"|id="character-image"|id="item-image"|id="event-image"/);
+  assert.match(script, /selectedMediaImageFromForm\(form\)/);
+  assert.doesNotMatch(script, /imageFromFileInput\(document\.getElementById\("encounter-image"/);
+  assert.doesNotMatch(script, /imageFromFileInput\(document\.getElementById\("location-image"/);
+  assert.doesNotMatch(script, /imageFromFileInput\(document\.getElementById\("character-image"/);
+  assert.doesNotMatch(script, /imageFromFileInput\(document\.getElementById\("item-image"/);
+  assert.doesNotMatch(script, /imageFromFileInput\(document\.getElementById\("event-image"/);
+});
+
+test("media library owns reusable image uploads", () => {
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+  const styles = fs.readFileSync(path.join(process.cwd(), "assets/styles.css"), "utf8");
+
+  assert.match(script, /imageUploadMarkup\(\{ submitLabel: "Upload to media" \}\)/);
+  assert.match(script, /uploadImages\(input\?\.files \|\| \[\], \{ title, source: "media" \}\)/);
+  assert.match(script, /Upload images below, then select them from dashboard widgets\./);
+  assert.match(script, /Upload images from the Media page, then select them here\./);
+  assert.match(styles, /\.media-upload-block \{/);
+});
+
+test("media selection controls keep the selected media image on the form", () => {
+  const app = createFrontendSandbox();
+  const status = { textContent: "", classList: { add: () => {}, remove: () => {} } };
+  const preview = {
+    src: "",
+    hidden: true,
+    removeAttribute(name) {
+      if (name === "src") this.src = "";
+    },
+  };
+  const clear = { hidden: true };
+  const picker = {
+    dataset: {},
+    querySelector(selector) {
+      return {
+        "[data-image-status]": status,
+        "[data-image-preview]": preview,
+        "[data-media-clear]": clear,
+      }[selector] || null;
+    },
+  };
+  const form = { querySelector: (selector) => selector === "[data-media-select]" ? picker : null };
+
+  app.setMediaSelectImage(picker, { id: "img-1", url: "/uploads/images/img-1.png", title: "ORWELL" });
+  assert.equal(status.textContent, "Selected: ORWELL");
+  assert.equal(preview.src, "/uploads/images/img-1.png");
+  assert.equal(preview.hidden, false);
+  assert.equal(clear.hidden, false);
+  assert.equal(JSON.stringify(app.selectedMediaImageFromForm(form)), JSON.stringify({
+    id: "img-1",
+    url: "/uploads/images/img-1.png",
+    title: "ORWELL",
+    originalFilename: "",
+    fileSize: 0,
+    uploadedAt: "",
+  }));
 });
 
 test("quota errors while saving collections explain how to recover", () => {
@@ -413,9 +544,10 @@ test("user widgets expose modify actions and card clicks open detail overlay", (
   assert.match(styles, /\.widget-detail-modal \.widget-detail-layout\.has-media \{\s*grid-template-columns: minmax\(0, 1fr\) minmax\(180px, 26%\);/);
   assert.match(styles, /\.widget-detail-modal \.widget-detail-main \{[\s\S]*overflow-y: auto;/);
   assert.match(styles, /\.widget-detail-modal \.widget-detail-image \{[\s\S]*object-fit: contain;/);
-  assert.match(styles, /\.widget-detail-modal \.widget-detail-media \{[\s\S]*border-left: 0;/);
-  assert.match(styles, /\.widget-detail-modal \.widget-detail-media::before \{[\s\S]*height: min\(58vh, 520px\);/);
-  assert.match(styles, /\.widget-detail-modal \.modal-close \{[\s\S]*top: 24px;[\s\S]*right: 24px;[\s\S]*left: auto;[\s\S]*width: 42px;/);
+  assert.match(styles, /\.widget-detail-modal \.widget-detail-media \{[\s\S]*border-left: 0 !important;/);
+  assert.match(styles, /\.widget-detail-modal \.widget-detail-media::before,[\s\S]*content: none !important;/);
+  assert.match(script, /class="widget-detail-close"/);
+  assert.match(styles, /\.widget-detail-close \{[\s\S]*position: fixed;[\s\S]*z-index: 1100;[\s\S]*width: 42px;/);
 });
 
 test("non-canonical local origins redirect with local storage for import", () => {

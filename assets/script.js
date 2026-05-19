@@ -404,6 +404,80 @@ function weaponForEquipmentItem(item = "") {
   return WEAPONS.find((weapon) => weapon.aliases.some((alias) => normalized.includes(` ${normalizeEquipmentText(alias)} `))) || null;
 }
 
+function homebrewItemForEquipmentItem(item = "") {
+  const normalized = normalizeEquipmentText(item);
+  if (!normalized) return null;
+  return getStoredCollection("items").find((homebrewItem) => (
+    normalizeEquipmentText(homebrewItem?.name) === normalized
+  )) || null;
+}
+
+function isHomebrewWeaponItem(item) {
+  return String(item?.type || "").trim().toLowerCase() === "weapon";
+}
+
+function homebrewItemStatistics(item) {
+  return item?.statistics && typeof item.statistics === "object" && !Array.isArray(item.statistics)
+    ? item.statistics
+    : {};
+}
+
+function homebrewWeaponAttackBonus(item) {
+  return String(homebrewItemStatistics(item).attack || "Homebrew").trim();
+}
+
+function homebrewWeaponDamageText(item) {
+  const stats = homebrewItemStatistics(item);
+  return String(stats.damage || item?.description || "Homebrew weapon").trim();
+}
+
+function homebrewWeaponModeText(item) {
+  const stats = homebrewItemStatistics(item);
+  return String(stats.range || stats.properties || "Homebrew").trim();
+}
+
+function homebrewItemFeatureText(item) {
+  if (!item?.name) return "";
+  const stats = homebrewItemStatistics(item);
+  const lines = [`${item.name} (Homebrew item)`];
+  [
+    ["Type", item.type],
+    ["Damage", stats.damage],
+    ["Range", stats.range],
+    ["Attack", stats.attack],
+    ["Properties", stats.properties],
+  ].forEach(([label, value]) => {
+    const text = String(value || "").trim();
+    if (text) lines.push(`${label}: ${text}`);
+  });
+  itemFeatureList(item.features).forEach((feature) => {
+    const title = feature.title || "Feature";
+    lines.push(feature.description ? `${title}: ${feature.description}` : title);
+  });
+  const description = String(item.description || "").trim();
+  if (description) lines.push(`Description: ${description}`);
+  return lines.join("\n");
+}
+
+function appendUniqueTextBlock(value = "", block = "") {
+  const current = String(value || "").trim();
+  const next = String(block || "").trim();
+  if (!next) return current;
+  const nextTitle = normalizeEquipmentText(next.split(/\n+/)[0]);
+  const hasTitle = String(current || "")
+    .split(/\n+/)
+    .some((line) => normalizeEquipmentText(line) === nextTitle);
+  if (hasTitle) return current;
+  return [current, next].filter(Boolean).join("\n");
+}
+
+function homebrewFeatureTextForEquipment(equipment = "") {
+  return equipmentItems(equipment).reduce((text, item) => {
+    const homebrewItem = homebrewItemForEquipmentItem(item);
+    return appendUniqueTextBlock(text, homebrewItemFeatureText(homebrewItem));
+  }, "");
+}
+
 function weaponAbilityModifier(weapon, abilities = {}) {
   const strength = abilityModifier(abilities.strength);
   const dexterity = abilityModifier(abilities.dexterity);
@@ -421,9 +495,23 @@ function weaponDamageText(weapon, modifier) {
 function derivedWeaponAttacks({ equipment, abilities, level }) {
   const seen = new Set();
   return equipmentItems(equipment).map((item) => {
+    const homebrewItem = homebrewItemForEquipmentItem(item);
+    if (homebrewItem) {
+      const key = `homebrew:${homebrewItem.id || normalizeEquipmentText(homebrewItem.name)}`;
+      if (!isHomebrewWeaponItem(homebrewItem) || seen.has(key)) return null;
+      seen.add(key);
+      return {
+        name: homebrewItem.name,
+        attackBonus: homebrewWeaponAttackBonus(homebrewItem),
+        damageType: homebrewWeaponDamageText(homebrewItem),
+        generatedFromEquipment: true,
+        homebrew: true,
+      };
+    }
     const weapon = weaponForEquipmentItem(item);
-    if (!weapon || seen.has(weapon.name)) return null;
-    seen.add(weapon.name);
+    const key = `weapon:${weapon?.name}`;
+    if (!weapon || seen.has(key)) return null;
+    seen.add(key);
     const modifier = weaponAbilityModifier(weapon, abilities);
     return {
       name: weapon.name,
@@ -437,9 +525,24 @@ function derivedWeaponAttacks({ equipment, abilities, level }) {
 function equipmentWeaponSummaries(player = {}) {
   const seen = new Set();
   return equipmentItems(player.equipment).map((item) => {
+    const homebrewItem = homebrewItemForEquipmentItem(item);
+    if (homebrewItem) {
+      const key = `homebrew:${homebrewItem.id || normalizeEquipmentText(homebrewItem.name)}`;
+      if (!isHomebrewWeaponItem(homebrewItem) || seen.has(key)) return null;
+      seen.add(key);
+      return {
+        item: homebrewItem.name,
+        name: homebrewItem.name,
+        mode: homebrewWeaponModeText(homebrewItem),
+        attackBonus: homebrewWeaponAttackBonus(homebrewItem),
+        damageType: homebrewWeaponDamageText(homebrewItem),
+        homebrew: true,
+      };
+    }
     const weapon = weaponForEquipmentItem(item);
-    if (!weapon || seen.has(weapon.name)) return null;
-    seen.add(weapon.name);
+    const key = `weapon:${weapon?.name}`;
+    if (!weapon || seen.has(key)) return null;
+    seen.add(key);
     const modifier = weaponAbilityModifier(weapon, player.abilities || {});
     return {
       item,
@@ -570,6 +673,14 @@ function datalistMarkup(id, options) {
   return `<datalist id="${escapeHtml(id)}">${options.map((option) => `<option value="${escapeHtml(option)}"></option>`).join("")}</datalist>`;
 }
 
+function equipmentOptionNames() {
+  const builtinWeapons = WEAPONS.map((weapon) => weapon.name);
+  const homebrewItems = getStoredCollection("items")
+    .map((item) => String(item?.name || "").trim())
+    .filter(Boolean);
+  return Array.from(new Set([...builtinWeapons, ...homebrewItems])).sort((a, b) => a.localeCompare(b));
+}
+
 function checkboxMarkup(name, options, selected = []) {
   const selectedSet = new Set(selected);
   return options.map((option) => `
@@ -609,6 +720,10 @@ function buildPlayerCharacter(form) {
     hitPointsRolled: Boolean(hitPointMaximum),
     passivePerception,
   };
+  const features = appendUniqueTextBlock(
+    formValue(form, "#player-features"),
+    homebrewFeatureTextForEquipment(equipment)
+  );
   return {
     id: createId("player"),
     campaignId: DEFAULT_CAMPAIGN_ID,
@@ -635,7 +750,7 @@ function buildPlayerCharacter(form) {
       flaws: formValue(form, "#player-flaws"),
     },
     equipment,
-    features: formValue(form, "#player-features"),
+    features,
     description: formValue(form, "#player-description"),
     notes: formValue(form, "#player-notes"),
     avatarUrl: "",
@@ -1588,6 +1703,8 @@ function resetImagePickers(root) {
       preview.hidden = true;
     }
   });
+  const mediaPickers = root.matches?.("[data-media-select]") ? [root] : Array.from(root.querySelectorAll("[data-media-select]"));
+  mediaPickers.forEach((picker) => setMediaSelectImage(picker, null));
 }
 
 function selectedFilePreviews(files) {
@@ -1601,12 +1718,14 @@ function selectedFilePreviews(files) {
 
 function initImagePickers(root = document) {
   root.querySelectorAll("[data-image-picker]").forEach((picker) => {
+    if (picker.dataset.imagePickerReady === "true") return;
     const input = picker.querySelector('input[type="file"]');
     const trigger = picker.querySelector("[data-image-trigger]");
     const status = picker.querySelector("[data-image-status]");
     const preview = picker.querySelector("[data-image-preview]");
     const maxFiles = Number(picker.dataset.maxFiles || input?.dataset.maxFiles || 0);
     if (!input || !trigger) return;
+    picker.dataset.imagePickerReady = "true";
 
     trigger.addEventListener("click", () => input.click());
     input.addEventListener("change", () => {
@@ -1634,6 +1753,105 @@ function initImagePickers(root = document) {
         preview.hidden = false;
       }
     });
+  });
+  initMediaSelectPickers(root);
+}
+
+function imageFromEntry(entry = {}) {
+  const source = entry.image && typeof entry.image === "object" ? entry.image : entry;
+  const url = source.url || entry.imageUrl || entry.imageDataUrl || "";
+  if (!url) return null;
+  return {
+    id: source.id || entry.imageId || "",
+    url,
+    title: source.title || source.originalFilename || entry.title || entry.name || "Selected image",
+    originalFilename: source.originalFilename || "",
+    fileSize: source.fileSize || 0,
+    uploadedAt: source.uploadedAt || "",
+  };
+}
+
+function setMediaSelectImage(picker, image, statusText = "") {
+  if (!picker) return;
+  const normalized = imageFromEntry(image || {});
+  const status = picker.querySelector("[data-image-status]");
+  const preview = picker.querySelector("[data-image-preview]");
+  const clear = picker.querySelector("[data-media-clear]");
+
+  if (!normalized) {
+    delete picker.dataset.selectedImage;
+    if (status) {
+      status.textContent = "No image chosen";
+      status.classList.remove("error");
+    }
+    if (preview) {
+      preview.removeAttribute("src");
+      preview.hidden = true;
+    }
+    if (clear) clear.hidden = true;
+    return;
+  }
+
+  picker.dataset.selectedImage = JSON.stringify(normalized);
+  if (status) {
+    status.textContent = statusText || `Selected: ${normalized.title}`;
+    status.classList.remove("error");
+  }
+  if (preview) {
+    preview.src = normalized.url;
+    preview.hidden = false;
+  }
+  if (clear) clear.hidden = false;
+}
+
+function selectedMediaImageFromPicker(picker) {
+  if (!picker?.dataset?.selectedImage) return null;
+  try {
+    return JSON.parse(picker.dataset.selectedImage);
+  } catch (error) {
+    return null;
+  }
+}
+
+function selectedMediaImageFromForm(form) {
+  return selectedMediaImageFromPicker(form?.querySelector("[data-media-select]"));
+}
+
+function initMediaSelectPickers(root = document) {
+  root.querySelectorAll("[data-media-select]").forEach((picker) => {
+    if (picker.dataset.mediaSelectReady === "true") return;
+    const trigger = picker.querySelector("[data-media-select-trigger]");
+    const clear = picker.querySelector("[data-media-clear]");
+    const status = picker.querySelector("[data-image-status]");
+    if (!trigger) return;
+    picker.dataset.mediaSelectReady = "true";
+
+    trigger.addEventListener("click", async () => {
+      const previous = selectedMediaImageFromPicker(picker);
+      if (status) {
+        status.textContent = "Opening media library...";
+        status.classList.remove("error");
+      }
+      try {
+        const image = await chooseWidgetImage();
+        if (image) {
+          setMediaSelectImage(picker, image);
+        } else if (previous) {
+          setMediaSelectImage(picker, previous);
+        } else if (status) {
+          status.textContent = "No image chosen";
+        }
+      } catch (error) {
+        if (status) {
+          status.textContent = error.message;
+          status.classList.add("error");
+        } else {
+          alert(error.message);
+        }
+      }
+    });
+
+    clear?.addEventListener("click", () => setMediaSelectImage(picker, null));
   });
 }
 
@@ -1956,7 +2174,7 @@ async function openMediaPicker() {
         const images = await listImages();
         list.innerHTML = images.length
           ? images.map((image) => mediaImageCardMarkup(image, { selectable: true })).join("")
-          : `<div class="empty-state">No media images yet. Add images from campaign content forms, then select them here.</div>`;
+          : `<div class="empty-state">No media images yet. Upload images from the Media page, then select them here.</div>`;
       } catch (error) {
         list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
       }
@@ -2017,6 +2235,13 @@ function firstItemFeature(item) {
 }
 
 function syncFormImagePreview(form, entry = {}) {
+  const mediaPicker = form?.querySelector("[data-media-select]");
+  if (mediaPicker) {
+    const image = imageFromEntry(entry);
+    setMediaSelectImage(mediaPicker, image, image ? "Existing media image kept" : "No image chosen");
+    return;
+  }
+
   const picker = form?.querySelector("[data-image-picker]");
   if (!picker) return;
   const status = picker.querySelector("[data-image-status]");
@@ -2226,8 +2451,8 @@ function openWidgetDetail(key, entryId) {
   const modal = document.createElement("div");
   modal.className = "modal-backdrop widget-detail-modal";
   modal.innerHTML = `
+    <button class="widget-detail-close" type="button" data-close-widget-detail aria-label="Close widget detail">×</button>
     <article class="event-detail-dialog widget-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="widget-detail-title">
-      <button class="modal-close" type="button" data-close-widget-detail aria-label="Close widget detail">×</button>
       <div class="widget-detail-layout ${imageUrl ? "has-media" : ""}">
         <div class="widget-detail-main">
           <p class="eyebrow">${escapeHtml(WIDGET_FORM_LABELS[key] || "Widget")}</p>
@@ -2646,8 +2871,9 @@ function initDashboardForms() {
   initItemWeaponOptions();
 
   wireForm("encounter-form", "encounters", async () => {
+    const form = document.getElementById("encounter-form");
     const title = document.getElementById("encounter-title").value.trim();
-    const image = await imageFromFileInput(document.getElementById("encounter-image"), { title });
+    const image = selectedMediaImageFromForm(form);
     return {
       id: createId("encounter"),
       title,
@@ -2661,8 +2887,9 @@ function initDashboardForms() {
   });
 
   wireForm("location-form", "locations", async () => {
+    const form = document.getElementById("location-form");
     const name = document.getElementById("location-name").value.trim();
-    const image = await imageFromFileInput(document.getElementById("location-image"), { title: name });
+    const image = selectedMediaImageFromForm(form);
     return {
       id: createId("location"),
       name,
@@ -2685,8 +2912,9 @@ function initDashboardForms() {
   }));
 
   wireForm("character-form", "characters", async () => {
+    const form = document.getElementById("character-form");
     const name = document.getElementById("character-name").value.trim();
-    const image = await imageFromFileInput(document.getElementById("character-image"), { title: name });
+    const image = selectedMediaImageFromForm(form);
     return {
       id: createId("character"),
       name,
@@ -2699,9 +2927,10 @@ function initDashboardForms() {
   });
 
   wireForm("item-form", "items", async () => {
+    const form = document.getElementById("item-form");
     const name = document.getElementById("item-name").value.trim();
     const type = document.getElementById("item-type").value;
-    const image = await imageFromFileInput(document.getElementById("item-image"), { title: name });
+    const image = selectedMediaImageFromForm(form);
     const statistics = type === "Weapon" ? {
       damage: document.getElementById("item-weapon-damage").value.trim(),
       range: document.getElementById("item-weapon-range").value.trim(),
@@ -2725,12 +2954,13 @@ function initDashboardForms() {
   });
 
   wireForm("event-form", "events", async () => {
+    const form = document.getElementById("event-form");
     const settings = getCalendarSettings();
     const monthIndex = Number(document.getElementById("event-month")?.value ?? settings.currentMonthIndex);
     const day = Number(document.getElementById("event-day")?.value ?? 1);
     const year = Number(document.getElementById("event-year")?.value ?? settings.currentYear);
     const title = document.getElementById("event-title").value.trim();
-    const image = await imageFromFileInput(document.getElementById("event-image"), { title });
+    const image = selectedMediaImageFromForm(form);
     const event = {
       id: createId("event"),
       title,
@@ -2841,7 +3071,7 @@ function renderMediaLibraryShell() {
       <div class="page-hero">
         <p class="eyebrow">Media library</p>
         <h1>Image Library</h1>
-        <p>Browse reusable images saved from widgets and campaign content.</p>
+        <p>Upload campaign images here, then reuse them from dashboard widgets.</p>
       </div>
       <div class="media-page-grid media-page-grid-single">
         <section class="setup-summary-panel">
@@ -2853,6 +3083,12 @@ function renderMediaLibraryShell() {
             <button class="btn btn-secondary" type="button" id="media-refresh">Refresh</button>
           </div>
           <div class="media-library-grid" id="media-library-list" aria-live="polite"></div>
+          <div class="media-upload-block">
+            <div class="section-heading">
+              <div><p class="eyebrow">Upload</p><h2>Add image to media</h2></div>
+            </div>
+            ${imageUploadMarkup({ submitLabel: "Upload to media" })}
+          </div>
         </section>
       </div>
     </section>`;
@@ -2869,7 +3105,7 @@ async function loadMediaLibrary() {
     if (count) count.textContent = `${images.length} image${images.length === 1 ? "" : "s"}`;
     list.innerHTML = images.length
       ? images.map((image) => mediaImageCardMarkup(image, { selectable: false })).join("")
-      : `<div class="empty-state">No media images yet. Add images from campaign content forms, then browse them here.</div>`;
+      : `<div class="empty-state">No media images yet. Upload images below, then select them from dashboard widgets.</div>`;
   } catch (error) {
     list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
     if (count) count.textContent = "Backend offline";
@@ -2877,7 +3113,37 @@ async function loadMediaLibrary() {
 }
 
 function initMediaLibraryPage() {
+  initImagePickers(document.querySelector(".media-page") || document);
   document.getElementById("media-refresh")?.addEventListener("click", () => loadMediaLibrary());
+  const uploadForm = document.querySelector("[data-image-upload-form]");
+  uploadForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!uploadForm.checkValidity()) {
+      uploadForm.reportValidity();
+      return;
+    }
+    const status = uploadForm.querySelector("[data-image-upload-status]");
+    const input = uploadForm.querySelector('input[name="images"]');
+    const title = new FormData(uploadForm).get("title")?.toString().trim() || "";
+    if (status) {
+      status.textContent = "Uploading image...";
+      status.classList.remove("error");
+    }
+    try {
+      const images = await uploadImages(input?.files || [], { title, source: "media" });
+      uploadForm.reset();
+      resetImagePickers(uploadForm);
+      if (status) status.textContent = `Uploaded ${images.length} image${images.length === 1 ? "" : "s"}.`;
+      await loadMediaLibrary();
+    } catch (error) {
+      if (status) {
+        status.textContent = error.message;
+        status.classList.add("error");
+      } else {
+        alert(error.message);
+      }
+    }
+  });
   document.getElementById("media-library-list")?.addEventListener("click", async (event) => {
     const deleteId = event.target?.dataset?.deleteImage;
     const editId = event.target?.dataset?.editImage;
@@ -4095,6 +4361,7 @@ function playerCharacterFormMarkup() {
       ${datalistMarkup("player-class-options", PLAYER_CLASSES.map((item) => item.name))}
       ${datalistMarkup("player-race-options", PLAYER_RACES)}
       ${datalistMarkup("player-alignment-options", PLAYER_ALIGNMENTS)}
+      ${datalistMarkup("player-equipment-options", equipmentOptionNames())}
 
       <fieldset class="sheet-form-section sheet-form-identity">
         <legend>Character sheet header</legend>
@@ -4158,7 +4425,7 @@ function playerCharacterFormMarkup() {
             ${checkboxMarkup("player-languages", LANGUAGES)}
           </div>
         </div>
-        <label class="full-width">Equipment<textarea id="player-equipment-entry" rows="2" placeholder="Write an item, then press Enter: dagger, leather armor, thieves' tools..."></textarea></label>
+        <label class="full-width">Equipment<input id="player-equipment-entry" type="text" list="player-equipment-options" placeholder="Write an item, then press Enter: dagger, leather armor, thieves' tools..." /></label>
         <textarea id="player-equipment" hidden aria-hidden="true"></textarea>
         <textarea id="player-features" hidden aria-hidden="true"></textarea>
       </fieldset>
@@ -4251,11 +4518,23 @@ function refreshPlayerSectionSummary(form) {
 
 function appendEquipmentItemsToSheet(form, items = []) {
   const equipment = form.querySelector("#player-equipment");
-  const nextItems = items.map((item) => item.trim()).filter(Boolean);
+  const features = form.querySelector("#player-features");
+  const nextItems = items.map((item) => {
+    const text = item.trim();
+    const homebrewItem = homebrewItemForEquipmentItem(text);
+    return {
+      equipmentText: homebrewItem?.name || text,
+      featureText: homebrewItemFeatureText(homebrewItem),
+    };
+  }).filter((item) => item.equipmentText);
   if (!equipment || !nextItems.length) return;
   const currentItems = equipmentItems(equipment.value);
-  equipment.value = [...currentItems, ...nextItems].join("\n");
+  equipment.value = [...currentItems, ...nextItems.map((item) => item.equipmentText)].join("\n");
   equipment.dispatchEvent(new Event("input", { bubbles: true }));
+  if (features) {
+    features.value = nextItems.reduce((value, item) => appendUniqueTextBlock(value, item.featureText), features.value);
+    features.dispatchEvent(new Event("input", { bubbles: true }));
+  }
 }
 
 function commitEquipmentDraft(form, { includeCurrent = false } = {}) {

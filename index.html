@@ -124,10 +124,10 @@
               <label>Status<select id="encounter-status" required><option value="prepared">Prepared</option><option value="active">Active</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
               <label>Tags<input id="encounter-tags" type="text" placeholder="Tags, comma-separated" /></label>
               <label class="full-width">Description<textarea id="encounter-description" rows="3" placeholder="Creatures, hazards, clues, terrain, and rewards..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="encounter-image">Optional encounter image</label>
-                <input id="encounter-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="encounter-image">Choose image</button>
+              <div class="file-picker image-picker media-select-picker full-width" data-media-select>
+                <label>Optional encounter image</label>
+                <button class="btn btn-secondary image-picker-button" type="button" data-media-select-trigger>Choose from media</button>
+                <button class="btn btn-secondary" type="button" data-media-clear hidden>Clear image</button>
                 <span class="image-picker-status" data-image-status>No image chosen</span>
                 <img class="image-picker-preview" data-image-preview alt="Selected encounter image preview" hidden />
               </div>
@@ -162,10 +162,10 @@
               <label>Status<select id="location-status" required><option value="active">Active</option><option value="prepared">Prepared</option><option value="hidden">DM-only</option><option value="completed">Completed</option></select></label>
               <label>Tags<input id="location-tags" type="text" placeholder="Tags, comma-separated" /></label>
               <label class="full-width">Description<textarea id="location-description" rows="3" placeholder="Terrain, factions, secrets, routes, and hooks..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="location-image">Optional location image</label>
-                <input id="location-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="location-image">Choose image</button>
+              <div class="file-picker image-picker media-select-picker full-width" data-media-select>
+                <label>Optional location image</label>
+                <button class="btn btn-secondary image-picker-button" type="button" data-media-select-trigger>Choose from media</button>
+                <button class="btn btn-secondary" type="button" data-media-clear hidden>Clear image</button>
                 <span class="image-picker-status" data-image-status>No image chosen</span>
                 <img class="image-picker-preview" data-image-preview alt="Selected location image preview" hidden />
               </div>
@@ -207,10 +207,10 @@
               <label>Role<input id="character-role" type="text" placeholder="Role" required /></label>
               <label>Faction<input id="character-faction" type="text" placeholder="Faction" /></label>
               <label class="full-width">Notes<textarea id="character-notes" rows="3" placeholder="Motives, secrets, relationship to the party..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="character-image">Optional portrait or symbol</label>
-                <input id="character-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="character-image">Choose image</button>
+              <div class="file-picker image-picker media-select-picker full-width" data-media-select>
+                <label>Optional portrait or symbol</label>
+                <button class="btn btn-secondary image-picker-button" type="button" data-media-select-trigger>Choose from media</button>
+                <button class="btn btn-secondary" type="button" data-media-clear hidden>Clear image</button>
                 <span class="image-picker-status" data-image-status>No image chosen</span>
                 <img class="image-picker-preview" data-image-preview alt="Selected character image preview" hidden />
               </div>
@@ -234,10 +234,10 @@
                 <label class="full-width">Feature description<textarea id="item-weapon-feature-description" rows="2" placeholder="Describe what this weapon feature does at the table."></textarea></label>
               </fieldset>
               <label class="full-width">Item description<textarea id="item-description" rows="3" placeholder="Appearance, lore, rarity, owner, hooks..." required></textarea></label>
-              <div class="file-picker image-picker full-width" data-image-picker>
-                <label for="item-image">Optional item or monster image</label>
-                <input id="item-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-                <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="item-image">Choose image</button>
+              <div class="file-picker image-picker media-select-picker full-width" data-media-select>
+                <label>Optional item or monster image</label>
+                <button class="btn btn-secondary image-picker-button" type="button" data-media-select-trigger>Choose from media</button>
+                <button class="btn btn-secondary" type="button" data-media-clear hidden>Clear image</button>
                 <span class="image-picker-status" data-image-status>No image chosen</span>
                 <img class="image-picker-preview" data-image-preview alt="Selected item image preview" hidden />
               </div>
@@ -272,6 +272,13 @@
                 <label>Day<input id="event-day" type="number" min="1" value="1" required /></label>
                 <label>Year<input id="event-year" type="number" value="1492" required /></label>
                 <label class="full-width">Description<textarea id="event-description" rows="3" placeholder="What happens, who attends, and what might change..." required></textarea></label>
+                <div class="file-picker image-picker media-select-picker full-width" data-media-select>
+                  <label>Optional event image</label>
+                  <button class="btn btn-secondary image-picker-button" type="button" data-media-select-trigger>Choose from media</button>
+                  <button class="btn btn-secondary" type="button" data-media-clear hidden>Clear image</button>
+                  <span class="image-picker-status" data-image-status>No image chosen</span>
+                  <img class="image-picker-preview" data-image-preview alt="Selected event image preview" hidden />
+                </div>
                 <button class="btn btn-primary" type="submit">Save Event</button>
               </form>
             </div>
