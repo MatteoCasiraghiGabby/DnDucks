@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   calendarSettings: "dnducks.calendarSettings",
   weather: "dnducks.weather",
   campaigns: "dnducks.campaigns",
+  dmOnly: "dnducks.dmOnly",
 };
 
 const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events"]);
@@ -1035,6 +1036,41 @@ function widgetOriginAttribute(entry) {
   return `data-widget-origin="${isUserProducedEntry(entry) ? "user" : "permanent"}"`;
 }
 
+function widgetDmId(collectionKey, entry, fallback = "widget") {
+  const entryId = String(entry?.id || entry?.title || entry?.name || fallback || "widget").trim();
+  return `${collectionKey}:${entryId || fallback}`;
+}
+
+function widgetDmAttribute(collectionKey, entry, fallback) {
+  return `data-dm-widget-id="${escapeHtml(widgetDmId(collectionKey, entry, fallback))}"`;
+}
+
+function getDmOnlyTargets() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.dmOnly) || "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveDmOnlyTargets(targets) {
+  localStorage.setItem(STORAGE_KEYS.dmOnly, JSON.stringify(targets));
+}
+
+function setDmOnlyTarget(target, isDmOnly = true) {
+  const cleanTarget = String(target || "").trim();
+  if (!cleanTarget) return;
+  const targets = getDmOnlyTargets();
+  if (isDmOnly) targets[cleanTarget] = true;
+  else delete targets[cleanTarget];
+  saveDmOnlyTargets(targets);
+}
+
+function isDmOnlyTarget(target, targets = getDmOnlyTargets()) {
+  return Boolean(targets[String(target || "")]);
+}
+
 function widgetDeleteActionMarkup(entry, label) {
   if (!isUserProducedEntry(entry)) return "";
 
@@ -1355,38 +1391,58 @@ function initMobileNavigation() {
 
 function initCommandInterface() {
   const search = document.getElementById("global-search");
-  const filterToggle = document.getElementById("filter-toggle");
-  const filterPanel = document.getElementById("filter-panel");
-  const statusButtons = document.querySelectorAll("[data-status-filter]");
+  const dmOnlyToggle = document.querySelector("[data-dm-only-toggle]");
   const deleteCampaignButton = document.getElementById("delete-campaign-button");
-  let activeStatus = "all";
+  let dmOnlyMode = false;
 
   function applyFilters() {
     const query = search ? search.value.trim().toLowerCase() : "";
+    const dmOnlyTargets = getDmOnlyTargets();
+    document.body.classList.toggle("dm-only-mode", dmOnlyMode);
+    if (dmOnlyToggle) {
+      dmOnlyToggle.classList.toggle("is-active", dmOnlyMode);
+      dmOnlyToggle.setAttribute("aria-pressed", String(dmOnlyMode));
+    }
+
     document.querySelectorAll("[data-searchable]").forEach((card) => {
-      const cardStatus = card.dataset.status || "active";
-      const matchesStatus = activeStatus === "all" || cardStatus === activeStatus;
       const matchesQuery = !query || (card.dataset.searchable || "").includes(query);
-      card.classList.toggle("is-filtered-out", !matchesStatus || !matchesQuery);
+      const cardTarget = card.dataset.dmWidgetId;
+      const isDmOnlyCard = isDmOnlyTarget(cardTarget, dmOnlyTargets) || card.dataset.status === "hidden";
+      card.classList.toggle("is-filtered-out", !matchesQuery || (!dmOnlyMode && isDmOnlyCard));
+      card.classList.toggle("is-dm-only", isDmOnlyCard);
     });
+
+    document.querySelectorAll("[data-dm-part-target]").forEach((part) => {
+      const isDmOnlyPart = isDmOnlyTarget(part.dataset.dmPartTarget, dmOnlyTargets);
+      part.classList.toggle("is-filtered-out", !dmOnlyMode && isDmOnlyPart);
+      part.classList.toggle("is-dm-only", isDmOnlyPart);
+      part.setAttribute("aria-hidden", String(!dmOnlyMode && isDmOnlyPart));
+    });
+  }
+
+  function markDmOnlyFromEvent(event) {
+    if (!dmOnlyMode) return;
+    const interactive = event.target.closest("a, button, input, select, textarea");
+    const part = event.target.closest("[data-dm-part-target]");
+    const card = event.target.closest("[data-dm-widget-id]");
+    if (!part && !card) return;
+    if (interactive && !part) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    const target = part?.dataset.dmPartTarget || card?.dataset.dmWidgetId;
+    setDmOnlyTarget(target, true);
+    applyFilters();
   }
 
   if (search) search.addEventListener("input", applyFilters);
   document.addEventListener("dashboard:rendered", applyFilters);
+  document.addEventListener("click", markDmOnlyFromEvent, true);
 
-  statusButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      activeStatus = button.dataset.statusFilter || "all";
-      statusButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+  if (dmOnlyToggle) {
+    dmOnlyToggle.addEventListener("click", () => {
+      dmOnlyMode = !dmOnlyMode;
       applyFilters();
-    });
-  });
-
-  if (filterToggle && filterPanel) {
-    filterToggle.addEventListener("click", () => {
-      const isHidden = filterPanel.hasAttribute("hidden");
-      filterPanel.toggleAttribute("hidden", !isHidden);
-      filterToggle.setAttribute("aria-expanded", String(isHidden));
     });
   }
 
@@ -1397,7 +1453,6 @@ function initCommandInterface() {
       renderCampaignCalendar();
     });
   }
-
 }
 
 function imagePreviewMarkup(image, label = "") {
@@ -1501,6 +1556,26 @@ async function openMediaPicker() {
   });
 }
 
+function wireDmOnlyWidgetTargets(root = document) {
+  root.querySelectorAll("[data-dm-widget-id]").forEach((card) => {
+    const widgetTarget = card.dataset.dmWidgetId;
+    if (!widgetTarget) return;
+    card.setAttribute("title", "DM-only mode: select this widget to hide it from players");
+    card.querySelectorAll(".widget-media, .widget-description").forEach((part) => {
+      part.dataset.dmPartTarget = `${widgetTarget}:details`;
+      part.setAttribute("title", "DM-only mode: select this icon and description to hide them from players");
+    });
+    card.querySelectorAll(".item-stat-icons").forEach((part) => {
+      part.dataset.dmPartTarget = `${widgetTarget}:stats`;
+      part.setAttribute("title", "DM-only mode: select these statistics to hide them from players");
+    });
+    card.querySelectorAll(".item-feature-block").forEach((part, index) => {
+      part.dataset.dmPartTarget = `${widgetTarget}:feature:${index}`;
+      part.setAttribute("title", "DM-only mode: select this feature to hide it from players");
+    });
+  });
+}
+
 function renderCollection({ key, listId, emptyText, template, getCollection }) {
   const list = document.getElementById(listId);
   if (!list) return;
@@ -1550,7 +1625,7 @@ function playerCharacterCard(player) {
   const passive = playerPassivePerception(player);
   const sheetHref = playerCharacterHref(campaignId, player.id);
   return `
-    <article class="content-card entry-card widget-card player-card player-preview-card" data-searchable="${escapeHtml(searchable)}" data-status="active">
+    <article class="content-card entry-card widget-card player-card player-preview-card" ${widgetDmAttribute("players", player)} data-searchable="${escapeHtml(searchable)}" data-status="active">
       <div class="player-preview-details">
         <div class="card-kicker"><span class="status-badge status-active">Player</span><span>${escapeHtml(player.classRole || "Party member")}</span></div>
         <h3>${escapeHtml(title)}</h3>
@@ -1600,6 +1675,7 @@ function renderDashboardOverview() {
       }
     });
   });
+  wireDmOnlyWidgetTargets(grid);
   grid.querySelectorAll("[data-delete-player-id]").forEach((button) => {
     button.addEventListener("click", () => {
       deletePlayerFromCampaign(button.dataset.campaignId || DEFAULT_CAMPAIGN_ID, button.dataset.deletePlayerId);
@@ -1623,7 +1699,7 @@ function renderDashboard() {
       const tags = entryTags(encounter.tags);
       const searchable = textForSearch([title, tier, description, tags.join(" "), "encounter scene combat"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(encounter)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(encounter)} ${widgetDmAttribute("encounters", encounter)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
           ${widgetImageMarkup(encounter, title)}
           <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(tier)}</span></div>
           <h3>${escapeHtml(title)}</h3>
@@ -1646,7 +1722,7 @@ ${widgetDeleteActionMarkup(encounter, "Delete encounter")}
       const tags = entryTags(location.tags);
       const searchable = textForSearch([name, type, description, tags.join(" "), "location atlas place faction"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(location)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(location)} ${widgetDmAttribute("locations", location)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
           ${widgetImageMarkup(location, name)}
           <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(type)}</span></div>
           <h3>${escapeHtml(name)}</h3>
@@ -1666,7 +1742,7 @@ ${widgetDeleteActionMarkup(location, "Delete location")}
       const searchable = textForSearch([note.title, note.category, note.content, note.createdAt, "note campaign wiki"]);
       const noteDate = note.campaignStartDate ? `Campaign begins ${note.createdAt}` : note.createdAt;
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} ${widgetDmAttribute("notes", note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
@@ -1683,7 +1759,7 @@ ${widgetDeleteActionMarkup(note, "Delete note")}
     template: (character) => {
       const searchable = textForSearch([character.name, character.role, character.faction, character.notes, "npc character"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(character)} data-searchable="${escapeHtml(searchable)}" data-status="hidden">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(character)} ${widgetDmAttribute("characters", character)} data-searchable="${escapeHtml(searchable)}" data-status="hidden">
           ${widgetImageMarkup(character, character.name)}
           <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>${escapeHtml(character.role)}</span></div>
           <h3>${escapeHtml(character.name)}</h3>
@@ -1707,7 +1783,7 @@ ${widgetDeleteActionMarkup(character, "Delete NPC")}
       const showDescription = item.type !== "Weapon" || !features.length;
       const searchable = textForSearch([item.name, item.type, item.description, stats.damage, stats.range, stats.attack, stats.properties, featureSearch, "item homebrew monster loot"]);
       return `
-        <article class="content-card entry-card widget-card item-card" ${widgetOriginAttribute(item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
+        <article class="content-card entry-card widget-card item-card" ${widgetOriginAttribute(item)} ${widgetDmAttribute("items", item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
           <div class="item-card-details">
             <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
             <h3>${escapeHtml(item.name)}</h3>
@@ -1731,7 +1807,7 @@ ${widgetDeleteActionMarkup(item, "Delete item")}
     template: (event) => {
       const searchable = textForSearch([event.title, eventDateLabel(event), event.description, "session calendar event"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} ${widgetDmAttribute("events", event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
           ${widgetImageMarkup(event, event.title)}
           <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
           <h3>${escapeHtml(event.title)}</h3>
@@ -1742,6 +1818,7 @@ ${widgetDeleteActionMarkup(event, "Delete event")}
     },
   });
 
+  wireDmOnlyWidgetTargets(document);
   updateSummaryCards();
   document.dispatchEvent(new Event("dashboard:rendered"));
 }
