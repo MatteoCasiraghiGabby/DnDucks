@@ -364,6 +364,40 @@ test("user NPC widgets are not hidden by default status filtering", () => {
   assert.match(script, /data-status="active">\s*\$\{widgetImageMarkup\(character, character\.name\)\}/);
 });
 
+test("homebrew weapon features render the feature name inside a bordered icon panel", () => {
+  const app = createFrontendSandbox();
+  const markup = app.itemFeatureBlocksMarkup({
+    type: "Weapon",
+    features: [{ title: "Vampire Touch", description: "Regain hit points after a critical hit." }],
+  });
+
+  assert.match(markup, /<article class="item-feature-block">/);
+  assert.match(markup, /<span class="item-feature-icon">Vampire Touch<\/span>/);
+  assert.match(markup, /Regain hit points after a critical hit\./);
+});
+
+test("DM-only targeting keeps homebrew features visible in DM mode and hidden in standard mode", () => {
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+  const styles = fs.readFileSync(path.join(process.cwd(), "assets/styles.css"), "utf8");
+
+  assert.match(script, /querySelectorAll\("\.item-feature-block"\)/);
+  assert.match(script, /part\.classList\.toggle\("is-filtered-out", !dmOnlyMode && isDmOnlyPart\)/);
+  assert.doesNotMatch(script, /setDmOnlyTargetLabel|syncDmOnlyFeatureIcon|data-dm-feature-label/);
+  assert.doesNotMatch(styles, /\.dm-only-mode \.item-feature-block\.is-dm-only \{ display: none; \}/);
+});
+
+test("user widgets expose modify actions and card clicks open detail overlay", () => {
+  const app = createFrontendSandbox();
+  const actions = app.widgetActionMarkup({ id: "item-1" }, { edit: "Modify item", delete: "Delete item" });
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+
+  assert.match(actions, /data-edit-action-id="item-1"/);
+  assert.match(actions, /Modify item/);
+  assert.match(actions, /data-delete-id="item-1"/);
+  assert.match(script, /openWidgetDetail\(card\.dataset\.editKey, card\.dataset\.editId\)/);
+  assert.match(script, /startEditingWidget\(key, button\.dataset\.editActionId\)/);
+});
+
 test("non-canonical local origins redirect with local storage for import", () => {
   const app = createFrontendSandbox({
     hostname: "127.0.0.1",

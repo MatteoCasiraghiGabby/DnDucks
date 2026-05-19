@@ -1315,9 +1315,10 @@ function itemFeatureBlocksMarkup(item) {
           <div class="item-feature-list" aria-label="Weapon features">
             ${features.map((feature, index) => {
               const description = feature.description || (index === 0 ? String(item.description || "").trim() : "");
+              const title = feature.title || "Feature";
               return `
               <article class="item-feature-block">
-                <h4><span class="item-feature-icon">${escapeHtml(feature.title || "Feature")}</span></h4>
+                <span class="item-feature-icon">${escapeHtml(title)}</span>
                 ${description ? `<p>${escapeHtml(description)}</p>` : ""}
               </article>`;
             }).join("")}
@@ -1378,12 +1379,15 @@ function isDmOnlyTarget(target, targets = getDmOnlyTargets()) {
   return Boolean(targets[String(target || "")]);
 }
 
-function widgetDeleteActionMarkup(entry, label) {
+function widgetActionMarkup(entry, labels = {}) {
   if (!isUserProducedEntry(entry)) return "";
+  const editLabel = labels.edit || "Modify widget";
+  const deleteLabel = labels.delete || "Delete widget";
 
   return `
           <div class="entry-actions">
-            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(entry.id)}">${escapeHtml(label)}</button>
+            <button class="btn btn-secondary" type="button" data-edit-action-id="${escapeHtml(entry.id)}">${escapeHtml(editLabel)}</button>
+            <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(entry.id)}">${escapeHtml(deleteLabel)}</button>
           </div>`;
 }
 
@@ -2037,13 +2041,137 @@ function startEditingWidget(key, entryId) {
   firstField?.focus({ preventScroll: true });
 }
 
-function wireWidgetEditing(list) {
+function widgetDetailTitle(key, entry = {}) {
+  if (key === "encounters") return firstDisplayText([entry.title, entry.name], "Untitled encounter");
+  if (key === "locations") return firstDisplayText([entry.name, entry.title], "Untitled location");
+  if (key === "notes") return firstDisplayText([entry.title], "Untitled note");
+  if (key === "characters") return firstDisplayText([entry.name], "Untitled character");
+  if (key === "items") return firstDisplayText([entry.name], "Untitled item");
+  if (key === "events") return firstDisplayText([entry.title], "Untitled event");
+  return firstDisplayText([entry.title, entry.name], "Widget");
+}
+
+function widgetDetailRows(rows = []) {
+  return rows
+    .filter(([, value]) => String(value ?? "").trim())
+    .map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`)
+    .join("");
+}
+
+function widgetDetailDescription(label, value) {
+  const text = String(value || "").trim();
+  return text ? `<section class="widget-detail-section"><h3>${escapeHtml(label)}</h3><p>${escapeHtml(text)}</p></section>` : "";
+}
+
+function widgetDetailContent(key, entry = {}) {
+  if (key === "items") {
+    const stats = entry.statistics || {};
+    return `
+      <dl class="widget-detail-meta">${widgetDetailRows([
+        ["Type", entry.type],
+        ["Damage", stats.damage],
+        ["Range", stats.range],
+        ["Attack", stats.attack],
+        ["Properties", stats.properties],
+        ["Created", entry.createdAt],
+      ])}</dl>
+      ${widgetDetailDescription("Description", entry.description)}
+      ${itemFeatureBlocksMarkup(entry)}`;
+  }
+
+  if (key === "encounters") {
+    return `
+      <dl class="widget-detail-meta">${widgetDetailRows([
+        ["Tier", firstDisplayText([entry.tier, entry.type, entry.sceneType], "")],
+        ["Status", statusLabel(entry.status || "prepared")],
+        ["Tags", entryTags(entry.tags).join(", ")],
+        ["Created", entry.createdAt],
+      ])}</dl>
+      ${widgetDetailDescription("Description", firstDisplayText([entry.description, entry.notes, entry.content], ""))}`;
+  }
+
+  if (key === "locations") {
+    return `
+      <dl class="widget-detail-meta">${widgetDetailRows([
+        ["Type", firstDisplayText([entry.type, entry.regionType], "")],
+        ["Status", statusLabel(entry.status || "active")],
+        ["Tags", entryTags(entry.tags).join(", ")],
+        ["Created", entry.createdAt],
+      ])}</dl>
+      ${widgetDetailDescription("Description", firstDisplayText([entry.description, entry.notes, entry.content], ""))}`;
+  }
+
+  if (key === "characters") {
+    return `
+      <dl class="widget-detail-meta">${widgetDetailRows([
+        ["Role", entry.role],
+        ["Faction", entry.faction || "Unaligned"],
+        ["Created", entry.createdAt],
+      ])}</dl>
+      ${widgetDetailDescription("Notes", entry.notes)}`;
+  }
+
+  if (key === "events") {
+    return `
+      <dl class="widget-detail-meta">${widgetDetailRows([
+        ["Date", eventDateLabel(entry)],
+        ["Created", entry.createdAt],
+      ])}</dl>
+      ${widgetDetailDescription("Description", entry.description)}`;
+  }
+
+  return `
+    <dl class="widget-detail-meta">${widgetDetailRows([
+      ["Category", entry.category],
+      ["Created", entry.createdAt],
+    ])}</dl>
+    ${widgetDetailDescription("Content", entry.content || entry.description || entry.notes)}`;
+}
+
+function openWidgetDetail(key, entryId) {
+  const entry = getStoredCollection(key).find((item) => item.id === entryId);
+  if (!entry) return;
+  const title = widgetDetailTitle(key, entry);
+  const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop widget-detail-modal";
+  modal.innerHTML = `
+    <article class="event-detail-dialog widget-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="widget-detail-title">
+      <button class="modal-close" type="button" data-close-widget-detail aria-label="Close widget detail">×</button>
+      ${imageUrl ? `<img class="widget-detail-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)} image" />` : ""}
+      <p class="eyebrow">${escapeHtml(WIDGET_FORM_LABELS[key] || "Widget")}</p>
+      <h2 id="widget-detail-title">${escapeHtml(title)}</h2>
+      ${widgetDetailContent(key, entry)}
+    </article>`;
+
+  function close() {
+    modal.remove();
+    document.removeEventListener("keydown", onKeydown);
+  }
+
+  function onKeydown(event) {
+    if (event.key === "Escape") close();
+  }
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal || event.target.closest("[data-close-widget-detail]")) close();
+  });
+  document.addEventListener("keydown", onKeydown);
+  document.body.appendChild(modal);
+  modal.querySelector("[data-close-widget-detail]")?.focus();
+}
+
+function wireWidgetInteractions(list, key) {
   list.querySelectorAll("[data-edit-key][data-edit-id]").forEach((card) => {
     card.addEventListener("click", (event) => {
       if (document.body.classList.contains("dm-only-mode")) return;
       if (event.target.closest("a, button, input, select, textarea")) return;
-      startEditingWidget(card.dataset.editKey, card.dataset.editId);
+      openWidgetDetail(card.dataset.editKey, card.dataset.editId);
     });
+  });
+
+  list.querySelectorAll("[data-edit-action-id]").forEach((button) => {
+    button.addEventListener("click", () => startEditingWidget(key, button.dataset.editActionId));
   });
 }
 
@@ -2058,7 +2186,7 @@ function renderCollection({ key, listId, emptyText, template, getCollection }) {
   }
 
   list.innerHTML = collection.map((entry) => template(entry)).join("");
-  wireWidgetEditing(list);
+  wireWidgetInteractions(list, key);
 
   list.querySelectorAll("[data-image-upload-id]").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -2177,7 +2305,7 @@ function renderDashboard() {
           <h3>${escapeHtml(title)}</h3>
           ${widgetDescriptionMarkup(description)}
           ${widgetTagsMarkup([encounter.createdAt, ...tags])}
-${widgetDeleteActionMarkup(encounter, "Delete encounter")}
+${widgetActionMarkup(encounter, { edit: "Modify encounter", delete: "Delete encounter" })}
         </article>`;
     },
   });
@@ -2200,7 +2328,7 @@ ${widgetDeleteActionMarkup(encounter, "Delete encounter")}
           <h3>${escapeHtml(name)}</h3>
           ${widgetDescriptionMarkup(description)}
           ${widgetTagsMarkup([location.createdAt, ...tags])}
-${widgetDeleteActionMarkup(location, "Delete location")}
+${widgetActionMarkup(location, { edit: "Modify location", delete: "Delete location" })}
         </article>`;
     },
   });
@@ -2219,7 +2347,7 @@ ${widgetDeleteActionMarkup(location, "Delete location")}
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
           ${widgetTagsMarkup([noteDate, "Backlinks soon"])}
-${widgetDeleteActionMarkup(note, "Delete note")}
+${widgetActionMarkup(note, { edit: "Modify note", delete: "Delete note" })}
         </article>`;
     },
   });
@@ -2237,7 +2365,7 @@ ${widgetDeleteActionMarkup(note, "Delete note")}
           <h3>${escapeHtml(character.name)}</h3>
           ${widgetDescriptionMarkup(character.notes)}
           ${widgetTagsMarkup([`Faction: ${character.faction || "Unaligned"}`, character.createdAt, "NPC"])}
-${widgetDeleteActionMarkup(character, "Delete NPC")}
+${widgetActionMarkup(character, { edit: "Modify NPC", delete: "Delete NPC" })}
         </article>`;
     },
   });
@@ -2263,7 +2391,7 @@ ${widgetDeleteActionMarkup(character, "Delete NPC")}
             ${showDescription ? widgetDescriptionMarkup(item.description) : ""}
             ${itemFeatureBlocksMarkup(item)}
             ${widgetTagsMarkup([item.createdAt, "Loot & rules"])}
-${widgetDeleteActionMarkup(item, "Delete item")}
+${widgetActionMarkup(item, { edit: "Modify item", delete: "Delete item" })}
           </div>
           <div class="item-card-media">
             ${widgetImageMarkup(item, item.name)}
@@ -2285,7 +2413,7 @@ ${widgetDeleteActionMarkup(item, "Delete item")}
           <h3>${escapeHtml(event.title)}</h3>
           ${widgetDescriptionMarkup(event.description)}
           ${widgetTagsMarkup([event.createdAt, "Session timeline", "Calendar"])}
-${widgetDeleteActionMarkup(event, "Delete event")}
+${widgetActionMarkup(event, { edit: "Modify event", delete: "Delete event" })}
         </article>`;
     },
   });
