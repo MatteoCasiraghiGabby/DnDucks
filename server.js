@@ -26,6 +26,7 @@ const CHARACTER_ANALYSIS_MODEL = process.env.OPENAI_CHARACTER_MODEL || "gpt-4o-m
 const CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS = positiveInteger(process.env.CHARACTER_ANALYSIS_RATE_LIMIT_WINDOW_MS, 60_000);
 const CHARACTER_ANALYSIS_RATE_LIMIT_MAX = positiveInteger(process.env.CHARACTER_ANALYSIS_RATE_LIMIT_MAX, 12);
 const characterAnalysisRateLimits = new Map();
+const VERBOSE_REQUEST_LOGS = process.env.DNDUCKS_VERBOSE_REQUESTS === "1";
 
 const STATIC_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -47,12 +48,12 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
   return http.createServer(async (req, res) => {
     let pathname = "";
     try {
-      console.log("[REQ]", req.method, req.url);
+      if (VERBOSE_REQUEST_LOGS) console.log("[REQ]", req.method, req.url);
       const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
       pathname = normalizeApiPathname(requestUrl.pathname);
-      console.log("[ROUTE]", { method: req.method, url: req.url, pathname });
+      if (VERBOSE_REQUEST_LOGS) console.log("[ROUTE]", { method: req.method, url: req.url, pathname });
       res.on("finish", () => {
-        console.log("[RES]", { method: req.method, url: req.url, pathname, status: res.statusCode, branch: res.getHeader("X-Route-Branch") || "unknown" });
+        if (VERBOSE_REQUEST_LOGS) console.log("[RES]", { method: req.method, url: req.url, pathname, status: res.statusCode, branch: res.getHeader("X-Route-Branch") || "unknown" });
       });
 
       if (pathname.startsWith("/api/")) setApiCorsHeaders(req, res);

@@ -66,11 +66,18 @@ function isLocalAppHost(hostname = window.location.hostname) {
 
 function canonicalLocalUrl() {
   const target = new URL(CANONICAL_LOCAL_ORIGIN);
-  const path = window.location.protocol === "file:" ? "/index.html" : (window.location.pathname || "/");
-  target.pathname = path.endsWith("/") ? "/" : path;
+  target.pathname = canonicalLocalPath(window.location.pathname || "/");
   target.searchParams.set(LOCAL_STORAGE_IMPORT_PARAM, LOCAL_STORAGE_IMPORT_TOKEN);
   target.hash = window.location.hash || "";
   return target.href;
+}
+
+function canonicalLocalPath(pathname = "/") {
+  const cleanPath = String(pathname || "/").split(/[?#]/)[0];
+  const filename = decodeURIComponent(cleanPath.split("/").filter(Boolean).pop() || "index.html").toLowerCase();
+  if (filename === "calendar.html") return "/calendar.html";
+  if (filename === "about.html") return "/about.html";
+  return "/index.html";
 }
 
 function shouldUseCanonicalLocalOrigin() {

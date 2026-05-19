@@ -382,6 +382,22 @@ test("non-canonical local origins redirect with local storage for import", () =>
   assert.match(payload.storage["dnducks.items"], /Live Server Blade/);
 });
 
+test("nested Live Server paths redirect to the canonical app entry point", () => {
+  const app = createFrontendSandbox({
+    hostname: "127.0.0.1",
+    port: "5500",
+    pathname: "/github/git-github-masterclass-starter-project-1/index.html",
+    disableCanonicalRedirect: false,
+    initialStorage: {
+      "dnducks.characters": JSON.stringify([{ id: "npc-orwell", name: "ORWELL" }]),
+    },
+  });
+
+  assert.match(app.window.location.href, /^http:\/\/127\.0\.0\.1:3000\/index\.html\?dnducksImport=windowName$/);
+  const payload = JSON.parse(app.window.name);
+  assert.match(payload.storage["dnducks.characters"], /ORWELL/);
+});
+
 test("canonical import merges split widgets from another local origin", () => {
   const payload = {
     source: "dnducks-local-storage",
