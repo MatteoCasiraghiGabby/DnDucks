@@ -272,6 +272,66 @@ test("widget image picker falls back to local data urls when backend uploads are
   assert.match(image.id, /^local-image-/);
 });
 
+test("oversized local fallback images show a clear storage message", async () => {
+  const app = createFrontendSandbox();
+  app.fetch = async () => { throw new Error("Load failed"); };
+  app.FileReader = class FileReader {
+    constructor() {
+      this.listeners = {};
+      this.result = "";
+    }
+
+    addEventListener(type, listener) {
+      this.listeners[type] = listener;
+    }
+
+    readAsDataURL(file) {
+      this.result = `data:${file.type};base64,${"a".repeat(760000)}`;
+      this.listeners.load();
+    }
+  };
+
+  await assert.rejects(
+    app.imageFromFileInput({ files: [{ name: "giant.png", type: "image/png", size: 2000000 }] }),
+    /too large for browser-only storage/
+  );
+});
+
+test("quota errors while saving collections explain how to recover", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem = () => {
+    const error = new Error("The quota has been exceeded.");
+    error.name = "QuotaExceededError";
+    throw error;
+  };
+
+  assert.throws(
+    () => app.saveCollection("items", [{ id: "item-1", name: "Moonlit Blade" }]),
+    /Browser storage is full/
+  );
+});
+
+test("collection edit updates an existing widget instead of duplicating it", () => {
+  const app = createFrontendSandbox();
+  const existing = { id: "item-1", name: "Moonlit Blade", createdAt: "May 19, 2026", description: "Old" };
+  const edited = { id: "item-new", name: "Moonlit Blade +1", createdAt: "May 20, 2026", description: "Updated" };
+
+  const next = app.upsertCollectionEntry([existing], edited, "item-1");
+
+  assert.equal(next.length, 1);
+  assert.equal(next[0].id, "item-1");
+  assert.equal(next[0].createdAt, "May 19, 2026");
+  assert.equal(next[0].description, "Updated");
+});
+
+test("user NPC widgets are not hidden by default status filtering", () => {
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+
+  assert.doesNotMatch(script, /card\.dataset\.status === "hidden"/);
+  assert.match(script, /widgetEditAttribute\("characters", character\)/);
+  assert.match(script, /data-status="active">\s*\$\{widgetImageMarkup\(character, character\.name\)\}/);
+});
+
 test("personality story analysis workflow is available on the player form", () => {
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
 

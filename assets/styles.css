@@ -445,6 +445,10 @@ select:focus-visible {
 }
 
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.form-grid.is-editing {
+  border-color: rgba(104, 184, 255, 0.62);
+  box-shadow: 0 0 0 4px rgba(104, 184, 255, 0.12), var(--shadow-soft);
+}
 label { display: grid; gap: 7px; color: var(--muted-2); font-weight: 800; }
 .full-width { grid-column: 1 / -1; }
 fieldset {
@@ -482,6 +486,9 @@ textarea { resize: vertical; }
 .collection-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 #items-list { grid-template-columns: 1fr; }
 .entry-card { min-height: 220px; }
+.widget-card[data-edit-id] { cursor: pointer; }
+.widget-card[data-edit-id] a,
+.widget-card[data-edit-id] button { cursor: auto; }
 .entry-card .entry-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .entry-card p { white-space: pre-wrap; }
 .entry-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; }

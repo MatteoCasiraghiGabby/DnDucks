@@ -13,6 +13,17 @@ const STORAGE_KEYS = {
 };
 
 const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events"]);
+const LOCAL_IMAGE_MAX_DIMENSION = 960;
+const LOCAL_IMAGE_QUALITY = 0.72;
+const LOCAL_IMAGE_MAX_DATA_URL_LENGTH = 750000;
+const WIDGET_FORM_LABELS = {
+  encounters: "Encounter",
+  locations: "Location",
+  notes: "Note",
+  characters: "Character",
+  items: "Item",
+  events: "Event",
+};
 
 const DEFAULT_CAMPAIGN_ID = "local";
 const DEFAULT_CAMPAIGN = {
@@ -199,7 +210,7 @@ function getCampaigns() {
 }
 
 function saveCampaigns(campaigns) {
-  localStorage.setItem(STORAGE_KEYS.campaigns, JSON.stringify(campaigns.map(normalizeCampaign)));
+  setStoredJson(STORAGE_KEYS.campaigns, campaigns.map(normalizeCampaign));
 }
 
 function getCampaign(campaignId = DEFAULT_CAMPAIGN_ID) {
@@ -761,7 +772,24 @@ function saveCollection(key, collection) {
   const nextCollection = USER_WIDGET_COLLECTIONS.has(key)
     ? collection.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean)
     : collection;
-  localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(nextCollection));
+  setStoredJson(STORAGE_KEYS[key], nextCollection);
+}
+
+function isQuotaExceededError(error) {
+  return error?.name === "QuotaExceededError"
+    || error?.name === "NS_ERROR_DOM_QUOTA_REACHED"
+    || error?.code === 22
+    || error?.code === 1014
+    || /quota/i.test(error?.message || "");
+}
+
+function setStoredJson(storageKey, value) {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(value));
+  } catch (error) {
+    if (!isQuotaExceededError(error)) throw error;
+    throw new Error("Browser storage is full. Start the backend with npm start for file-backed image uploads, delete some local widgets, or choose a smaller image.");
+  }
 }
 
 const DEFAULT_CALENDAR_SETTINGS = {
@@ -953,8 +981,58 @@ function fileToDataUrl(file) {
   });
 }
 
+function canCompressLocalImage() {
+  return typeof document !== "undefined"
+    && typeof document.createElement === "function"
+    && typeof Image !== "undefined"
+    && typeof URL !== "undefined"
+    && typeof URL.createObjectURL === "function"
+    && typeof URL.revokeObjectURL === "function";
+}
+
+async function compressedImageDataUrl(file) {
+  if (!canCompressLocalImage()) return fileToDataUrl(file);
+
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.addEventListener("load", () => {
+      try {
+        const sourceWidth = image.naturalWidth || image.width || LOCAL_IMAGE_MAX_DIMENSION;
+        const sourceHeight = image.naturalHeight || image.height || LOCAL_IMAGE_MAX_DIMENSION;
+        const scale = Math.min(1, LOCAL_IMAGE_MAX_DIMENSION / Math.max(sourceWidth, sourceHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+        canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("This browser cannot prepare local image previews without the backend."));
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", LOCAL_IMAGE_QUALITY));
+      } catch (error) {
+        reject(error);
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    }, { once: true });
+    image.addEventListener("error", () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Could not read the selected image."));
+    }, { once: true });
+    image.src = objectUrl;
+  });
+}
+
+function assertLocalImageFitsStorage(dataUrl) {
+  if (String(dataUrl || "").length <= LOCAL_IMAGE_MAX_DATA_URL_LENGTH) return;
+  throw new Error("Selected image is too large for browser-only storage. Start the backend with npm start for file-backed uploads, or choose a smaller image.");
+}
+
 async function localImageFromFile(file, metadata = {}) {
-  const url = await fileToDataUrl(file);
+  const url = await compressedImageDataUrl(file);
+  assertLocalImageFitsStorage(url);
   const title = String(metadata.title || file.name || "Local widget image").trim();
   return {
     id: createId("local-image"),
@@ -1111,6 +1189,11 @@ function widgetDmAttribute(collectionKey, entry, fallback) {
   return `data-dm-widget-id="${escapeHtml(widgetDmId(collectionKey, entry, fallback))}"`;
 }
 
+function widgetEditAttribute(collectionKey, entry) {
+  if (!isUserProducedEntry(entry)) return "";
+  return `data-edit-key="${escapeHtml(collectionKey)}" data-edit-id="${escapeHtml(entry.id)}"`;
+}
+
 function getDmOnlyTargets() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.dmOnly) || "{}");
@@ -1121,7 +1204,7 @@ function getDmOnlyTargets() {
 }
 
 function saveDmOnlyTargets(targets) {
-  localStorage.setItem(STORAGE_KEYS.dmOnly, JSON.stringify(targets));
+  setStoredJson(STORAGE_KEYS.dmOnly, targets);
 }
 
 function setDmOnlyTarget(target, isDmOnly = true) {
@@ -1150,6 +1233,17 @@ function widgetDeleteActionMarkup(entry, label) {
           <div class="entry-actions">
             <button class="btn btn-danger" type="button" data-delete-id="${escapeHtml(entry.id)}">${escapeHtml(label)}</button>
           </div>`;
+}
+
+function upsertCollectionEntry(collection, entry, editId = "") {
+  if (!editId) return [entry, ...collection];
+  let updated = false;
+  const nextCollection = collection.map((item) => {
+    if (item.id !== editId) return item;
+    updated = true;
+    return { ...item, ...entry, id: item.id, createdAt: item.createdAt || entry.createdAt };
+  });
+  return updated ? nextCollection : [entry, ...collection];
 }
 
 function createId(prefix) {
@@ -1479,7 +1573,7 @@ function initCommandInterface() {
     document.querySelectorAll("[data-searchable]").forEach((card) => {
       const matchesQuery = !query || (card.dataset.searchable || "").includes(query);
       const cardTarget = card.dataset.dmWidgetId;
-      const isDmOnlyCard = isDmOnlyTarget(cardTarget, dmOnlyTargets) || card.dataset.status === "hidden";
+      const isDmOnlyCard = isDmOnlyTarget(cardTarget, dmOnlyTargets);
       card.classList.toggle("is-filtered-out", !matchesQuery || (!dmOnlyMode && isDmOnlyCard));
       card.classList.toggle("is-dm-only", isDmOnlyCard);
     });
@@ -1632,10 +1726,10 @@ function wireDmOnlyWidgetTargets(root = document) {
   root.querySelectorAll("[data-dm-widget-id]").forEach((card) => {
     const widgetTarget = card.dataset.dmWidgetId;
     if (!widgetTarget) return;
-    card.setAttribute("title", "DM-only mode: select or unselect this widget for player visibility");
+    card.setAttribute("title", "Click to edit. In DM-only mode, select or unselect this widget for player visibility");
     card.querySelectorAll(".widget-media, .widget-description").forEach((part) => {
       part.dataset.dmPartTarget = `${widgetTarget}:details`;
-      part.setAttribute("title", "DM-only mode: select or unselect this icon and description for player visibility");
+      part.setAttribute("title", "Click to edit. In DM-only mode, select or unselect this icon and description for player visibility");
     });
     card.querySelectorAll(".item-stat-icons").forEach((part) => {
       part.dataset.dmPartTarget = `${widgetTarget}:stats`;
@@ -1644,6 +1738,159 @@ function wireDmOnlyWidgetTargets(root = document) {
     card.querySelectorAll(".item-feature-block").forEach((part, index) => {
       part.dataset.dmPartTarget = `${widgetTarget}:feature:${index}`;
       part.setAttribute("title", "DM-only mode: select or unselect this feature for player visibility");
+    });
+  });
+}
+
+function formIdForCollection(key) {
+  return `${String(key || "").replace(/s$/, "")}-form`;
+}
+
+function setFieldValue(selector, value) {
+  const field = document.querySelector(selector);
+  if (field) field.value = value ?? "";
+}
+
+function commaTags(value) {
+  return entryTags(value).join(", ");
+}
+
+function firstItemFeature(item) {
+  return itemFeatureList(item.features)[0] || {};
+}
+
+function syncFormImagePreview(form, entry = {}) {
+  const picker = form?.querySelector("[data-image-picker]");
+  if (!picker) return;
+  const status = picker.querySelector("[data-image-status]");
+  const preview = picker.querySelector("[data-image-preview]");
+  const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
+  if (status) {
+    status.textContent = imageUrl ? "Existing image kept" : "No image chosen";
+    status.classList.remove("error");
+  }
+  if (preview) {
+    if (imageUrl) {
+      preview.src = imageUrl;
+      preview.hidden = false;
+    } else {
+      preview.removeAttribute("src");
+      preview.hidden = true;
+    }
+  }
+}
+
+function populateWidgetForm(key, entry) {
+  if (key === "encounters") {
+    setFieldValue("#encounter-title", firstDisplayText([entry.title, entry.name], ""));
+    setFieldValue("#encounter-tier", firstDisplayText([entry.tier, entry.type, entry.sceneType], ""));
+    setFieldValue("#encounter-status", entry.status || "prepared");
+    setFieldValue("#encounter-tags", commaTags(entry.tags));
+    setFieldValue("#encounter-description", firstDisplayText([entry.description, entry.notes, entry.content], ""));
+  } else if (key === "locations") {
+    setFieldValue("#location-name", firstDisplayText([entry.name, entry.title], ""));
+    setFieldValue("#location-type", firstDisplayText([entry.type, entry.regionType], ""));
+    setFieldValue("#location-status", entry.status || "active");
+    setFieldValue("#location-tags", commaTags(entry.tags));
+    setFieldValue("#location-description", firstDisplayText([entry.description, entry.notes, entry.content], ""));
+  } else if (key === "notes") {
+    setFieldValue("#note-title", entry.title || "");
+    setFieldValue("#note-category", entry.category || "Session Note");
+    setFieldValue("#note-content", entry.content || "");
+  } else if (key === "characters") {
+    setFieldValue("#character-name", entry.name || "");
+    setFieldValue("#character-role", entry.role || "");
+    setFieldValue("#character-faction", entry.faction || "");
+    setFieldValue("#character-notes", entry.notes || "");
+  } else if (key === "items") {
+    const feature = firstItemFeature(entry);
+    setFieldValue("#item-name", entry.name || "");
+    setFieldValue("#item-type", entry.type || "Weapon");
+    document.getElementById("item-type")?.dispatchEvent(new Event("change", { bubbles: true }));
+    setFieldValue("#item-weapon-damage", entry.statistics?.damage || "");
+    setFieldValue("#item-weapon-range", entry.statistics?.range || "");
+    setFieldValue("#item-weapon-attack", entry.statistics?.attack || "");
+    setFieldValue("#item-weapon-properties", entry.statistics?.properties || "");
+    setFieldValue("#item-weapon-feature-title", feature.title || "");
+    setFieldValue("#item-weapon-feature-description", feature.description || "");
+    setFieldValue("#item-description", entry.description || "");
+  } else if (key === "events") {
+    populateCalendarFormDefaults();
+    setFieldValue("#event-title", entry.title || "");
+    setFieldValue("#event-month", String(entry.monthIndex ?? getCalendarSettings().currentMonthIndex));
+    setFieldValue("#event-day", entry.day || 1);
+    setFieldValue("#event-year", entry.year || getCalendarSettings().currentYear);
+    setFieldValue("#event-description", entry.description || "");
+  }
+}
+
+function setFormEditState(form, key, entry) {
+  const label = WIDGET_FORM_LABELS[key] || "Widget";
+  const submit = form.querySelector('button[type="submit"]');
+  form.dataset.editId = entry.id;
+  form.dataset.editKey = key;
+  form.classList.add("is-editing");
+  if (submit) {
+    if (!submit.dataset.defaultText) submit.dataset.defaultText = submit.textContent;
+    submit.textContent = `Update ${label}`;
+  }
+  const cancelButton = form.querySelector("[data-cancel-edit]");
+  if (cancelButton) cancelButton.hidden = false;
+}
+
+function resetFormEditState(form) {
+  if (!form) return;
+  const submit = form.querySelector('button[type="submit"]');
+  delete form.dataset.editId;
+  delete form.dataset.editKey;
+  form.classList.remove("is-editing");
+  if (submit?.dataset.defaultText) submit.textContent = submit.dataset.defaultText;
+  const cancelButton = form.querySelector("[data-cancel-edit]");
+  if (cancelButton) cancelButton.hidden = true;
+}
+
+function cancelWidgetEdit(form) {
+  form.reset();
+  resetImagePickers(form);
+  resetFormEditState(form);
+  populateCalendarFormDefaults();
+}
+
+function ensureEditCancelButton(form, key) {
+  if (form.querySelector("[data-cancel-edit]")) return;
+  const submit = form.querySelector('button[type="submit"]');
+  if (!submit) return;
+  if (!submit.dataset.defaultText) submit.dataset.defaultText = submit.textContent;
+  const cancel = document.createElement("button");
+  cancel.className = "btn btn-secondary";
+  cancel.type = "button";
+  cancel.hidden = true;
+  cancel.dataset.cancelEdit = key;
+  cancel.textContent = "Cancel edit";
+  cancel.addEventListener("click", () => cancelWidgetEdit(form));
+  submit.insertAdjacentElement("afterend", cancel);
+}
+
+function startEditingWidget(key, entryId) {
+  const entry = getStoredCollection(key).find((item) => item.id === entryId);
+  const form = document.getElementById(formIdForCollection(key));
+  if (!entry || !form) return;
+  form.reset();
+  resetImagePickers(form);
+  populateWidgetForm(key, entry);
+  syncFormImagePreview(form, entry);
+  setFormEditState(form, key, entry);
+  form.scrollIntoView({ behavior: "smooth", block: "center" });
+  const firstField = form.querySelector("input, select, textarea");
+  firstField?.focus({ preventScroll: true });
+}
+
+function wireWidgetEditing(list) {
+  list.querySelectorAll("[data-edit-key][data-edit-id]").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (document.body.classList.contains("dm-only-mode")) return;
+      if (event.target.closest("a, button, input, select, textarea")) return;
+      startEditingWidget(card.dataset.editKey, card.dataset.editId);
     });
   });
 }
@@ -1659,6 +1906,7 @@ function renderCollection({ key, listId, emptyText, template, getCollection }) {
   }
 
   list.innerHTML = collection.map((entry) => template(entry)).join("");
+  wireWidgetEditing(list);
 
   list.querySelectorAll("[data-image-upload-id]").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -1771,7 +2019,7 @@ function renderDashboard() {
       const tags = entryTags(encounter.tags);
       const searchable = textForSearch([title, tier, description, tags.join(" "), "encounter scene combat"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(encounter)} ${widgetDmAttribute("encounters", encounter)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(encounter)} ${widgetDmAttribute("encounters", encounter)} ${widgetEditAttribute("encounters", encounter)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
           ${widgetImageMarkup(encounter, title)}
           <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(tier)}</span></div>
           <h3>${escapeHtml(title)}</h3>
@@ -1794,7 +2042,7 @@ ${widgetDeleteActionMarkup(encounter, "Delete encounter")}
       const tags = entryTags(location.tags);
       const searchable = textForSearch([name, type, description, tags.join(" "), "location atlas place faction"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(location)} ${widgetDmAttribute("locations", location)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(location)} ${widgetDmAttribute("locations", location)} ${widgetEditAttribute("locations", location)} data-searchable="${escapeHtml(searchable)}" data-status="${escapeHtml(status)}">
           ${widgetImageMarkup(location, name)}
           <div class="card-kicker"><span class="status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span><span>${escapeHtml(type)}</span></div>
           <h3>${escapeHtml(name)}</h3>
@@ -1814,7 +2062,7 @@ ${widgetDeleteActionMarkup(location, "Delete location")}
       const searchable = textForSearch([note.title, note.category, note.content, note.createdAt, "note campaign wiki"]);
       const noteDate = note.campaignStartDate ? `Campaign begins ${note.createdAt}` : note.createdAt;
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} ${widgetDmAttribute("notes", note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(note)} ${widgetDmAttribute("notes", note)} ${widgetEditAttribute("notes", note)} data-searchable="${escapeHtml(searchable)}" data-status="active">
           <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(note.category)}</span><span>Note</span></div>
           <h3>${escapeHtml(note.title)}</h3>
           ${widgetDescriptionMarkup(note.content)}
@@ -1831,9 +2079,9 @@ ${widgetDeleteActionMarkup(note, "Delete note")}
     template: (character) => {
       const searchable = textForSearch([character.name, character.role, character.faction, character.notes, "npc character"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(character)} ${widgetDmAttribute("characters", character)} data-searchable="${escapeHtml(searchable)}" data-status="hidden">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(character)} ${widgetDmAttribute("characters", character)} ${widgetEditAttribute("characters", character)} data-searchable="${escapeHtml(searchable)}" data-status="active">
           ${widgetImageMarkup(character, character.name)}
-          <div class="card-kicker"><span class="status-badge status-hidden">DM-only</span><span>${escapeHtml(character.role)}</span></div>
+          <div class="card-kicker"><span class="status-badge status-active">NPC</span><span>${escapeHtml(character.role)}</span></div>
           <h3>${escapeHtml(character.name)}</h3>
           ${widgetDescriptionMarkup(character.notes)}
           ${widgetTagsMarkup([`Faction: ${character.faction || "Unaligned"}`, character.createdAt, "NPC"])}
@@ -1855,7 +2103,7 @@ ${widgetDeleteActionMarkup(character, "Delete NPC")}
       const showDescription = item.type !== "Weapon" || !features.length;
       const searchable = textForSearch([item.name, item.type, item.description, stats.damage, stats.range, stats.attack, stats.properties, featureSearch, "item homebrew monster loot"]);
       return `
-        <article class="content-card entry-card widget-card item-card" ${widgetOriginAttribute(item)} ${widgetDmAttribute("items", item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
+        <article class="content-card entry-card widget-card item-card" ${widgetOriginAttribute(item)} ${widgetDmAttribute("items", item)} ${widgetEditAttribute("items", item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
           <div class="item-card-details">
             <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
             <h3>${escapeHtml(item.name)}</h3>
@@ -1879,7 +2127,7 @@ ${widgetDeleteActionMarkup(item, "Delete item")}
     template: (event) => {
       const searchable = textForSearch([event.title, eventDateLabel(event), event.description, "session calendar event"]);
       return `
-        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} ${widgetDmAttribute("events", event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
+        <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} ${widgetDmAttribute("events", event)} ${widgetEditAttribute("events", event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
           ${widgetImageMarkup(event, event.title)}
           <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
           <h3>${escapeHtml(event.title)}</h3>
@@ -1970,6 +2218,7 @@ function updateSummaryCards() {
 function wireForm(formId, key, buildEntry) {
   const form = document.getElementById(formId);
   if (!form) return;
+  ensureEditCancelButton(form, key);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1979,10 +2228,13 @@ function wireForm(formId, key, buildEntry) {
     }
     try {
       const collection = getStoredCollection(key);
-      collection.unshift(await buildEntry());
-      saveCollection(key, collection);
+      const editId = form.dataset.editId || "";
+      const existingEntry = editId ? collection.find((entry) => entry.id === editId) : null;
+      const entry = await buildEntry(existingEntry);
+      saveCollection(key, upsertCollectionEntry(collection, entry, editId));
       form.reset();
       resetImagePickers(form);
+      resetFormEditState(form);
       populateCalendarFormDefaults();
       renderDashboard();
       renderCampaignCalendar();
