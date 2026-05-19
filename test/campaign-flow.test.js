@@ -405,11 +405,15 @@ test("user widgets expose modify actions and card clicks open detail overlay", (
   assert.match(script, /startEditingWidget\(key, button\.dataset\.editActionId\)/);
   assert.match(script, /widget-detail-layout \$\{imageUrl \? "has-media" : ""\}/);
   assert.match(script, /<aside class="widget-detail-media"/);
+  assert.match(script, /document\.body\.classList\.add\("widget-detail-open"\)/);
+  assert.match(script, /document\.body\.classList\.remove\("widget-detail-open"\)/);
   assert.match(detail, /This full item description is shown in the detail page\./);
   assert.doesNotMatch(detail, /Vampire Touch|Feature details|<dl class="widget-detail-meta">/);
-  assert.match(styles, /\.widget-detail-layout\.has-media \{\s*grid-template-columns: minmax\(0, 1fr\) minmax\(190px, 28%\);/);
-  assert.match(styles, /\.widget-detail-main \{[\s\S]*overflow: auto;/);
-  assert.match(styles, /\.widget-detail-image \{[\s\S]*object-fit: contain;/);
+  assert.match(styles, /body\.widget-detail-open \{ overflow: hidden; \}/);
+  assert.match(styles, /\.widget-detail-modal \.widget-detail-layout\.has-media \{\s*grid-template-columns: minmax\(0, 1fr\) minmax\(180px, 26%\);/);
+  assert.match(styles, /\.widget-detail-modal \.widget-detail-main \{[\s\S]*overflow-y: auto;/);
+  assert.match(styles, /\.widget-detail-modal \.widget-detail-image \{[\s\S]*object-fit: contain;/);
+  assert.match(styles, /\.widget-detail-modal \.modal-close \{[\s\S]*right: 18px;[\s\S]*left: auto;/);
 });
 
 test("non-canonical local origins redirect with local storage for import", () => {

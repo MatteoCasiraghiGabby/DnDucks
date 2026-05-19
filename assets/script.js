@@ -2142,6 +2142,7 @@ function openWidgetDetail(key, entryId) {
 
   function close() {
     modal.remove();
+    document.body.classList.remove("widget-detail-open");
     document.removeEventListener("keydown", onKeydown);
   }
 
@@ -2153,6 +2154,7 @@ function openWidgetDetail(key, entryId) {
     if (event.target === modal || event.target.closest("[data-close-widget-detail]")) close();
   });
   document.addEventListener("keydown", onKeydown);
+  document.body.classList.add("widget-detail-open");
   document.body.appendChild(modal);
   modal.querySelector("[data-close-widget-detail]")?.focus();
 }
