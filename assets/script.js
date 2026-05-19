@@ -9,10 +9,11 @@ const STORAGE_KEYS = {
   calendarSettings: "dnducks.calendarSettings",
   weather: "dnducks.weather",
   campaigns: "dnducks.campaigns",
+  comics: "dnducks.comics",
   dmOnly: "dnducks.dmOnly",
 };
 
-const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events"]);
+const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events", "comics"]);
 const CANONICAL_LOCAL_ORIGIN = "http://127.0.0.1:3000";
 const LOCAL_STORAGE_IMPORT_PARAM = "dnducksImport";
 const LOCAL_STORAGE_IMPORT_TOKEN = "windowName";
@@ -757,6 +758,7 @@ function updateTopNavActivePage(page) {
     dashboard: "index.html",
     media: "index.html#/media",
     maps: "index.html#/maps",
+    comics: "index.html#/comics",
     calendar: "calendar.html",
     about: "about.html",
   };
@@ -957,6 +959,105 @@ const DEFAULT_CALENDAR_SETTINGS = {
 const WEATHER_OPTIONS = [
   "Clear skies", "Light rain", "Heavy rain", "Silver fog", "Cold wind", "Thunderheads",
   "Warm breeze", "Ashfall", "Glittering frost", "Oppressive heat", "Moonlit calm", "Arcane aurora",
+];
+
+const COMIC_PAGE_WIDTH = 900;
+const COMIC_PAGE_HEIGHT = 1350;
+const COMIC_LAYOUTS = [
+  {
+    id: "splash",
+    label: "Splash page",
+    description: "One full-page panel for a reveal, title moment, or location establishing shot.",
+    panels: [{ x: 4, y: 4, w: 92, h: 92 }],
+  },
+  {
+    id: "four-grid",
+    label: "Four panel grid",
+    description: "A stable 2 x 2 page for dialogue beats, parallel action, and simple rhythm.",
+    panels: [
+      { x: 4, y: 4, w: 44, h: 44 },
+      { x: 52, y: 4, w: 44, h: 44 },
+      { x: 4, y: 52, w: 44, h: 44 },
+      { x: 52, y: 52, w: 44, h: 44 },
+    ],
+  },
+  {
+    id: "six-grid",
+    label: "Six panel grid",
+    description: "A classic two-column, three-tier page with steady pacing.",
+    panels: [
+      { x: 4, y: 4, w: 44, h: 28 },
+      { x: 52, y: 4, w: 44, h: 28 },
+      { x: 4, y: 36, w: 44, h: 28 },
+      { x: 52, y: 36, w: 44, h: 28 },
+      { x: 4, y: 68, w: 44, h: 28 },
+      { x: 52, y: 68, w: 44, h: 28 },
+    ],
+  },
+  {
+    id: "nine-grid",
+    label: "Nine panel grid",
+    description: "A formal 3 x 3 page for controlled time, clues, and repeated framing.",
+    panels: [
+      { x: 4, y: 4, w: 28, h: 28 },
+      { x: 36, y: 4, w: 28, h: 28 },
+      { x: 68, y: 4, w: 28, h: 28 },
+      { x: 4, y: 36, w: 28, h: 28 },
+      { x: 36, y: 36, w: 28, h: 28 },
+      { x: 68, y: 36, w: 28, h: 28 },
+      { x: 4, y: 68, w: 28, h: 28 },
+      { x: 36, y: 68, w: 28, h: 28 },
+      { x: 68, y: 68, w: 28, h: 28 },
+    ],
+  },
+  {
+    id: "wide-tiers",
+    label: "Wide tiers",
+    description: "Horizontal story bands, useful for landscape travel and cinematic exchanges.",
+    panels: [
+      { x: 4, y: 4, w: 92, h: 24 },
+      { x: 4, y: 32, w: 44, h: 28 },
+      { x: 52, y: 32, w: 44, h: 28 },
+      { x: 4, y: 64, w: 28, h: 32 },
+      { x: 36, y: 64, w: 28, h: 32 },
+      { x: 68, y: 64, w: 28, h: 32 },
+    ],
+  },
+  {
+    id: "manga-stack",
+    label: "Manga stack",
+    description: "Tall vertical beats with one wide impact panel.",
+    panels: [
+      { x: 4, y: 4, w: 42, h: 34 },
+      { x: 50, y: 4, w: 46, h: 18 },
+      { x: 50, y: 26, w: 46, h: 30 },
+      { x: 4, y: 42, w: 42, h: 26 },
+      { x: 4, y: 72, w: 92, h: 24 },
+    ],
+  },
+  {
+    id: "overlap-action",
+    label: "Overlapping action",
+    description: "A main panel with overlapping reaction and impact panels for chaotic action.",
+    panels: [
+      { x: 4, y: 4, w: 64, h: 55, z: 1 },
+      { x: 56, y: 10, w: 40, h: 30, z: 3, rotate: 1.5 },
+      { x: 10, y: 53, w: 38, h: 29, z: 2, rotate: -1.25 },
+      { x: 46, y: 61, w: 50, h: 35, z: 1 },
+    ],
+  },
+  {
+    id: "inset-reveal",
+    label: "Inset reveal",
+    description: "A large establishing panel with small inset close-ups for clues or reactions.",
+    panels: [
+      { x: 4, y: 4, w: 92, h: 58, z: 1 },
+      { x: 8, y: 47, w: 26, h: 20, z: 3 },
+      { x: 66, y: 47, w: 26, h: 20, z: 3 },
+      { x: 4, y: 70, w: 44, h: 26, z: 1 },
+      { x: 52, y: 70, w: 44, h: 26, z: 1 },
+    ],
+  },
 ];
 
 function getCalendarSettings() {
@@ -2805,6 +2906,382 @@ function initMediaLibraryPage() {
   loadMediaLibrary();
 }
 
+function comicLayoutById(layoutId) {
+  return COMIC_LAYOUTS.find((layout) => layout.id === layoutId) || COMIC_LAYOUTS[0];
+}
+
+function panelStyle(panel) {
+  return [
+    `left:${panel.x}%`,
+    `top:${panel.y}%`,
+    `width:${panel.w}%`,
+    `height:${panel.h}%`,
+    `z-index:${panel.z || 1}`,
+    `transform:rotate(${panel.rotate || 0}deg)`,
+  ].join(";");
+}
+
+function comicPageImageUrl(page) {
+  return page.imageUrl || page.imageDataUrl || page.image?.url || "";
+}
+
+function comicPageCardMarkup(page) {
+  const title = page.title || "Untitled comic page";
+  const imageUrl = comicPageImageUrl(page);
+  return `
+    <article class="content-card entry-card comic-card" data-comic-page="${escapeHtml(page.id)}">
+      <a class="comic-page-thumb" href="${escapeHtml(imageUrl)}" target="_blank" rel="noopener">
+        ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" loading="lazy" />` : `<span>No page image</span>`}
+      </a>
+      <div class="card-kicker"><span class="status-badge status-active">Comic</span><span>${escapeHtml(page.source || "Saved page")}</span></div>
+      <h3>${escapeHtml(title)}</h3>
+      ${widgetTagsMarkup([page.layoutLabel, page.createdAt])}
+      <div class="entry-actions">
+        ${imageUrl ? `<a class="btn btn-secondary" href="${escapeHtml(imageUrl)}" target="_blank" rel="noopener">Preview</a>` : ""}
+        <button class="btn btn-danger" type="button" data-delete-comic="${escapeHtml(page.id)}">Delete</button>
+      </div>
+    </article>`;
+}
+
+function renderComicBuilderPanels(state) {
+  const layout = comicLayoutById(state.layoutId);
+  const stage = document.getElementById("comic-builder-stage");
+  const description = document.getElementById("comic-layout-description");
+  if (description) description.textContent = layout.description;
+  if (!stage) return;
+
+  stage.innerHTML = layout.panels.map((panel, index) => {
+    const panelImage = state.panelImages[index];
+    return `
+      <button class="comic-builder-panel${state.selectedPanel === index ? " is-selected" : ""}${panelImage ? " has-image" : ""}" type="button" data-comic-panel="${index}" style="${panelStyle(panel)}" aria-label="Panel ${index + 1}">
+        ${panelImage ? `<img src="${escapeHtml(panelImage.url)}" alt="Panel ${index + 1} preview" />` : `<span>${index + 1}</span>`}
+      </button>`;
+  }).join("");
+
+  const panelStatus = document.getElementById("comic-panel-status");
+  if (panelStatus) {
+    const count = Object.keys(state.panelImages).length;
+    panelStatus.textContent = `${count} of ${layout.panels.length} panel${layout.panels.length === 1 ? "" : "s"} filled.`;
+  }
+}
+
+function canvasToBlob(canvas, type = "image/jpeg", quality = 0.92) {
+  return new Promise((resolve, reject) => {
+    if (!canvas.toBlob) {
+      const dataUrl = canvas.toDataURL(type, quality);
+      const byteString = atob(dataUrl.split(",")[1] || "");
+      const bytes = new Uint8Array(byteString.length);
+      for (let index = 0; index < byteString.length; index += 1) bytes[index] = byteString.charCodeAt(index);
+      resolve(new Blob([bytes], { type }));
+      return;
+    }
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Could not prepare the comic page image."));
+    }, type, quality);
+  });
+}
+
+function loadCanvasImage(url) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image), { once: true });
+    image.addEventListener("error", () => reject(new Error("Could not load one of the panel images.")), { once: true });
+    image.src = url;
+  });
+}
+
+function drawImageCover(context, image, x, y, width, height) {
+  const sourceWidth = image.naturalWidth || image.width || width;
+  const sourceHeight = image.naturalHeight || image.height || height;
+  const scale = Math.max(width / sourceWidth, height / sourceHeight);
+  const drawWidth = sourceWidth * scale;
+  const drawHeight = sourceHeight * scale;
+  context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+}
+
+async function renderComicPageCanvas(state) {
+  const layout = comicLayoutById(state.layoutId);
+  const canvas = document.createElement("canvas");
+  canvas.width = COMIC_PAGE_WIDTH;
+  canvas.height = COMIC_PAGE_HEIGHT;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("This browser cannot render comic pages.");
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const orderedPanels = layout.panels
+    .map((panel, index) => ({ panel, index }))
+    .sort((a, b) => (a.panel.z || 1) - (b.panel.z || 1));
+
+  for (const { panel, index } of orderedPanels) {
+    const x = Math.round((panel.x / 100) * canvas.width);
+    const y = Math.round((panel.y / 100) * canvas.height);
+    const width = Math.round((panel.w / 100) * canvas.width);
+    const height = Math.round((panel.h / 100) * canvas.height);
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    const rotation = ((panel.rotate || 0) * Math.PI) / 180;
+    const panelImage = state.panelImages[index];
+
+    context.save();
+    context.translate(centerX, centerY);
+    context.rotate(rotation);
+    context.translate(-centerX, -centerY);
+    context.fillStyle = "#ffffff";
+    context.fillRect(x, y, width, height);
+    if (panelImage?.url) {
+      context.save();
+      context.beginPath();
+      context.rect(x, y, width, height);
+      context.clip();
+      drawImageCover(context, await loadCanvasImage(panelImage.url), x, y, width, height);
+      context.restore();
+    }
+    context.lineWidth = 10;
+    context.strokeStyle = "#111111";
+    context.strokeRect(x, y, width, height);
+    context.restore();
+  }
+
+  return canvas;
+}
+
+async function uploadRenderedComicPage(canvas, title) {
+  const blob = await canvasToBlob(canvas, "image/jpeg", LOCAL_IMAGE_QUALITY);
+  const filename = `${storageIdSegment(title) || "comic-page"}.jpg`;
+  const file = new File([blob], filename, { type: "image/jpeg" });
+  try {
+    const [image] = await uploadImages([file], { title, category: "comic" });
+    return image || null;
+  } catch (error) {
+    if (!canUseLocalImageFallback(error)) throw error;
+    const dataUrl = canvas.toDataURL("image/jpeg", LOCAL_IMAGE_QUALITY);
+    assertLocalImageFitsStorage(dataUrl);
+    return {
+      id: createId("local-comic-image"),
+      title,
+      originalFilename: filename,
+      fileSize: blob.size || dataUrl.length,
+      mimeType: "image/jpeg",
+      url: dataUrl,
+      path: dataUrl,
+      localOnly: true,
+      uploadedAt: new Date().toISOString(),
+    };
+  }
+}
+
+function saveComicPageRecord(page) {
+  saveCollection("comics", [page, ...getStoredCollection("comics")]);
+}
+
+function loadComicPages() {
+  const list = document.getElementById("comic-pages-list");
+  const count = document.getElementById("comic-pages-count");
+  if (!list) return;
+  const pages = getStoredCollection("comics");
+  if (count) count.textContent = `${pages.length} page${pages.length === 1 ? "" : "s"}`;
+  list.innerHTML = pages.length
+    ? pages.map(comicPageCardMarkup).join("")
+    : `<div class="empty-state">No comic pages saved yet. Upload a finished page or build one panel by panel.</div>`;
+}
+
+function renderComicsPage() {
+  updateTopNavActivePage("comics");
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell comic-page">
+      <div class="page-hero comic-hero">
+        <p class="eyebrow">Campaign comics</p>
+        <h1>Shots from the Campaign</h1>
+        <p>Save complete comic pages, or compose a page from separate panel images using classic and dynamic comic grids.</p>
+      </div>
+
+      <div class="comic-workbench-grid">
+        <section class="setup-form-panel">
+          <div class="section-heading"><div><p class="eyebrow">Finished page</p><h2>Upload a comic page</h2></div></div>
+          <form class="panel form-grid" id="comic-upload-form">
+            <label class="full-width">Page title<input id="comic-upload-title" type="text" placeholder="Session 12: Gatehouse ambush" required /></label>
+            <div class="file-picker image-picker full-width" data-image-picker>
+              <label for="comic-upload-image">Page image</label>
+              <input id="comic-upload-image" class="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required />
+              <button class="btn btn-secondary image-picker-button" type="button" data-image-trigger="comic-upload-image">Choose page</button>
+              <span class="image-picker-status" data-image-status>No image chosen</span>
+              <img class="image-picker-preview comic-upload-preview" data-image-preview alt="Selected comic page preview" hidden />
+            </div>
+            <div class="form-message full-width" id="comic-upload-status" aria-live="polite"></div>
+            <button class="btn btn-primary" type="submit">Save Uploaded Page</button>
+          </form>
+        </section>
+
+        <section class="setup-summary-panel comic-builder-panel-shell">
+          <div class="section-heading">
+            <div><p class="eyebrow">Panel builder</p><h2>Build a page</h2></div>
+            <span class="muted" id="comic-panel-status"></span>
+          </div>
+          <form class="panel form-grid comic-builder-controls" id="comic-builder-form">
+            <label>Page title<input id="comic-builder-title" type="text" placeholder="The chase through Low Lantern" required /></label>
+            <label>Grid preset<select id="comic-layout-select">
+              ${COMIC_LAYOUTS.map((layout) => `<option value="${escapeHtml(layout.id)}">${escapeHtml(layout.label)}</option>`).join("")}
+            </select></label>
+            <p class="full-width muted" id="comic-layout-description"></p>
+            <div class="comic-builder-actions full-width">
+              <button class="btn btn-secondary" type="button" id="comic-clear-panels">Clear panels</button>
+              <button class="btn btn-primary" type="submit">Save Built Page</button>
+            </div>
+            <input id="comic-panel-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+          </form>
+          <div class="comic-page-stage-wrap">
+            <div class="comic-page-stage" id="comic-builder-stage" aria-label="Comic page builder"></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="workspace-section">
+        <div class="section-heading">
+          <div><p class="eyebrow">Saved shots</p><h2>Comic pages</h2></div>
+          <span id="comic-pages-count" class="muted"></span>
+        </div>
+        <div class="comic-gallery-grid" id="comic-pages-list" aria-live="polite"></div>
+      </section>
+    </section>`;
+  initComicsPage();
+}
+
+function initComicsPage() {
+  initImagePickers(document.querySelector(".comic-page") || document);
+  const state = { layoutId: COMIC_LAYOUTS[0].id, selectedPanel: 0, panelImages: {} };
+  const layoutSelect = document.getElementById("comic-layout-select");
+  const panelFileInput = document.getElementById("comic-panel-file");
+  const uploadStatus = document.getElementById("comic-upload-status");
+  const builderForm = document.getElementById("comic-builder-form");
+  const uploadForm = document.getElementById("comic-upload-form");
+
+  renderComicBuilderPanels(state);
+
+  layoutSelect?.addEventListener("change", () => {
+    state.layoutId = layoutSelect.value;
+    state.selectedPanel = 0;
+    state.panelImages = {};
+    renderComicBuilderPanels(state);
+  });
+
+  document.getElementById("comic-builder-stage")?.addEventListener("click", (event) => {
+    const panelButton = event.target.closest("[data-comic-panel]");
+    if (!panelButton) return;
+    state.selectedPanel = Number(panelButton.dataset.comicPanel);
+    renderComicBuilderPanels(state);
+    panelFileInput?.click();
+  });
+
+  panelFileInput?.addEventListener("change", () => {
+    const file = panelFileInput.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Choose a jpg, png, webp, or gif image for this panel.");
+      panelFileInput.value = "";
+      return;
+    }
+    const previous = state.panelImages[state.selectedPanel];
+    if (previous?.url?.startsWith("blob:")) URL.revokeObjectURL(previous.url);
+    state.panelImages[state.selectedPanel] = {
+      file,
+      url: URL.createObjectURL(file),
+      title: file.name,
+    };
+    panelFileInput.value = "";
+    renderComicBuilderPanels(state);
+  });
+
+  document.getElementById("comic-clear-panels")?.addEventListener("click", () => {
+    Object.values(state.panelImages).forEach((panelImage) => {
+      if (panelImage?.url?.startsWith("blob:")) URL.revokeObjectURL(panelImage.url);
+    });
+    state.panelImages = {};
+    renderComicBuilderPanels(state);
+  });
+
+  uploadForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!uploadForm.checkValidity()) {
+      uploadForm.reportValidity();
+      return;
+    }
+    const title = document.getElementById("comic-upload-title").value.trim();
+    if (uploadStatus) {
+      uploadStatus.textContent = "Saving comic page...";
+      uploadStatus.classList.remove("error");
+    }
+    try {
+      const image = await imageFromFileInput(document.getElementById("comic-upload-image"), { title, category: "comic" });
+      saveComicPageRecord({
+        id: createId("comic"),
+        title,
+        source: "Uploaded page",
+        layoutLabel: "Page image",
+        ...imageFields(image),
+        createdAt: readableDate(),
+      });
+      uploadForm.reset();
+      resetImagePickers(uploadForm);
+      if (uploadStatus) uploadStatus.textContent = "Comic page saved.";
+      loadComicPages();
+    } catch (error) {
+      if (uploadStatus) {
+        uploadStatus.textContent = error.message;
+        uploadStatus.classList.add("error");
+      } else {
+        alert(error.message);
+      }
+    }
+  });
+
+  builderForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!builderForm.checkValidity()) {
+      builderForm.reportValidity();
+      return;
+    }
+    const status = document.getElementById("comic-panel-status");
+    const title = document.getElementById("comic-builder-title").value.trim();
+    try {
+      if (status) status.textContent = "Rendering page...";
+      const canvas = await renderComicPageCanvas(state);
+      const image = await uploadRenderedComicPage(canvas, title);
+      const layout = comicLayoutById(state.layoutId);
+      saveComicPageRecord({
+        id: createId("comic"),
+        title,
+        source: "Built page",
+        layoutId: layout.id,
+        layoutLabel: layout.label,
+        ...imageFields(image),
+        createdAt: readableDate(),
+      });
+      builderForm.reset();
+      state.layoutId = COMIC_LAYOUTS[0].id;
+      state.selectedPanel = 0;
+      state.panelImages = {};
+      if (layoutSelect) layoutSelect.value = state.layoutId;
+      renderComicBuilderPanels(state);
+      loadComicPages();
+    } catch (error) {
+      alert(error.message);
+      renderComicBuilderPanels(state);
+    }
+  });
+
+  document.getElementById("comic-pages-list")?.addEventListener("click", (event) => {
+    const deleteId = event.target?.dataset?.deleteComic;
+    if (!deleteId) return;
+    if (!confirm("Delete this saved comic page?")) return;
+    saveCollection("comics", getStoredCollection("comics").filter((page) => page.id !== deleteId));
+    loadComicPages();
+  });
+
+  loadComicPages();
+}
+
 function mapDetailHref(mapId) {
   return `index.html#/maps/${encodeURIComponent(mapId)}`;
 }
@@ -4281,6 +4758,10 @@ function initAppRoutes() {
     renderMapsOverviewPage();
     return true;
   }
+  if (parts[0] === "comics") {
+    renderComicsPage();
+    return true;
+  }
   return false;
 }
 
@@ -4412,7 +4893,7 @@ if (!redirectToCanonicalLocalOrigin()) {
   }
   window.addEventListener("hashchange", () => {
     if (window.location.hash.startsWith("#/")) initAppRoutes();
-    else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page")) window.location.reload();
+    else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page, .comic-page")) window.location.reload();
   });
 }
 

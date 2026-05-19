@@ -413,7 +413,9 @@ test("user widgets expose modify actions and card clicks open detail overlay", (
   assert.match(styles, /\.widget-detail-modal \.widget-detail-layout\.has-media \{\s*grid-template-columns: minmax\(0, 1fr\) minmax\(180px, 26%\);/);
   assert.match(styles, /\.widget-detail-modal \.widget-detail-main \{[\s\S]*overflow-y: auto;/);
   assert.match(styles, /\.widget-detail-modal \.widget-detail-image \{[\s\S]*object-fit: contain;/);
-  assert.match(styles, /\.widget-detail-modal \.modal-close \{[\s\S]*right: 18px;[\s\S]*left: auto;/);
+  assert.match(styles, /\.widget-detail-modal \.widget-detail-media \{[\s\S]*border-left: 0;/);
+  assert.match(styles, /\.widget-detail-modal \.widget-detail-media::before \{[\s\S]*height: min\(58vh, 520px\);/);
+  assert.match(styles, /\.widget-detail-modal \.modal-close \{[\s\S]*top: 24px;[\s\S]*right: 24px;[\s\S]*left: auto;[\s\S]*width: 42px;/);
 });
 
 test("non-canonical local origins redirect with local storage for import", () => {
