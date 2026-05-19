@@ -406,8 +406,10 @@ test("user widgets expose modify actions and card clicks open detail overlay", (
   assert.match(script, /widget-detail-layout \$\{imageUrl \? "has-media" : ""\}/);
   assert.match(script, /<aside class="widget-detail-media"/);
   assert.match(detail, /This full item description is shown in the detail page\./);
-  assert.match(styles, /\.widget-detail-layout\.has-media \{\s*grid-template-columns: minmax\(0, 1fr\) minmax\(220px, 34%\);/);
+  assert.doesNotMatch(detail, /Vampire Touch|Feature details|<dl class="widget-detail-meta">/);
+  assert.match(styles, /\.widget-detail-layout\.has-media \{\s*grid-template-columns: minmax\(0, 1fr\) minmax\(190px, 28%\);/);
   assert.match(styles, /\.widget-detail-main \{[\s\S]*overflow: auto;/);
+  assert.match(styles, /\.widget-detail-image \{[\s\S]*object-fit: contain;/);
 });
 
 test("non-canonical local origins redirect with local storage for import", () => {

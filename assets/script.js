@@ -2065,18 +2065,7 @@ function widgetDetailDescription(label, value) {
 
 function widgetDetailContent(key, entry = {}) {
   if (key === "items") {
-    const stats = entry.statistics || {};
-    return `
-      <dl class="widget-detail-meta">${widgetDetailRows([
-        ["Type", entry.type],
-        ["Damage", stats.damage],
-        ["Range", stats.range],
-        ["Attack", stats.attack],
-        ["Properties", stats.properties],
-        ["Created", entry.createdAt],
-      ])}</dl>
-      ${widgetDetailDescription("Description", entry.description)}
-      ${itemFeatureBlocksMarkup(entry)}`;
+    return widgetDetailDescription("Description", entry.description);
   }
 
   if (key === "encounters") {
