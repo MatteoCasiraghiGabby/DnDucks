@@ -2138,10 +2138,17 @@ function openWidgetDetail(key, entryId) {
   modal.innerHTML = `
     <article class="event-detail-dialog widget-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="widget-detail-title">
       <button class="modal-close" type="button" data-close-widget-detail aria-label="Close widget detail">×</button>
-      ${imageUrl ? `<img class="widget-detail-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)} image" />` : ""}
-      <p class="eyebrow">${escapeHtml(WIDGET_FORM_LABELS[key] || "Widget")}</p>
-      <h2 id="widget-detail-title">${escapeHtml(title)}</h2>
-      ${widgetDetailContent(key, entry)}
+      <div class="widget-detail-layout ${imageUrl ? "has-media" : ""}">
+        <div class="widget-detail-main">
+          <p class="eyebrow">${escapeHtml(WIDGET_FORM_LABELS[key] || "Widget")}</p>
+          <h2 id="widget-detail-title">${escapeHtml(title)}</h2>
+          ${widgetDetailContent(key, entry)}
+        </div>
+        ${imageUrl ? `
+        <aside class="widget-detail-media" aria-label="${escapeHtml(title)} image">
+          <img class="widget-detail-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)} image" />
+        </aside>` : ""}
+      </div>
     </article>`;
 
   function close() {

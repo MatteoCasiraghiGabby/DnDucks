@@ -390,12 +390,24 @@ test("user widgets expose modify actions and card clicks open detail overlay", (
   const app = createFrontendSandbox();
   const actions = app.widgetActionMarkup({ id: "item-1" }, { edit: "Modify item", delete: "Delete item" });
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+  const styles = fs.readFileSync(path.join(process.cwd(), "assets/styles.css"), "utf8");
+  const detail = app.widgetDetailContent("items", {
+    type: "Weapon",
+    description: "This full item description is shown in the detail page.",
+    statistics: { damage: "1d8" },
+    features: [{ title: "Vampire Touch", description: "Feature details." }],
+  });
 
   assert.match(actions, /data-edit-action-id="item-1"/);
   assert.match(actions, /Modify item/);
   assert.match(actions, /data-delete-id="item-1"/);
   assert.match(script, /openWidgetDetail\(card\.dataset\.editKey, card\.dataset\.editId\)/);
   assert.match(script, /startEditingWidget\(key, button\.dataset\.editActionId\)/);
+  assert.match(script, /widget-detail-layout \$\{imageUrl \? "has-media" : ""\}/);
+  assert.match(script, /<aside class="widget-detail-media"/);
+  assert.match(detail, /This full item description is shown in the detail page\./);
+  assert.match(styles, /\.widget-detail-layout\.has-media \{\s*grid-template-columns: minmax\(0, 1fr\) minmax\(220px, 34%\);/);
+  assert.match(styles, /\.widget-detail-main \{[\s\S]*overflow: auto;/);
 });
 
 test("non-canonical local origins redirect with local storage for import", () => {

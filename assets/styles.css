@@ -1261,14 +1261,36 @@ code { color: var(--ember-2); }
   background: rgba(247, 241, 232, 0.08);
 }
 .widget-detail-dialog {
-  width: min(760px, 100%);
+  width: min(1080px, 100%);
+  max-height: min(88vh, 860px);
+  padding: 0;
+  overflow: hidden;
+}
+.widget-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-height: min(88vh, 860px);
+}
+.widget-detail-layout.has-media {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 34%);
+}
+.widget-detail-main {
+  min-width: 0;
+  max-height: min(88vh, 860px);
+  overflow: auto;
+  padding: 32px;
+}
+.widget-detail-media {
+  min-height: min(80vh, 760px);
+  border-left: 1px solid var(--line);
+  background: rgba(38, 27, 20, 0.12);
 }
 .widget-detail-image {
   width: 100%;
-  max-height: 320px;
+  height: 100%;
+  min-height: 100%;
   object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 18px;
+  display: block;
 }
 .widget-detail-meta {
   display: grid;
@@ -1305,6 +1327,16 @@ code { color: var(--ember-2); }
 }
 
 @media (max-width: 760px) {
+  .widget-detail-layout.has-media { grid-template-columns: 1fr; }
+  .widget-detail-main { max-height: none; padding: 24px; }
+  .widget-detail-media {
+    order: -1;
+    min-height: 320px;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .widget-detail-image { min-height: 320px; }
+  .widget-detail-meta { grid-template-columns: 1fr; }
   .calendar-actions { justify-content: stretch; }
   .calendar-actions .btn { flex: 1 1 100%; }
   .campaign-calendar-grid { grid-template-columns: repeat(var(--calendar-week-length), minmax(115px, 1fr)); }
