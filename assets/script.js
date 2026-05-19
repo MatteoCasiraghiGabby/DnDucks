@@ -318,6 +318,7 @@ function classInfo(classRole = "") {
 }
 
 function abilityModifier(score) {
+  if (score === "" || score === null || score === undefined) return 0;
   const value = Number(score);
   if (!Number.isFinite(value)) return 0;
   return Math.floor((value - 10) / 2);
@@ -412,28 +413,118 @@ function homebrewItemForEquipmentItem(item = "") {
   )) || null;
 }
 
-function isHomebrewWeaponItem(item) {
-  return String(item?.type || "").trim().toLowerCase() === "weapon";
-}
-
 function homebrewItemStatistics(item) {
   return item?.statistics && typeof item.statistics === "object" && !Array.isArray(item.statistics)
     ? item.statistics
     : {};
 }
 
-function homebrewWeaponAttackBonus(item) {
-  return String(homebrewItemStatistics(item).attack || "Homebrew").trim();
+const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder"];
+
+function homebrewItemAnalysisText(item) {
+  if (!item) return "";
+  const stats = homebrewItemStatistics(item);
+  const featureText = itemFeatureList(item.features)
+    .map((feature) => [feature.title, feature.description].filter(Boolean).join(" "))
+    .join(" ");
+  return [
+    item.name,
+    item.type,
+    item.description,
+    stats.damage,
+    stats.range,
+    stats.attack,
+    stats.properties,
+    featureText,
+  ].filter(Boolean).join(" ");
 }
 
-function homebrewWeaponDamageText(item) {
+function signedNumberFromText(value = "") {
+  const match = String(value).match(/([+-]\s*\d+)/);
+  return match ? Number(match[1].replace(/\s+/g, "")) : 0;
+}
+
+function extractDamageText(value = "") {
+  const text = String(value || "");
+  const typePattern = DAMAGE_TYPES.join("|");
+  const match = text.match(new RegExp(`(\\d+d\\d+(?:\\s*[+-]\\s*\\d+)?)(?:\\s*(?:points?\\s+of\\s+)?(${typePattern}))?`, "i"));
+  if (!match) return "";
+  const dice = match[1].replace(/\s+/g, "");
+  return [dice, match[2]?.toLowerCase()].filter(Boolean).join(" ");
+}
+
+function inferHomebrewItemKind(item) {
+  const explicitType = String(item?.type || "").trim().toLowerCase();
+  const text = homebrewItemAnalysisText(item).toLowerCase();
+  if (explicitType === "weapon") return "weapon";
+  if (explicitType === "armor" || explicitType === "armour") return "armor";
+  if (/\b(ac|armor class|armour class|shield|armor|armour|mail|plate|breastplate|leather)\b/.test(text)) return "armor";
+  if (extractDamageText(text) || /\b(weapon|blade|sword|axe|bow|crossbow|dagger|spear|mace|staff|hammer|attack roll|damage roll)\b/.test(text)) return "weapon";
+  return "feature";
+}
+
+function isHomebrewWeaponItem(item) {
+  return inferHomebrewItemKind(item) === "weapon";
+}
+
+function homebrewWeaponMode(item) {
   const stats = homebrewItemStatistics(item);
-  return String(stats.damage || item?.description || "Homebrew weapon").trim();
+  const text = homebrewItemAnalysisText(item).toLowerCase();
+  const range = String(stats.range || "").toLowerCase();
+  const properties = String(stats.properties || "").toLowerCase();
+  if (/\bfinesse\b/.test(`${properties} ${text}`)) return "finesse";
+  if (/\b(ranged|range|ammunition|bow|crossbow|firearm)\b/.test(`${range} ${text}`) || /\b\d+\s*\/\s*\d+\s*ft\b/.test(text)) return "ranged";
+  return "melee";
+}
+
+function homebrewWeaponAbilityModifier(item, abilities = {}) {
+  return weaponAbilityModifier({ mode: homebrewWeaponMode(item) }, abilities);
+}
+
+function homebrewWeaponItemBonus(item) {
+  const stats = homebrewItemStatistics(item);
+  const text = homebrewItemAnalysisText(item);
+  return signedNumberFromText(stats.attack) || signedNumberFromText(text.match(/([+-]\s*\d+)\s+(?:bonus\s+)?to\s+(?:attack|attack rolls?)/i)?.[0] || "");
+}
+
+function homebrewWeaponDamageBonus(item) {
+  const text = homebrewItemAnalysisText(item);
+  const explicitDamageBonus = text.match(/([+-]\s*\d+)\s+(?:bonus\s+)?to\s+damage(?:\s+rolls?)?/i)?.[0] || "";
+  const sharedAttackDamageBonus = text.match(/([+-]\s*\d+)\s+(?:bonus\s+)?to\s+attack\s+and\s+damage(?:\s+rolls?)?/i)?.[0] || "";
+  return signedNumberFromText(explicitDamageBonus) || signedNumberFromText(sharedAttackDamageBonus);
+}
+
+function homebrewWeaponAttackBonus(item, abilities = {}, level = 1) {
+  const stats = homebrewItemStatistics(item);
+  const attackText = String(stats.attack || "").trim();
+  const itemBonus = homebrewWeaponItemBonus(item);
+  if (!extractDamageText(homebrewItemAnalysisText(item)) && attackText && !/[+-]\s*\d+/.test(attackText)) return attackText;
+  return signedModifier(homebrewWeaponAbilityModifier(item, abilities) + proficiencyBonusForLevel(level || 1) + itemBonus);
+}
+
+function applyDamageModifiers(damage = "", abilityBonus = 0, itemBonus = 0) {
+  const text = String(damage || "").trim();
+  const totalBonus = (Number(abilityBonus) || 0) + (Number(itemBonus) || 0);
+  if (!text || !totalBonus) return text;
+  const match = text.match(/^(\d+d\d+)([+-]\d+)?(?:\s+(.+))?$/i);
+  if (!match) return text;
+  const existingBonus = Number(match[2] || 0);
+  const nextBonus = existingBonus + totalBonus;
+  return `${match[1]}${nextBonus ? signedModifier(nextBonus) : ""}${match[3] ? ` ${match[3]}` : ""}`;
+}
+
+function homebrewWeaponDamageText(item, abilities = {}) {
+  const stats = homebrewItemStatistics(item);
+  const damage = String(stats.damage || extractDamageText(homebrewItemAnalysisText(item)) || "").trim();
+  if (damage) return applyDamageModifiers(damage, homebrewWeaponAbilityModifier(item, abilities), homebrewWeaponDamageBonus(item));
+  return String(item?.description || "Homebrew weapon").trim();
 }
 
 function homebrewWeaponModeText(item) {
   const stats = homebrewItemStatistics(item);
-  return String(stats.range || stats.properties || "Homebrew").trim();
+  const mode = homebrewWeaponMode(item);
+  if (mode === "finesse") return "Melee or Dexterity";
+  return String(stats.range || stats.properties || mode).trim();
 }
 
 function homebrewItemFeatureText(item) {
@@ -502,8 +593,8 @@ function derivedWeaponAttacks({ equipment, abilities, level }) {
       seen.add(key);
       return {
         name: homebrewItem.name,
-        attackBonus: homebrewWeaponAttackBonus(homebrewItem),
-        damageType: homebrewWeaponDamageText(homebrewItem),
+        attackBonus: homebrewWeaponAttackBonus(homebrewItem, abilities, level),
+        damageType: homebrewWeaponDamageText(homebrewItem, abilities),
         generatedFromEquipment: true,
         homebrew: true,
       };
@@ -534,8 +625,8 @@ function equipmentWeaponSummaries(player = {}) {
         item: homebrewItem.name,
         name: homebrewItem.name,
         mode: homebrewWeaponModeText(homebrewItem),
-        attackBonus: homebrewWeaponAttackBonus(homebrewItem),
-        damageType: homebrewWeaponDamageText(homebrewItem),
+        attackBonus: homebrewWeaponAttackBonus(homebrewItem, player.abilities || {}, player.level || 1),
+        damageType: homebrewWeaponDamageText(homebrewItem, player.abilities || {}),
         homebrew: true,
       };
     }
@@ -618,37 +709,87 @@ function raceSpeed(race = "") {
   return 30;
 }
 
+const ARMOR_FORMULAS = [
+  { match: "studded leather", base: 12, dex: "full" },
+  { match: "leather", base: 11, dex: "full" },
+  { match: "padded", base: 11, dex: "full" },
+  { match: "half plate", base: 15, dex: "max2" },
+  { match: "breastplate", base: 14, dex: "max2" },
+  { match: "scale mail", base: 14, dex: "max2" },
+  { match: "chain shirt", base: 13, dex: "max2" },
+  { match: "hide", base: 12, dex: "max2" },
+  { match: "plate", base: 18, dex: "none" },
+  { match: "splint", base: 17, dex: "none" },
+  { match: "chain mail", base: 16, dex: "none" },
+  { match: "ring mail", base: 14, dex: "none" },
+];
+
+function dexRuleFromArmorText(text = "") {
+  const value = String(text || "").toLowerCase();
+  if (/\b(no|without)\s+dex(?:terity)?\b|\bdex(?:terity)?\s+(?:modifier\s+)?(?:does not apply|not applied|none)\b/.test(value)) return "none";
+  if (/\bmax(?:imum)?\s*(?:of\s*)?\+?2\b|\bdex(?:terity)?[^.]{0,24}(?:max|maximum)\s*(?:of\s*)?\+?2\b/.test(value)) return "max2";
+  if (/\+\s*(?:your\s+)?dex(?:terity)?|\bdexterity modifier\b|\bdex modifier\b/.test(value)) return "full";
+  return "full";
+}
+
+function homebrewArmorFormula(item) {
+  if (inferHomebrewItemKind(item) !== "armor") return null;
+  const text = homebrewItemAnalysisText(item);
+  const lowerText = text.toLowerCase();
+  const builtin = ARMOR_FORMULAS.find((armor) => lowerText.includes(armor.match));
+  const baseMatch = text.match(/(?:base\s*)?(?:ac|armor class|armour class)(?:\s*(?:is|=|of|equals?))?\s*(\d{1,2})/i)
+    || text.match(/\b(\d{1,2})\s*\+\s*(?:your\s+)?dex(?:terity)?(?:\s+modifier)?/i);
+  const bonus = signedNumberFromText(text.match(/([+-]\s*\d+)\s+(?:bonus\s+)?to\s+(?:ac|armor class|armour class)/i)?.[0] || "");
+  if (builtin) return { ...builtin, bonus, homebrew: true };
+  if (baseMatch) return {
+    base: Number(baseMatch[1]),
+    dex: dexRuleFromArmorText(text),
+    bonus,
+    homebrew: true,
+  };
+  if (/\bshield\b/i.test(text)) return { base: 10, dex: "full", bonus, shield: true, homebrew: true };
+  if (bonus) return { base: 10, dex: "full", bonus, homebrew: true };
+  return null;
+}
+
+function homebrewArmorFormulasFromEquipment(equipment = "") {
+  return equipmentItems(equipment)
+    .map((item) => homebrewItemForEquipmentItem(item))
+    .filter(Boolean)
+    .map(homebrewArmorFormula)
+    .filter(Boolean);
+}
+
 function armorFormulaFromEquipment(equipment = "") {
   const text = String(equipment).toLowerCase();
-  const armors = [
-    { match: "studded leather", base: 12, dex: "full" },
-    { match: "leather", base: 11, dex: "full" },
-    { match: "padded", base: 11, dex: "full" },
-    { match: "half plate", base: 15, dex: "max2" },
-    { match: "breastplate", base: 14, dex: "max2" },
-    { match: "scale mail", base: 14, dex: "max2" },
-    { match: "chain shirt", base: 13, dex: "max2" },
-    { match: "hide", base: 12, dex: "max2" },
-    { match: "plate", base: 18, dex: "none" },
-    { match: "splint", base: 17, dex: "none" },
-    { match: "chain mail", base: 16, dex: "none" },
-    { match: "ring mail", base: 14, dex: "none" },
-  ];
-  return armors.find((armor) => text.includes(armor.match)) || { base: 10, dex: "full" };
+  const builtin = ARMOR_FORMULAS.find((armor) => text.includes(armor.match));
+  const homebrewArmors = homebrewArmorFormulasFromEquipment(equipment).filter((armor) => armor.base && !armor.shield);
+  const strongestHomebrew = homebrewArmors.sort((a, b) => (b.base || 10) - (a.base || 10))[0];
+  return strongestHomebrew || builtin || { base: 10, dex: "full" };
+}
+
+function homebrewArmorClassBonusFromEquipment(equipment = "", selectedArmor = {}) {
+  return homebrewArmorFormulasFromEquipment(equipment).reduce((total, armor) => {
+    if (armor.shield) return total + (armor.bonus || 0);
+    if (armor.homebrew && armor.base === selectedArmor.base && armor.dex === selectedArmor.dex) return total + (armor.bonus || 0);
+    if (!armor.base || armor.base === 10) return total + (armor.bonus || 0);
+    return total;
+  }, 0);
 }
 
 function armorClassFromEquipment(dexterityScore, equipment = "", classRole = "", abilities = {}) {
   const dexMod = abilityModifier(dexterityScore);
   const armor = armorFormulaFromEquipment(equipment);
   const shieldBonus = /\bshield\b/i.test(String(equipment)) ? 2 : 0;
+  const homebrewArmorBonus = homebrewArmorClassBonusFromEquipment(equipment, armor);
   const hasArmor = armor.base !== 10;
   if (!hasArmor) {
     const normalizedClass = String(classRole).toLowerCase();
-    if (normalizedClass === "barbarian") return 10 + dexMod + abilityModifier(abilities.constitution) + shieldBonus;
-    if (normalizedClass === "monk") return 10 + dexMod + abilityModifier(abilities.wisdom);
+    if (normalizedClass === "barbarian") return 10 + dexMod + abilityModifier(abilities.constitution) + shieldBonus + homebrewArmorBonus;
+    if (normalizedClass === "monk") return 10 + dexMod + abilityModifier(abilities.wisdom) + homebrewArmorBonus;
   }
   const dexBonus = armor.dex === "none" ? 0 : armor.dex === "max2" ? Math.min(dexMod, 2) : dexMod;
-  return armor.base + dexBonus + shieldBonus;
+  return armor.base + dexBonus + shieldBonus + homebrewArmorBonus;
 }
 
 function derivedCombatStats({ level, classRole, race, abilities, equipment, hitPointMaximum }) {
@@ -4234,7 +4375,10 @@ function playerSectionDefinitions(player, options = {}) {
   const toolTags = (player.toolProficiencies || []).map(toolLabel);
   const equipmentTags = equipmentItems(player.equipment);
   const hasWeapons = equipmentWeaponSummaries(player).length > 0;
-  const nonWeaponEquipmentTags = equipmentTags.filter((item) => !weaponForEquipmentItem(item));
+  const nonWeaponEquipmentTags = equipmentTags.filter((item) => {
+    const homebrewItem = homebrewItemForEquipmentItem(item);
+    return !weaponForEquipmentItem(item) && !isHomebrewWeaponItem(homebrewItem);
+  });
   const equipmentComplete = hasText(player.equipment) && hasText(player.features);
   const equipmentStarted = equipmentComplete || languageTags.length || toolTags.length || equipmentTags.length;
   const combatStarted = hasText(player.classRole) || hasText(player.race) || ABILITIES.some((ability) => hasNumber(player.abilities?.[ability.key])) || equipmentStarted;

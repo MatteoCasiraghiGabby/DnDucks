@@ -302,7 +302,7 @@ test("homebrew dashboard weapons are recognized from character equipment", () =>
 
   assert.equal(player.attacks.length, 1);
   assert.equal(player.attacks[0].name, "Blood Spear");
-  assert.equal(player.attacks[0].attackBonus, "+1");
+  assert.equal(player.attacks[0].attackBonus, "+3");
   assert.equal(player.attacks[0].damageType, "1d8 cold");
   assert.equal(player.attacks[0].homebrew, true);
   assert.match(player.features, /Blood Spear \(Homebrew item\)/);
@@ -340,6 +340,57 @@ test("equipment entry imports homebrew item details into the hidden sheet fields
   assert.match(fields["#player-features"].value, /Blood Spear \(Homebrew item\)/);
   assert.match(fields["#player-features"].value, /Attack: \+1/);
   assert.match(fields["#player-features"].value, /Bound Spirit: The spirit haunts the wielder\./);
+});
+
+test("homebrew weapon descriptions derive attacks from character statistics", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-storm-needle",
+    name: "Storm Needle",
+    type: "Magic Item",
+    description: "A finesse weapon. You gain a +1 bonus to attack and damage rolls. It deals 1d8 piercing damage.",
+    features: [{ title: "Storm Lash", description: "On a hit, sparks crawl across the target." }],
+  }]));
+
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "5",
+    "#player-strength": "12",
+    "#player-dexterity": "16",
+    "#player-equipment": "Storm Needle",
+  }));
+  const summaries = app.equipmentWeaponSummaries(player);
+
+  assert.equal(player.attacks.length, 1);
+  assert.equal(player.attacks[0].name, "Storm Needle");
+  assert.equal(player.attacks[0].attackBonus, "+7");
+  assert.equal(player.attacks[0].damageType, "1d8+4 piercing");
+  assert.equal(summaries[0].mode, "Melee or Dexterity");
+  assert.match(player.features, /Description: A finesse weapon/);
+});
+
+test("homebrew armor descriptions increase character armor class", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-moon-guard",
+    name: "Moon Guard",
+    type: "Armor",
+    description: "Base AC is 13 + Dexterity modifier, maximum of +2. The enchantment gives a +1 bonus to AC.",
+  }]));
+
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-level": "4",
+    "#player-dexterity": "16",
+    "#player-equipment": "Moon Guard",
+  }));
+
+  assert.equal(player.combat.armorClass, 16);
+  assert.equal(player.attacks.length, 0);
+  assert.match(player.features, /Moon Guard \(Homebrew item\)/);
+  assert.match(player.features, /Description: Base AC is 13/);
 });
 
 test("widget image picker falls back to local data urls when backend uploads are unavailable", async () => {
