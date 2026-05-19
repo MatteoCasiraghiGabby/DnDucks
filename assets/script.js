@@ -13,6 +13,9 @@ const STORAGE_KEYS = {
 };
 
 const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events"]);
+const CANONICAL_LOCAL_ORIGIN = "http://127.0.0.1:3000";
+const LOCAL_STORAGE_IMPORT_PARAM = "dnducksImport";
+const LOCAL_STORAGE_IMPORT_TOKEN = "windowName";
 const LOCAL_IMAGE_MAX_DIMENSION = 960;
 const LOCAL_IMAGE_QUALITY = 0.72;
 const LOCAL_IMAGE_MAX_DATA_URL_LENGTH = 750000;
@@ -55,6 +58,49 @@ function resolveApiUrl(url) {
   }
 
   return requestPath;
+}
+
+function isLocalAppHost(hostname = window.location.hostname) {
+  return new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]).has(hostname);
+}
+
+function canonicalLocalUrl() {
+  const target = new URL(CANONICAL_LOCAL_ORIGIN);
+  const path = window.location.protocol === "file:" ? "/index.html" : (window.location.pathname || "/");
+  target.pathname = path.endsWith("/") ? "/" : path;
+  target.searchParams.set(LOCAL_STORAGE_IMPORT_PARAM, LOCAL_STORAGE_IMPORT_TOKEN);
+  target.hash = window.location.hash || "";
+  return target.href;
+}
+
+function shouldUseCanonicalLocalOrigin() {
+  if (window.DNDUCKS_DISABLE_CANONICAL_REDIRECT) return false;
+  if (new URLSearchParams(window.location.search || "").get(LOCAL_STORAGE_IMPORT_PARAM)) return false;
+  if (window.location.protocol === "file:") return true;
+  if (window.location.protocol !== "http:") return false;
+  if (!isLocalAppHost(window.location.hostname)) return false;
+  return window.location.hostname !== "127.0.0.1" || window.location.port !== "3000";
+}
+
+function localStorageSnapshot() {
+  return Object.fromEntries(Object.values(STORAGE_KEYS).map((storageKey) => [
+    storageKey,
+    localStorage.getItem(storageKey),
+  ]).filter(([, value]) => value !== null));
+}
+
+function redirectToCanonicalLocalOrigin() {
+  if (!shouldUseCanonicalLocalOrigin()) return false;
+  window.name = JSON.stringify({
+    source: "dnducks-local-storage",
+    origin: window.location.origin || window.location.href,
+    savedAt: new Date().toISOString(),
+    storage: localStorageSnapshot(),
+  });
+  const target = canonicalLocalUrl();
+  if (typeof window.location.replace === "function") window.location.replace(target);
+  else window.location.href = target;
+  return true;
 }
 
 const PLAYER_CLASSES = [
@@ -773,6 +819,105 @@ function saveCollection(key, collection) {
     ? collection.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean)
     : collection;
   setStoredJson(STORAGE_KEYS[key], nextCollection);
+}
+
+function parseStoredJsonValue(value, fallback) {
+  if (!value) return fallback;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed ?? fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function mergeById(existing = [], incoming = []) {
+  const byId = new Map();
+  existing.filter(Boolean).forEach((entry, index) => {
+    const id = String(entry.id || `existing-${index}`);
+    byId.set(id, entry);
+  });
+  incoming.filter(Boolean).forEach((entry, index) => {
+    const id = String(entry.id || `incoming-${index}`);
+    byId.set(id, { ...(byId.get(id) || {}), ...entry });
+  });
+  return Array.from(byId.values());
+}
+
+function mergeCampaignRecord(existing = {}, incoming = {}) {
+  return normalizeCampaign({
+    ...existing,
+    ...incoming,
+    players: mergeById(existing.players || [], incoming.players || []),
+    setupCompleted: Boolean(existing.setupCompleted || incoming.setupCompleted),
+    campaignStartNoteId: existing.campaignStartNoteId || incoming.campaignStartNoteId || "",
+  });
+}
+
+function mergeCampaignCollections(existing = [], incoming = []) {
+  const byId = new Map();
+  existing.map(normalizeCampaign).forEach((campaign) => byId.set(campaign.id, campaign));
+  incoming.map(normalizeCampaign).forEach((campaign) => {
+    byId.set(campaign.id, mergeCampaignRecord(byId.get(campaign.id), campaign));
+  });
+  return Array.from(byId.values());
+}
+
+function mergeStoredCollectionValues(key, existingValue, incomingValue) {
+  const existing = parseStoredJsonValue(existingValue, []);
+  const incoming = parseStoredJsonValue(incomingValue, []);
+  if (!Array.isArray(existing) || !Array.isArray(incoming)) return existingValue || incomingValue;
+  const merged = mergeById(
+    existing.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean),
+    incoming.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean),
+  );
+  return JSON.stringify(merged);
+}
+
+function mergeObjectStorageValues(existingValue, incomingValue) {
+  const existing = parseStoredJsonValue(existingValue, {});
+  const incoming = parseStoredJsonValue(incomingValue, {});
+  return JSON.stringify({ ...existing, ...incoming });
+}
+
+function mergeImportedStorage(storage = {}) {
+  Object.entries(STORAGE_KEYS).forEach(([key, storageKey]) => {
+    const incomingValue = storage[storageKey];
+    if (incomingValue === undefined || incomingValue === null) return;
+    const existingValue = localStorage.getItem(storageKey);
+    if (USER_WIDGET_COLLECTIONS.has(key)) {
+      localStorage.setItem(storageKey, mergeStoredCollectionValues(key, existingValue, incomingValue));
+    } else if (key === "campaigns") {
+      const existingCampaigns = parseStoredJsonValue(existingValue, []);
+      const incomingCampaigns = parseStoredJsonValue(incomingValue, []);
+      localStorage.setItem(storageKey, JSON.stringify(mergeCampaignCollections(existingCampaigns, incomingCampaigns)));
+    } else if (key === "calendarSettings") {
+      localStorage.setItem(storageKey, incomingValue);
+    } else {
+      localStorage.setItem(storageKey, mergeObjectStorageValues(existingValue, incomingValue));
+    }
+  });
+}
+
+function importCanonicalLocalStoragePayload() {
+  const params = new URLSearchParams(window.location.search || "");
+  if (params.get(LOCAL_STORAGE_IMPORT_PARAM) !== LOCAL_STORAGE_IMPORT_TOKEN) return false;
+  const payloadText = window.name || "";
+  params.delete(LOCAL_STORAGE_IMPORT_PARAM);
+  const cleanUrl = `${window.location.pathname || "/"}${params.toString() ? `?${params}` : ""}${window.location.hash || ""}`;
+  if (history?.replaceState) history.replaceState(null, "", cleanUrl);
+  if (!payloadText) return false;
+  try {
+    const payload = JSON.parse(payloadText);
+    if (payload?.source === "dnducks-local-storage" && payload.storage) {
+      mergeImportedStorage(payload.storage);
+      window.name = "";
+      return true;
+    }
+  } catch (error) {
+    console.warn("Could not import local DnDucks data from another local origin.", error);
+  }
+  return false;
 }
 
 function isQuotaExceededError(error) {
@@ -4118,22 +4263,25 @@ function initCalendarPage() {
   renderCampaignCalendar();
 }
 
-initMobileNavigation();
-if (!initAppRoutes()) {
-  updateTopNavActivePage(document.body?.dataset?.page || "dashboard");
-  initCommandInterface();
-  initImagePickers();
-  populateCalendarFormDefaults();
-  initDashboardForms();
-  initCalendarPage();
-  initMaterials();
-  initAiPlaceholder();
-  renderDashboard();
+if (!redirectToCanonicalLocalOrigin()) {
+  importCanonicalLocalStoragePayload();
+  initMobileNavigation();
+  if (!initAppRoutes()) {
+    updateTopNavActivePage(document.body?.dataset?.page || "dashboard");
+    initCommandInterface();
+    initImagePickers();
+    populateCalendarFormDefaults();
+    initDashboardForms();
+    initCalendarPage();
+    initMaterials();
+    initAiPlaceholder();
+    renderDashboard();
+  }
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash.startsWith("#/")) initAppRoutes();
+    else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page")) window.location.reload();
+  });
 }
-window.addEventListener("hashchange", () => {
-  if (window.location.hash.startsWith("#/")) initAppRoutes();
-  else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page")) window.location.reload();
-});
 
 /*
 Backend roadmap summary:

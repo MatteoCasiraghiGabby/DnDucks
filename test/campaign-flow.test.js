@@ -6,6 +6,35 @@ const vm = require("node:vm");
 
 function createFrontendSandbox(options = {}) {
   const storage = new Map();
+  Object.entries(options.initialStorage || {}).forEach(([key, value]) => {
+    storage.set(key, String(value));
+  });
+  const location = {
+    protocol: options.protocol || "http:",
+    hostname: options.hostname || "localhost",
+    port: options.port || "3000",
+    origin: `${options.protocol || "http:"}//${options.hostname || "localhost"}${options.port ? `:${options.port}` : ":3000"}`,
+    pathname: options.pathname || "/",
+    search: options.search || "",
+    href: options.href || "/",
+    hash: options.hash || "",
+    reload: () => {},
+    replace(url) {
+      this.href = url;
+      try {
+        const parsed = new URL(url);
+        this.protocol = parsed.protocol;
+        this.hostname = parsed.hostname;
+        this.port = parsed.port;
+        this.origin = parsed.origin;
+        this.pathname = parsed.pathname;
+        this.search = parsed.search;
+        this.hash = parsed.hash;
+      } catch (error) {
+        this.href = url;
+      }
+    },
+  };
   const documentStub = {
     querySelector: () => null,
     querySelectorAll: () => [],
@@ -23,6 +52,7 @@ function createFrontendSandbox(options = {}) {
     Boolean,
     Array,
     URL,
+    URLSearchParams,
     FormData,
     localStorage: {
       getItem: (key) => storage.has(key) ? storage.get(key) : null,
@@ -31,17 +61,19 @@ function createFrontendSandbox(options = {}) {
     },
     document: documentStub,
     window: {
-      location: {
-        protocol: options.protocol || "http:",
-        hostname: options.hostname || "localhost",
-        port: options.port || "3000",
-        origin: `${options.protocol || "http:"}//${options.hostname || "localhost"}${options.port ? `:${options.port}` : ":3000"}`,
-        pathname: "/",
-        href: "/",
-        hash: "",
-        reload: () => {},
-      },
+      location,
       addEventListener: () => {},
+      name: options.name || "",
+      DNDUCKS_DISABLE_CANONICAL_REDIRECT: options.disableCanonicalRedirect !== false,
+    },
+    history: {
+      replaceState: (_state, _title, url) => {
+        location.href = url;
+        const parsed = new URL(url, location.origin);
+        location.pathname = parsed.pathname;
+        location.search = parsed.search;
+        location.hash = parsed.hash;
+      },
     },
     Event: class Event { constructor(type) { this.type = type; } },
     fetch: async () => { throw new Error("fetch should not be called in campaign flow unit tests"); },
@@ -330,6 +362,57 @@ test("user NPC widgets are not hidden by default status filtering", () => {
   assert.doesNotMatch(script, /card\.dataset\.status === "hidden"/);
   assert.match(script, /widgetEditAttribute\("characters", character\)/);
   assert.match(script, /data-status="active">\s*\$\{widgetImageMarkup\(character, character\.name\)\}/);
+});
+
+test("non-canonical local origins redirect with local storage for import", () => {
+  const app = createFrontendSandbox({
+    hostname: "127.0.0.1",
+    port: "5500",
+    pathname: "/index.html",
+    hash: "#items",
+    disableCanonicalRedirect: false,
+    initialStorage: {
+      "dnducks.items": JSON.stringify([{ id: "item-live", name: "Live Server Blade" }]),
+    },
+  });
+
+  assert.match(app.window.location.href, /^http:\/\/127\.0\.0\.1:3000\/index\.html\?dnducksImport=windowName#items$/);
+  const payload = JSON.parse(app.window.name);
+  assert.equal(payload.source, "dnducks-local-storage");
+  assert.match(payload.storage["dnducks.items"], /Live Server Blade/);
+});
+
+test("canonical import merges split widgets from another local origin", () => {
+  const payload = {
+    source: "dnducks-local-storage",
+    storage: {
+      "dnducks.campaigns": JSON.stringify([{
+        id: "local",
+        name: "Live Campaign",
+        setupCompleted: true,
+        players: [{ id: "player-orwell", characterName: "Orwell", playerName: "M" }],
+      }]),
+      "dnducks.items": JSON.stringify([{ id: "item-live", name: "Live Server Blade" }]),
+    },
+  };
+  const app = createFrontendSandbox({
+    hostname: "127.0.0.1",
+    port: "3000",
+    pathname: "/index.html",
+    search: "?dnducksImport=windowName",
+    name: JSON.stringify(payload),
+    initialStorage: {
+      "dnducks.items": JSON.stringify([{ id: "item-preview", name: "Preview Spear" }]),
+    },
+  });
+
+  assert.equal(app.window.name, "");
+  assert.equal(app.window.location.search, "");
+  assert.deepEqual(
+    Array.from(app.getStoredCollection("items").map((item) => item.name).sort()),
+    ["Live Server Blade", "Preview Spear"]
+  );
+  assert.equal(app.getCampaign("local").players[0].characterName, "Orwell");
 });
 
 test("personality story analysis workflow is available on the player form", () => {
