@@ -2275,14 +2275,12 @@ function parseJsonResponse(text) {
 
 const CHARACTER_SUGGESTION_TARGETS = {
   backgrounds: "#player-features",
-  backgroundFeatures: "#player-features",
   racialTraits: "#player-features",
   feats: "#player-features",
 };
 
 const CHARACTER_SUGGESTION_LABELS = {
   backgrounds: "Background package",
-  backgroundFeatures: "Background feature",
   racialTraits: "Species or racial trait",
   feats: "Feat or talent",
 };
@@ -4882,7 +4880,7 @@ function playerCharacterFormMarkup() {
         <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
         <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
         <div class="character-suggestion-workflow full-width">
-          <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest background features and traits</button>
+          <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest backgrounds and traits</button>
           <span id="character-suggestion-status" aria-live="polite"></span>
           <div class="character-suggestion-panel" id="character-suggestion-panel" hidden></div>
         </div>

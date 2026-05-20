@@ -7,7 +7,6 @@ Open it with a spreadsheet app or a text editor. Keep the first header row uncha
 Allowed `category` values:
 
 - `backgrounds`
-- `backgroundFeatures`
 - `racialTraits`
 - `feats`
 

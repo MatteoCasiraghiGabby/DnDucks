@@ -525,10 +525,10 @@ async function suggestCharacterDetailsWithOpenAI({ description, context }) {
           content: [
             "You analyze Dungeons & Dragons character descriptions for a DM character sheet.",
             "Return JSON only through the supplied schema.",
-            "Choose only ids from the allowed lists. Do not invent backgrounds, background features, racial traits, feats, talents, or mechanics.",
+            "Choose only ids from the allowed lists. Do not invent backgrounds, racial traits, feats, talents, or mechanics.",
             "Use the character's personality, ideals, flaws, and backstory as evidence for mechanical recommendations.",
-            "Suggest only rules-bearing or table-actionable options: background packages, background features, species/racial traits, and feat-style talents.",
-            "Prefer a small, high-confidence set: up to two backgrounds/background features, two racial traits, and two feats.",
+            "Suggest only rules-bearing or table-actionable options: background packages, species/racial traits, and feat-style talents.",
+            "Prefer a small, high-confidence set: up to two backgrounds, two racial traits, and two feats.",
             "If the description does not support a category, leave that category out.",
           ].join(" "),
         },
@@ -644,7 +644,7 @@ function localCharacterSuggestions({ description, context }) {
   const suggestions = Object.entries(ALLOWED_CHARACTER_SUGGESTIONS)
     .flatMap(([category, items]) => scoreSuggestionCategory(category, items, text, tokens))
     .sort((a, b) => b.score - a.score);
-  const perCategoryLimit = { backgrounds: 1, backgroundFeatures: 1, racialTraits: 2, feats: 2 };
+  const perCategoryLimit = { backgrounds: 2, racialTraits: 2, feats: 2 };
   const used = {};
   return {
     suggestions: suggestions.filter((suggestion) => {
