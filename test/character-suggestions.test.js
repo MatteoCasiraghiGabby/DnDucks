@@ -9,8 +9,12 @@ const {
 test("character suggestions load from the editable TSV file", () => {
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgroundFeatures.some((item) => item.id === "background-feature-researcher"));
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits.some((item) => item.id === "racial-trait-darkvision-60"));
-  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.some((item) => item.id === "feat-alert-2024" && item.tags.includes("watchful")));
-  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-acolyte-2024" && item.mechanics.includes("Origin feat")));
+  assert.equal(ALLOWED_CHARACTER_SUGGESTIONS.feats.length, 83);
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.some((item) => item.id === "feat-alert" && item.tags.includes("watchful")));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.some((item) => item.id === "feat-great-weapon-master" && item.tags.includes("heavy weapon")));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-acolyte" && item.mechanics.includes("Origin feat")));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.every((item) => item.source === ""));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits.every((item) => item.source === ""));
 });
 
 test("manual TSV entries parse into suggestion categories", () => {

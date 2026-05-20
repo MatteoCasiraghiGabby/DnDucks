@@ -40,7 +40,7 @@ function parseSuggestionTable(text = "") {
       label: row.label,
       description: row.description || row.label,
       mechanics: row.mechanics || "",
-      source: row.source || "Manual entry",
+      source: row.source || "",
       tags: splitTags(row.tags),
     });
   });

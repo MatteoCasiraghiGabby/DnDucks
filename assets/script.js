@@ -1366,12 +1366,54 @@ const DEFAULT_CALENDAR_SETTINGS = {
   yearName: "DR",
   currentYear: 1492,
   currentMonthIndex: 0,
+  weatherProbabilities: {},
 };
 
 const WEATHER_OPTIONS = [
   "Clear skies", "Light rain", "Heavy rain", "Silver fog", "Cold wind", "Thunderheads",
   "Warm breeze", "Ashfall", "Glittering frost", "Oppressive heat", "Moonlit calm", "Arcane aurora",
 ];
+
+const DEFAULT_WEATHER_WEIGHT = 1;
+const MAX_WEATHER_WEIGHT = 10;
+
+function defaultWeatherWeights() {
+  return Object.fromEntries(WEATHER_OPTIONS.map((weather) => [weather, DEFAULT_WEATHER_WEIGHT]));
+}
+
+function normalizeWeatherProbabilities(rawProbabilities = {}, monthCount = DEFAULT_CALENDAR_SETTINGS.months.length) {
+  const source = rawProbabilities && typeof rawProbabilities === "object" ? rawProbabilities : {};
+  const probabilities = {};
+  for (let monthIndex = 0; monthIndex < monthCount; monthIndex += 1) {
+    const monthWeights = source[monthIndex] && typeof source[monthIndex] === "object" ? source[monthIndex] : {};
+    probabilities[monthIndex] = Object.fromEntries(WEATHER_OPTIONS.map((weather) => {
+      const weight = Number(monthWeights[weather]);
+      return [weather, Number.isFinite(weight) ? Math.min(Math.max(weight, 0), MAX_WEATHER_WEIGHT) : DEFAULT_WEATHER_WEIGHT];
+    }));
+  }
+  return probabilities;
+}
+
+function weatherWeightsForMonth(settings, monthIndex = settings.currentMonthIndex) {
+  const probabilities = normalizeWeatherProbabilities(settings.weatherProbabilities, settings.months.length);
+  return probabilities[Math.min(Math.max(0, Number(monthIndex) || 0), settings.months.length - 1)] || defaultWeatherWeights();
+}
+
+function randomWeatherForMonth(settings, monthIndex = settings.currentMonthIndex) {
+  const weights = weatherWeightsForMonth(settings, monthIndex);
+  const weightedOptions = WEATHER_OPTIONS
+    .map((weather) => ({ weather, weight: Number(weights[weather]) || 0 }))
+    .filter((option) => option.weight > 0);
+  const totalWeight = weightedOptions.reduce((total, option) => total + option.weight, 0);
+  if (totalWeight <= 0) return WEATHER_OPTIONS[Math.floor(Math.random() * WEATHER_OPTIONS.length)];
+
+  let roll = Math.random() * totalWeight;
+  for (const option of weightedOptions) {
+    roll -= option.weight;
+    if (roll <= 0) return option.weather;
+  }
+  return weightedOptions[weightedOptions.length - 1].weather;
+}
 
 const COMIC_PAGE_WIDTH = 900;
 const COMIC_PAGE_HEIGHT = 1350;
@@ -1474,7 +1516,12 @@ const COMIC_LAYOUTS = [
 
 function getCalendarSettings() {
   const raw = localStorage.getItem(STORAGE_KEYS.calendarSettings);
-  if (!raw) return { ...DEFAULT_CALENDAR_SETTINGS, weekdays: [...DEFAULT_CALENDAR_SETTINGS.weekdays], months: [...DEFAULT_CALENDAR_SETTINGS.months] };
+  if (!raw) return {
+    ...DEFAULT_CALENDAR_SETTINGS,
+    weekdays: [...DEFAULT_CALENDAR_SETTINGS.weekdays],
+    months: [...DEFAULT_CALENDAR_SETTINGS.months],
+    weatherProbabilities: normalizeWeatherProbabilities(DEFAULT_CALENDAR_SETTINGS.weatherProbabilities, DEFAULT_CALENDAR_SETTINGS.months.length),
+  };
   try {
     const parsed = JSON.parse(raw);
     const weekLength = Math.max(1, Number(parsed.weekLength) || DEFAULT_CALENDAR_SETTINGS.weekLength);
@@ -1496,10 +1543,16 @@ function getCalendarSettings() {
       currentYear: Number(parsed.currentYear) || DEFAULT_CALENDAR_SETTINGS.currentYear,
       currentMonthIndex: Math.min(Math.max(0, Number(parsed.currentMonthIndex) || 0), months.length - 1),
       yearName: String(parsed.yearName || DEFAULT_CALENDAR_SETTINGS.yearName).trim() || DEFAULT_CALENDAR_SETTINGS.yearName,
+      weatherProbabilities: normalizeWeatherProbabilities(parsed.weatherProbabilities, months.length),
     };
   } catch (error) {
     console.warn("Could not parse campaign calendar settings", error);
-    return { ...DEFAULT_CALENDAR_SETTINGS, weekdays: [...DEFAULT_CALENDAR_SETTINGS.weekdays], months: [...DEFAULT_CALENDAR_SETTINGS.months] };
+    return {
+      ...DEFAULT_CALENDAR_SETTINGS,
+      weekdays: [...DEFAULT_CALENDAR_SETTINGS.weekdays],
+      months: [...DEFAULT_CALENDAR_SETTINGS.months],
+      weatherProbabilities: normalizeWeatherProbabilities(DEFAULT_CALENDAR_SETTINGS.weatherProbabilities, DEFAULT_CALENDAR_SETTINGS.months.length),
+    };
   }
 }
 
@@ -5500,11 +5553,74 @@ function openEventDetail(eventId) {
   modal.hidden = false;
 }
 
+function renderWeatherProbabilityEditor(selectedMonthIndex) {
+  const monthSelect = document.getElementById("weather-probability-month");
+  const list = document.getElementById("weather-probability-list");
+  if (!monthSelect || !list) return;
+
+  const settings = getCalendarSettings();
+  const selected = Number.isFinite(Number(selectedMonthIndex))
+    ? Number(selectedMonthIndex)
+    : Number(monthSelect.value || settings.currentMonthIndex);
+  const monthIndex = Math.min(Math.max(0, selected), settings.months.length - 1);
+  const weights = weatherWeightsForMonth(settings, monthIndex);
+
+  monthSelect.innerHTML = settings.months.map((month, index) => `<option value="${index}">${escapeHtml(month)}</option>`).join("");
+  monthSelect.value = String(monthIndex);
+  list.innerHTML = "";
+
+  WEATHER_OPTIONS.forEach((weather) => {
+    const row = document.createElement("label");
+    row.className = "weather-probability-row";
+
+    const name = document.createElement("span");
+    name.className = "weather-probability-name";
+    name.textContent = weather;
+
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = "0";
+    input.max = String(MAX_WEATHER_WEIGHT);
+    input.step = "1";
+    input.value = String(weights[weather] ?? DEFAULT_WEATHER_WEIGHT);
+    input.dataset.weatherOption = weather;
+
+    const value = document.createElement("output");
+    value.className = "weather-probability-value";
+    value.value = input.value;
+    value.textContent = input.value;
+
+    input.addEventListener("input", () => {
+      value.value = input.value;
+      value.textContent = input.value;
+    });
+
+    row.append(name, input, value);
+    list.append(row);
+  });
+}
+
+function saveWeatherProbabilitiesForSelectedMonth(monthSelect, list) {
+  const settings = getCalendarSettings();
+  const monthIndex = Math.min(Math.max(0, Number(monthSelect.value) || 0), settings.months.length - 1);
+  const probabilities = normalizeWeatherProbabilities(settings.weatherProbabilities, settings.months.length);
+  probabilities[monthIndex] = defaultWeatherWeights();
+  list.querySelectorAll("[data-weather-option]").forEach((input) => {
+    probabilities[monthIndex][input.dataset.weatherOption] = Math.min(Math.max(Number(input.value) || 0, 0), MAX_WEATHER_WEIGHT);
+  });
+  saveCalendarSettings({ ...settings, weatherProbabilities: probabilities });
+  renderWeatherProbabilityEditor(monthIndex);
+}
+
 function initCalendarPage() {
   const settingsForm = document.getElementById("calendar-settings-form");
   const prev = document.getElementById("calendar-prev");
   const next = document.getElementById("calendar-next");
   const weatherButton = document.getElementById("weather-generate");
+  const weatherProbabilityForm = document.getElementById("weather-probability-form");
+  const weatherProbabilityMonth = document.getElementById("weather-probability-month");
+  const weatherProbabilityList = document.getElementById("weather-probability-list");
+  const weatherProbabilityReset = document.getElementById("weather-probability-reset");
   const modal = document.getElementById("event-detail-modal");
   const settings = getCalendarSettings();
 
@@ -5523,18 +5639,22 @@ function initCalendarPage() {
       const months = document.getElementById("calendar-months").value.split(/\n|,/).map((month) => month.trim()).filter(Boolean);
       const weekdays = document.getElementById("calendar-weekdays").value.split(",").map((day) => day.trim()).filter(Boolean).slice(0, weekLength);
       while (weekdays.length < weekLength) weekdays.push(`Day ${weekdays.length + 1}`);
+      const nextMonths = months.length ? months : [...DEFAULT_CALENDAR_SETTINGS.months];
+      const currentSettings = getCalendarSettings();
       saveCalendarSettings({
-        ...getCalendarSettings(),
+        ...currentSettings,
         weekLength,
         weekdays,
-        months: months.length ? months : [...DEFAULT_CALENDAR_SETTINGS.months],
+        months: nextMonths,
         daysPerMonth: Math.max(1, Number(document.getElementById("calendar-days-per-month").value) || 30),
         yearName: document.getElementById("calendar-year-name").value.trim() || "Year",
         currentYear: Number(document.getElementById("calendar-active-year").value) || settings.currentYear,
         currentMonthIndex: 0,
+        weatherProbabilities: normalizeWeatherProbabilities(currentSettings.weatherProbabilities, nextMonths.length),
       });
       populateCalendarFormDefaults();
       renderCampaignCalendar();
+      renderWeatherProbabilityEditor(0);
       renderDashboard();
     });
   }
@@ -5543,27 +5663,47 @@ function initCalendarPage() {
     const current = getCalendarSettings();
     current.currentMonthIndex -= 1;
     if (current.currentMonthIndex < 0) { current.currentMonthIndex = current.months.length - 1; current.currentYear -= 1; }
-    saveCalendarSettings(current); populateCalendarFormDefaults(); renderCampaignCalendar(); renderDashboard();
+    saveCalendarSettings(current); populateCalendarFormDefaults(); renderCampaignCalendar(); renderWeatherProbabilityEditor(current.currentMonthIndex); renderDashboard();
   });
   if (next) next.addEventListener("click", () => {
     const current = getCalendarSettings();
     current.currentMonthIndex += 1;
     if (current.currentMonthIndex >= current.months.length) { current.currentMonthIndex = 0; current.currentYear += 1; }
-    saveCalendarSettings(current); populateCalendarFormDefaults(); renderCampaignCalendar(); renderDashboard();
+    saveCalendarSettings(current); populateCalendarFormDefaults(); renderCampaignCalendar(); renderWeatherProbabilityEditor(current.currentMonthIndex); renderDashboard();
   });
   if (weatherButton) weatherButton.addEventListener("click", () => {
     const current = getCalendarSettings();
     const weather = getWeatherMap();
     for (let day = 1; day <= current.daysPerMonth; day += 1) {
-      weather[weatherKey(current.currentYear, current.currentMonthIndex, day)] = WEATHER_OPTIONS[Math.floor(Math.random() * WEATHER_OPTIONS.length)];
+      weather[weatherKey(current.currentYear, current.currentMonthIndex, day)] = randomWeatherForMonth(current, current.currentMonthIndex);
     }
     saveWeatherMap(weather); renderCampaignCalendar(); renderDashboard();
   });
+  if (weatherProbabilityMonth) {
+    weatherProbabilityMonth.addEventListener("change", () => renderWeatherProbabilityEditor(Number(weatherProbabilityMonth.value)));
+  }
+  if (weatherProbabilityForm && weatherProbabilityMonth && weatherProbabilityList) {
+    weatherProbabilityForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      saveWeatherProbabilitiesForSelectedMonth(weatherProbabilityMonth, weatherProbabilityList);
+    });
+  }
+  if (weatherProbabilityReset && weatherProbabilityMonth) {
+    weatherProbabilityReset.addEventListener("click", () => {
+      const settings = getCalendarSettings();
+      const monthIndex = Math.min(Math.max(0, Number(weatherProbabilityMonth.value) || 0), settings.months.length - 1);
+      const probabilities = normalizeWeatherProbabilities(settings.weatherProbabilities, settings.months.length);
+      probabilities[monthIndex] = defaultWeatherWeights();
+      saveCalendarSettings({ ...settings, weatherProbabilities: probabilities });
+      renderWeatherProbabilityEditor(monthIndex);
+    });
+  }
   if (modal) {
     modal.addEventListener("click", (event) => { if (event.target === modal || event.target.matches("[data-close-modal]")) modal.hidden = true; });
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.hidden = true; });
   }
   renderCampaignCalendar();
+  renderWeatherProbabilityEditor(settings.currentMonthIndex);
 }
 
 if (!redirectToCanonicalLocalOrigin()) {

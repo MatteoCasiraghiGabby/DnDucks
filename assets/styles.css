@@ -1302,10 +1302,15 @@ code { color: var(--ember-2); }
   }
 }
 
-.dashboard-calendar-preview,
-.calendar-tools-grid {
+.dashboard-calendar-preview {
   display: grid;
   grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+  gap: 18px;
+  align-items: start;
+}
+.calendar-tools-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(260px, 1fr) minmax(280px, 0.95fr);
   gap: 18px;
   align-items: start;
 }
@@ -1319,6 +1324,42 @@ code { color: var(--ember-2); }
   gap: 10px;
   justify-content: flex-end;
 }
+.weather-probability-panel {
+  display: grid;
+  gap: 14px;
+}
+.weather-probability-list {
+  display: grid;
+  gap: 10px;
+  max-height: 420px;
+  overflow: auto;
+  padding-right: 4px;
+}
+.weather-probability-row {
+  grid-template-columns: minmax(112px, 1fr) minmax(120px, 1.2fr) 2ch;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--muted-2);
+}
+.weather-probability-row input {
+  min-height: 32px;
+  padding: 0;
+}
+.weather-probability-name {
+  min-width: 0;
+  color: var(--text);
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+.weather-probability-value {
+  color: var(--ember-2);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-align: right;
+}
+.weather-probability-actions { justify-content: stretch; }
+.weather-probability-actions .btn { flex: 1 1 120px; }
 .campaign-calendar-grid {
   --calendar-week-length: 7;
   display: grid;
