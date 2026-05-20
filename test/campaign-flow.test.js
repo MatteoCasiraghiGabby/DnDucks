@@ -288,7 +288,8 @@ test("homebrew dashboard weapons are recognized from character equipment", () =>
       damageType: "cold",
       mode: "melee",
       range: "20/60 ft.",
-      bonus: "+1",
+      attackBonus: "+1",
+      damageBonus: "+2",
       properties: ["reach", "thrown"],
     },
     features: [{ title: "Bound Spirit", description: "The spirit haunts the wielder." }],
@@ -307,7 +308,7 @@ test("homebrew dashboard weapons are recognized from character equipment", () =>
   assert.equal(player.attacks.length, 1);
   assert.equal(player.attacks[0].name, "Blood Spear");
   assert.equal(player.attacks[0].attackBonus, "+6");
-  assert.equal(player.attacks[0].damageType, "1d8+4 cold");
+  assert.equal(player.attacks[0].damageType, "1d8+5 cold");
   assert.equal(player.attacks[0].homebrew, true);
   assert.doesNotMatch(player.features, /Bound Spirit/);
   assert.equal(summaries[0].name, "Blood Spear");
@@ -322,13 +323,42 @@ test("homebrew dashboard weapons are recognized from character equipment", () =>
   assert.match(formMarkup, /<option value="Blood Spear"><\/option>/);
 });
 
+test("character creation equipment widgets add numeric homebrew attack and damage bonuses", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-ember-axe",
+    name: "Ember Axe",
+    type: "Weapon",
+    statistics: {
+      damageDice: "1d12",
+      damageType: "fire",
+      attackBonus: "1",
+      damageBonus: "2",
+      properties: [],
+    },
+  }]));
+
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "3",
+    "#player-strength": "16",
+    "#player-equipment": "Ember Axe",
+  }));
+  const markup = app.equipmentWeaponCardsMarkup(player);
+
+  assert.equal(player.attacks[0].attackBonus, "+6");
+  assert.equal(player.attacks[0].damageType, "1d12+5 fire");
+  assert.match(markup, /Attack[\s\S]*\+6[\s\S]*Damage[\s\S]*1d12\+5 fire/);
+});
+
 test("equipment entry imports homebrew weapon names without duplicating weapon details into generic features", () => {
   const app = createFrontendSandbox();
   app.localStorage.setItem("dnducks.items", JSON.stringify([{
     id: "item-blood-spear",
     name: "Blood Spear",
     type: "Weapon",
-    statistics: { damageDice: "1d8", damageType: "cold", bonus: "+1", properties: ["reach"] },
+    statistics: { damageDice: "1d8", damageType: "cold", attackBonus: "+1", properties: ["reach"] },
     features: [{ title: "Bound Spirit", description: "The spirit haunts the wielder." }],
   }]));
   const fields = {
@@ -359,7 +389,8 @@ test("homebrew weapons use structured weapon properties instead of description i
       damageDice: "1d8",
       damageType: "piercing",
       mode: "melee",
-      bonus: "+1",
+      attackBonus: "+1",
+      damageBonus: "+1",
       properties: ["finesse", "light"],
     },
     features: [{ title: "Storm Lash", description: "On a hit, sparks crawl across the target." }],
@@ -394,6 +425,8 @@ test("homebrew versatile weapons use one computed attack summary", () => {
       damageDice: "1d6",
       damageType: "piercing",
       range: "20/60 ft.",
+      attackBonus: "+1",
+      damageBonus: "+2",
       properties: ["thrown", "versatile"],
       versatileDamage: "1d8",
     },
@@ -412,14 +445,46 @@ test("homebrew versatile weapons use one computed attack summary", () => {
 
   assert.equal(player.attacks.length, 1);
   assert.equal(player.attacks[0].name, "Sentinel Spear");
-  assert.equal(player.attacks[0].attackBonus, "+5");
-  assert.equal(player.attacks[0].damageType, "1d6+3 / 1d8+3 piercing");
+  assert.equal(player.attacks[0].attackBonus, "+6");
+  assert.equal(player.attacks[0].damageType, "1d6+5 / 1d8+5 piercing");
   assert.equal(summaries[0].mode, "Melee");
-  assert.match(markup, /Attack[\s\S]*\+5[\s\S]*Damage[\s\S]*1d6\+3 \/ 1d8\+3 piercing[\s\S]*20\/60 ft\./);
+  assert.match(markup, /Attack[\s\S]*\+6[\s\S]*Damage[\s\S]*1d6\+5 \/ 1d8\+5 piercing[\s\S]*20\/60 ft\./);
   assert.doesNotMatch(markup, /<dt>Ability<\/dt>|One-handed:/);
   assert.match(markup, /data-property-label="Versatile"[\s\S]*>VS<\/button>/);
   assert.match(markup, /data-property-detail="Can be used one-handed or two-handed\. Two-handed damage: 1d8\./);
   assert.doesNotMatch(markup, /<p>Can be used one-handed/);
+});
+
+test("character sheet recomputes homebrew weapon damage bonuses from equipment", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-blood-spear",
+    name: "Blood Spear",
+    type: "Weapon",
+    statistics: {
+      damageDice: "1d8",
+      damageType: "cold",
+      attackBonus: "+1",
+      damageBonus: "+2",
+      properties: [],
+    },
+  }]));
+
+  const player = {
+    characterName: "Mira",
+    level: 3,
+    abilities: { strength: 16, dexterity: 10 },
+    equipment: "Blood Spear",
+    attacks: [
+      { name: "Blood Spear", attackBonus: "+5", damageType: "1d8 cold", generatedFromEquipment: true },
+      { name: "Breath", attackBonus: "+4", damageType: "2d6 fire" },
+    ],
+  };
+  const rows = app.playerAttackRows(player);
+
+  assert.match(rows, /Blood Spear[\s\S]*\+6[\s\S]*1d8\+5 cold/);
+  assert.doesNotMatch(rows, /1d8 cold/);
+  assert.match(rows, /Breath[\s\S]*\+4[\s\S]*2d6 fire/);
 });
 
 test("weapon form extras are tied to selected properties", () => {
@@ -440,6 +505,8 @@ test("weapon form extras are tied to selected properties", () => {
   assert.doesNotMatch(html, /item-weapon-modes|Weapon modes/);
   assert.match(html, /data-weapon-extra="range"/);
   assert.match(html, /data-weapon-extra="versatile"/);
+  assert.match(html, /id="item-weapon-attack"/);
+  assert.match(html, /id="item-weapon-damage-bonus"/);
   assert.match(script, /syncWeaponDependentFields/);
   assert.match(script, /wrapper\.hidden = !isVisible/);
   assert.match(script, /if \(!isVisible\) field\.value = ""/);

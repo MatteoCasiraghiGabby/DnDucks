@@ -445,14 +445,18 @@ function homebrewItemAnalysisText(item) {
     stats.damage,
     stats.range,
     stats.attack,
+    stats.attackBonus,
+    stats.damageBonus,
     stats.bonus,
     weaponPropertiesText(stats.properties),
   ].filter(Boolean).join(" ");
 }
 
 function signedNumberFromText(value = "") {
-  const match = String(value).match(/([+-]\s*\d+)/);
-  return match ? Number(match[1].replace(/\s+/g, "")) : 0;
+  const text = String(value).trim();
+  const match = text.match(/([+-]\s*\d+)/);
+  if (match) return Number(match[1].replace(/\s+/g, ""));
+  return /^\d+$/.test(text) ? Number(text) : 0;
 }
 
 function extractDamageText(value = "") {
@@ -585,13 +589,18 @@ function homebrewMeleeAbility(item, abilities = {}) {
   return { key: "strength", label: "Strength", modifier: strength };
 }
 
-function homebrewWeaponItemBonus(item) {
+function homebrewWeaponAttackItemBonus(item) {
   const stats = homebrewItemStatistics(item);
-  return signedNumberFromText(stats.bonus) || signedNumberFromText(stats.attack);
+  return signedNumberFromText(stats.attackBonus ?? stats.attack ?? stats.bonus);
+}
+
+function homebrewWeaponDamageItemBonus(item) {
+  const stats = homebrewItemStatistics(item);
+  return signedNumberFromText(stats.damageBonus ?? stats.bonus);
 }
 
 function homebrewWeaponAttackBonus(item, abilities = {}, level = 1) {
-  const itemBonus = homebrewWeaponItemBonus(item);
+  const itemBonus = homebrewWeaponAttackItemBonus(item);
   return signedModifier(homebrewWeaponAbilityModifier(item, abilities) + proficiencyBonusForLevel(level || 1) + itemBonus);
 }
 
@@ -611,7 +620,7 @@ function homebrewWeaponDamageText(item, abilities = {}) {
   const properties = weaponPropertyKeys(stats.properties);
   const damage = homebrewWeaponBaseDamageText(item);
   const modifier = homebrewWeaponAbilityModifier(item, abilities);
-  const itemBonus = homebrewWeaponItemBonus(item);
+  const itemBonus = homebrewWeaponDamageItemBonus(item);
   const versatileDamage = String(stats.versatileDamage || "").trim();
   if (damage && properties.includes("versatile") && versatileDamage) {
     const damageType = damageTypeFromStats(stats);
@@ -638,7 +647,8 @@ function homebrewItemFeatureText(item) {
     ["Type", item.type],
     ["Damage", stats.damage],
     ["Range", stats.range],
-    ["Bonus", stats.bonus || stats.attack],
+    ["Attack bonus", stats.attackBonus ?? stats.attack ?? stats.bonus],
+    ["Damage bonus", stats.damageBonus ?? stats.bonus],
     ["Properties", weaponPropertiesText(stats.properties)],
   ].forEach(([label, value]) => {
     const text = String(value || "").trim();
@@ -1800,7 +1810,8 @@ function itemWeaponStatsMarkup(item) {
     ["DMG", homebrewWeaponBaseDamageText(item)],
     ["MODE", homebrewWeaponModeText(item)],
     ["RNG", stats.range],
-    ["BONUS", stats.bonus || stats.attack],
+    ["ATK", stats.attackBonus ?? stats.attack ?? stats.bonus],
+    ["DMG+", stats.damageBonus ?? stats.bonus],
     ["VERS", stats.versatileDamage],
     ["PROP", weaponPropertiesText(stats.properties)],
   ].filter(([, value]) => String(value || "").trim());
@@ -2594,7 +2605,8 @@ function populateWidgetForm(key, entry) {
     setFieldValue("#item-weapon-damage", damageDiceFromStats(stats));
     setFieldValue("#item-weapon-damage-type", damageTypeFromStats(stats));
     setFieldValue("#item-weapon-range", stats.range || "");
-    setFieldValue("#item-weapon-attack", stats.bonus || stats.attack || "");
+    setFieldValue("#item-weapon-attack", stats.attackBonus ?? stats.attack ?? stats.bonus ?? "");
+    setFieldValue("#item-weapon-damage-bonus", stats.damageBonus ?? stats.bonus ?? "");
     setFieldValue("#item-weapon-versatile-damage", stats.versatileDamage || "");
     document.querySelectorAll('input[name="item-weapon-properties"]').forEach((input) => {
       input.checked = selectedProperties.has(input.value);
@@ -3052,7 +3064,7 @@ ${widgetActionMarkup(character, { edit: "Modify NPC", delete: "Delete NPC" })}
       const features = itemFeatureList(item.features);
       const featureSearch = features.map((feature) => `${feature.title} ${feature.description}`).join(" ");
       const showDescription = item.type !== "Weapon" || !features.length;
-      const searchable = textForSearch([item.name, item.type, item.description, stats.damage, stats.damageDice, stats.damageType, stats.range, stats.bonus, stats.attack, weaponPropertiesText(stats.properties), featureSearch, "item homebrew monster loot"]);
+      const searchable = textForSearch([item.name, item.type, item.description, stats.damage, stats.damageDice, stats.damageType, stats.range, stats.attackBonus, stats.damageBonus, stats.bonus, stats.attack, weaponPropertiesText(stats.properties), featureSearch, "item homebrew monster loot"]);
       return `
         <article class="content-card entry-card widget-card item-card" ${widgetOriginAttribute(item)} ${widgetDmAttribute("items", item)} ${widgetEditAttribute("items", item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
           <div class="item-card-details">
@@ -3305,7 +3317,8 @@ function initDashboardForms() {
     const image = selectedMediaImageFromForm(form);
     const damageDice = document.getElementById("item-weapon-damage").value.trim();
     const damageType = document.getElementById("item-weapon-damage-type")?.value.trim() || "";
-    const bonus = document.getElementById("item-weapon-attack").value.trim();
+    const attackBonus = document.getElementById("item-weapon-attack").value.trim();
+    const damageBonus = document.getElementById("item-weapon-damage-bonus")?.value.trim() || "";
     const properties = checkedFormValues(form, "item-weapon-properties");
     const weaponStats = { properties };
     const statistics = type === "Weapon" ? {
@@ -3313,7 +3326,8 @@ function initDashboardForms() {
       damageDice,
       damageType,
       range: weaponNeedsRange(weaponStats) ? document.getElementById("item-weapon-range").value.trim() : "",
-      bonus,
+      attackBonus,
+      damageBonus,
       versatileDamage: weaponNeedsVersatileDamage(weaponStats) ? document.getElementById("item-weapon-versatile-damage")?.value.trim() || "" : "",
       properties,
     } : {};
@@ -5268,8 +5282,19 @@ function sheetTextBlock(label, value) {
   return `<section class="sheet-box"><h3>${escapeHtml(label)}</h3><p>${escapeHtml(value || "—")}</p></section>`;
 }
 
+function playerSheetAttacks(player = {}) {
+  const equipmentAttacks = derivedWeaponAttacks({
+    equipment: player.equipment,
+    abilities: player.abilities || {},
+    level: player.level || 1,
+  });
+  const manualAttacks = (player.attacks || []).filter((attack) => !attack.generatedFromEquipment);
+  return [...equipmentAttacks, ...manualAttacks];
+}
+
 function playerAttackRows(player) {
-  const attacks = player.attacks?.length ? player.attacks : [{ name: "", attackBonus: "", damageType: "" }];
+  const sheetAttacks = playerSheetAttacks(player);
+  const attacks = sheetAttacks.length ? sheetAttacks : [{ name: "", attackBonus: "", damageType: "" }];
   return attacks.map((attack) => `
     <tr>
       <td>${escapeHtml(attack.name || "—")}</td>
