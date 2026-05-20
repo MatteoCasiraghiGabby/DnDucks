@@ -800,8 +800,26 @@ function featureBlocks(features = "") {
   return blocks;
 }
 
-function featureBlocksMarkup(features = "") {
-  const blocks = featureBlocks(features);
+function homebrewFeatureBlockTitlesForEquipment(equipment = "") {
+  return new Set(equipmentItems(equipment).map((item) => {
+    const homebrewItem = homebrewItemForEquipmentItem(item);
+    return normalizeEquipmentText(homebrewItemFeatureText(homebrewItem).split(/\n+/)[0]);
+  }).filter(Boolean));
+}
+
+function featureBlocksForPlayer(player = {}) {
+  const hiddenTitles = homebrewFeatureBlockTitlesForEquipment(player.equipment);
+  return featureBlocks(player.features).filter((block) => !hiddenTitles.has(normalizeEquipmentText(block.title)));
+}
+
+function featureTextForPlayer(player = {}) {
+  return featureBlocksForPlayer(player).map((block) => (
+    [block.title, ...block.details].filter(Boolean).join("\n")
+  )).join("\n");
+}
+
+function featureBlocksMarkup(features = "", blocksOverride = null) {
+  const blocks = blocksOverride || featureBlocks(features);
   if (!blocks.length) return "";
   return `<div class="feature-widget-list">${blocks.map((block) => `
     <section class="feature-widget-card">
@@ -4682,6 +4700,7 @@ function playerSectionDefinitions(player, options = {}) {
   const equipmentTags = equipmentItems(player.equipment);
   const hasWeapons = equipmentWeaponSummaries(player).length > 0;
   const homebrewEquipmentItems = equipmentHomebrewItemSummaries(player);
+  const featureBlocksVisible = featureBlocksForPlayer(player);
   const nonWeaponEquipmentTags = equipmentTags.filter((item) => {
     const homebrewItem = homebrewItemForEquipmentItem(item);
     return !homebrewItem && !weaponForEquipmentItem(item);
@@ -4757,7 +4776,7 @@ function playerSectionDefinitions(player, options = {}) {
         ${hasWeapons ? `<section><h4>Weapons</h4>${equipmentWeaponCardsMarkup(player)}</section>` : ""}
         ${homebrewEquipmentItems.length ? `<section><h4>Homebrew items</h4>${equipmentHomebrewCardsMarkup(player)}</section>` : ""}
         ${nonWeaponEquipmentTags.length ? `<section><h4>Equipment</h4>${widgetTagsMarkup(nonWeaponEquipmentTags)}</section>` : ""}
-        ${hasText(player.features) ? `<section><h4>Features and traits</h4>${featureBlocksMarkup(player.features)}</section>` : ""}
+        ${featureBlocksVisible.length ? `<section><h4>Features and traits</h4>${featureBlocksMarkup("", featureBlocksVisible)}</section>` : ""}
       </div>`,
     },
   ];
@@ -5426,7 +5445,7 @@ function characterSheetMarkup(player) {
           ${sheetTextBlock("Ideals", player.personality?.ideals)}
           ${sheetTextBlock("Bonds", player.personality?.bonds)}
           ${sheetTextBlock("Flaws", player.personality?.flaws)}
-          ${sheetTextBlock("Features & Traits", player.features)}
+          ${sheetTextBlock("Features & Traits", featureTextForPlayer(player))}
           ${sheetTextBlock("Backstory / Notes", player.notes)}
         </section>
       </div>

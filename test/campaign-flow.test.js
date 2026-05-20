@@ -541,6 +541,34 @@ test("homebrew armor descriptions increase character armor class", () => {
   assert.match(player.features, /Description: Base AC is 13/);
 });
 
+test("homebrew equipment details are not duplicated in character feature widgets", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-moon-guard",
+    name: "Moon Guard",
+    type: "Armor",
+    description: "Base AC is 13 + Dexterity modifier.",
+  }]));
+
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-level": "4",
+    "#player-equipment": "Moon Guard",
+    "#player-features": "Alert (Feat)\nAlways ready for danger.",
+  }));
+  const equipmentSection = app.playerSectionDefinitions(player).find((section) => section.key === "equipment");
+  const sheetMarkup = app.characterSheetMarkup(player);
+  const featureWidget = equipmentSection.body.split("<h4>Features and traits</h4>")[1] || "";
+  const sheetFeatures = sheetMarkup.split("<h3>Features &amp; Traits</h3>")[1] || "";
+
+  assert.match(equipmentSection.body, /Homebrew items[\s\S]*Moon Guard/);
+  assert.match(featureWidget, /Alert \(Feat\)/);
+  assert.doesNotMatch(featureWidget, /Moon Guard \(Homebrew item\)|Base AC is 13/);
+  assert.match(sheetFeatures, /Alert \(Feat\)/);
+  assert.doesNotMatch(sheetFeatures, /Moon Guard \(Homebrew item\)|Base AC is 13/);
+});
+
 test("widget image picker falls back to local data urls when backend uploads are unavailable", async () => {
   const app = createFrontendSandbox();
   app.fetch = async () => { throw new Error("Load failed"); };
