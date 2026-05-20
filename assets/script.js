@@ -240,6 +240,22 @@ const WEAPONS = [
   { name: "Net", aliases: ["net"], damage: "", type: "special", mode: "ranged" },
 ];
 
+const WEAPON_PROPERTY_OPTIONS = [
+  { key: "ammunition", label: "Ammunition", icon: "AM", detail: "Uses ammunition and the listed normal/long range for ranged attacks." },
+  { key: "finesse", label: "Finesse", icon: "FI", detail: "Melee attacks use the better modifier between Strength and Dexterity." },
+  { key: "heavy", label: "Heavy", icon: "HV", detail: "Marked as a heavy weapon." },
+  { key: "light", label: "Light", icon: "LI", detail: "Marked as a light weapon." },
+  { key: "loading", label: "Loading", icon: "LD", detail: "Marked as a loading weapon." },
+  { key: "range", label: "Range", icon: "RG", detail: "Uses the listed normal/long range." },
+  { key: "reach", label: "Reach", icon: "RE", detail: "Adds 5 feet to reach when attacking with it." },
+  { key: "special", label: "Special", icon: "SP", detail: "Uses special rules described in the weapon feature or description." },
+  { key: "thrown", label: "Thrown", icon: "TH", detail: "Can be thrown; a melee weapon keeps its melee ability modifier when thrown." },
+  { key: "two-handed", label: "Two-Handed", icon: "2H", detail: "Requires two hands when attacking with it." },
+  { key: "versatile", label: "Versatile", icon: "VS", detail: "Can be used one-handed or two-handed, with separate damage values." },
+];
+
+const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder"];
+
 function normalizeCampaign(campaign = {}) {
   return {
     ...DEFAULT_CAMPAIGN,
@@ -419,14 +435,9 @@ function homebrewItemStatistics(item) {
     : {};
 }
 
-const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder"];
-
 function homebrewItemAnalysisText(item) {
   if (!item) return "";
   const stats = homebrewItemStatistics(item);
-  const featureText = itemFeatureList(item.features)
-    .map((feature) => [feature.title, feature.description].filter(Boolean).join(" "))
-    .join(" ");
   return [
     item.name,
     item.type,
@@ -434,8 +445,8 @@ function homebrewItemAnalysisText(item) {
     stats.damage,
     stats.range,
     stats.attack,
-    stats.properties,
-    featureText,
+    stats.bonus,
+    weaponPropertiesText(stats.properties),
   ].filter(Boolean).join(" ");
 }
 
@@ -453,27 +464,110 @@ function extractDamageText(value = "") {
   return [dice, match[2]?.toLowerCase()].filter(Boolean).join(" ");
 }
 
-function inferHomebrewItemKind(item) {
-  const explicitType = String(item?.type || "").trim().toLowerCase();
-  const text = homebrewItemAnalysisText(item).toLowerCase();
-  if (explicitType === "weapon") return "weapon";
-  if (explicitType === "armor" || explicitType === "armour") return "armor";
-  if (/\b(ac|armor class|armour class|shield|armor|armour|mail|plate|breastplate|leather)\b/.test(text)) return "armor";
-  if (extractDamageText(text) || /\b(weapon|blade|sword|axe|bow|crossbow|dagger|spear|mace|staff|hammer|attack roll|damage roll)\b/.test(text)) return "weapon";
-  return "feature";
+function damageDiceFromStats(stats = {}) {
+  const dice = String(stats.damageDice || "").trim();
+  if (dice) return dice;
+  return String(stats.damage || "").match(/\d+d\d+(?:\s*[+-]\s*\d+)?/i)?.[0]?.replace(/\s+/g, "") || "";
+}
+
+function damageTypeFromStats(stats = {}) {
+  const type = String(stats.damageType || "").trim().toLowerCase();
+  if (type) return type;
+  const typePattern = DAMAGE_TYPES.join("|");
+  return String(stats.damage || "").match(new RegExp(`\\b(${typePattern})\\b`, "i"))?.[1]?.toLowerCase() || "";
+}
+
+function normalizeWeaponProperty(value = "") {
+  const normalized = normalizeEquipmentText(value).replace(/\s+/g, "-");
+  const option = WEAPON_PROPERTY_OPTIONS.find((property) => (
+    property.key === normalized || normalizeEquipmentText(property.label).replace(/\s+/g, "-") === normalized
+  ));
+  return option?.key || "";
+}
+
+function weaponPropertyKeys(value) {
+  const values = Array.isArray(value)
+    ? value
+    : String(value || "").split(/[,;]+/);
+  return Array.from(new Set(values.map(normalizeWeaponProperty).filter(Boolean)));
+}
+
+function weaponPropertyLabels(value) {
+  const keys = weaponPropertyKeys(value);
+  return keys.map((key) => WEAPON_PROPERTY_OPTIONS.find((property) => property.key === key)?.label || key);
+}
+
+function weaponPropertyDetails(value, item = null) {
+  const stats = homebrewItemStatistics(item);
+  return weaponPropertyKeys(value).map((key) => {
+    const property = WEAPON_PROPERTY_OPTIONS.find((option) => option.key === key);
+    if (!property) return null;
+    let detail = property.detail;
+    if (key === "versatile") {
+      const versatileDamage = String(stats.versatileDamage || "").trim();
+      detail = versatileDamage
+        ? `Can be used one-handed or two-handed. Two-handed damage: ${versatileDamage}.`
+        : property.detail;
+    }
+    if ((key === "range" || key === "ammunition" || key === "thrown") && stats.range) {
+      const rangeText = String(stats.range).trim().replace(/\.+$/, "");
+      detail = `${detail} Range: ${rangeText}.`;
+    }
+    return { key, label: property.label, icon: property.icon, detail };
+  }).filter(Boolean);
+}
+
+function weaponPropertiesText(value) {
+  return weaponPropertyLabels(value).join(", ");
+}
+
+function weaponPropertyIconMarkup(property) {
+  if (!property) return "";
+  return `<button class="weapon-property-icon" type="button" data-property-info data-property-label="${escapeHtml(property.label)}" data-property-detail="${escapeHtml(property.detail)}" aria-label="${escapeHtml(`${property.label} property details`)}" title="${escapeHtml(property.label)}">${escapeHtml(property.icon || property.label.slice(0, 2).toUpperCase())}</button>`;
+}
+
+function weaponPropertyIconListMarkup(properties = []) {
+  const icons = properties.map(weaponPropertyIconMarkup).join("");
+  return icons ? `<div class="weapon-property-icons" aria-label="Weapon properties">${icons}</div>` : "";
+}
+
+function weaponModeKeys(stats = {}) {
+  const properties = weaponPropertyKeys(stats.properties);
+  if (properties.includes("ammunition") || properties.includes("range")) return ["ranged"];
+  return ["melee"];
+}
+
+function weaponNeedsRange(stats = {}) {
+  const properties = weaponPropertyKeys(stats.properties);
+  return properties.some((property) => ["ammunition", "range", "thrown"].includes(property));
+}
+
+function weaponNeedsVersatileDamage(stats = {}) {
+  return weaponPropertyKeys(stats.properties).includes("versatile");
+}
+
+function homebrewWeaponBaseDamageText(item) {
+  const stats = homebrewItemStatistics(item);
+  const dice = damageDiceFromStats(stats);
+  const type = damageTypeFromStats(stats);
+  if (dice) return [dice, type].filter(Boolean).join(" ");
+  return String(stats.damage || extractDamageText(stats.damage || "") || "").trim();
 }
 
 function isHomebrewWeaponItem(item) {
-  return inferHomebrewItemKind(item) === "weapon";
+  return String(item?.type || "").trim().toLowerCase() === "weapon";
+}
+
+function isHomebrewArmorItem(item) {
+  const type = String(item?.type || "").trim().toLowerCase();
+  return type === "armor" || type === "armour";
 }
 
 function homebrewWeaponMode(item) {
   const stats = homebrewItemStatistics(item);
-  const text = homebrewItemAnalysisText(item).toLowerCase();
-  const range = String(stats.range || "").toLowerCase();
-  const properties = String(stats.properties || "").toLowerCase();
-  if (/\bfinesse\b/.test(`${properties} ${text}`)) return "finesse";
-  if (/\b(ranged|range|ammunition|bow|crossbow|firearm)\b/.test(`${range} ${text}`) || /\b\d+\s*\/\s*\d+\s*ft\b/.test(text)) return "ranged";
+  const properties = weaponPropertyKeys(stats.properties);
+  if (properties.includes("finesse")) return "finesse";
+  if (weaponModeKeys(stats)[0] === "ranged") return "ranged";
   return "melee";
 }
 
@@ -481,24 +575,23 @@ function homebrewWeaponAbilityModifier(item, abilities = {}) {
   return weaponAbilityModifier({ mode: homebrewWeaponMode(item) }, abilities);
 }
 
-function homebrewWeaponItemBonus(item) {
-  const stats = homebrewItemStatistics(item);
-  const text = homebrewItemAnalysisText(item);
-  return signedNumberFromText(stats.attack) || signedNumberFromText(text.match(/([+-]\s*\d+)\s+(?:bonus\s+)?to\s+(?:attack|attack rolls?)/i)?.[0] || "");
+function homebrewMeleeAbility(item, abilities = {}) {
+  const properties = weaponPropertyKeys(homebrewItemStatistics(item).properties);
+  const strength = abilityModifier(abilities.strength);
+  const dexterity = abilityModifier(abilities.dexterity);
+  if (properties.includes("finesse") && dexterity > strength) {
+    return { key: "dexterity", label: "Dexterity", modifier: dexterity };
+  }
+  return { key: "strength", label: "Strength", modifier: strength };
 }
 
-function homebrewWeaponDamageBonus(item) {
-  const text = homebrewItemAnalysisText(item);
-  const explicitDamageBonus = text.match(/([+-]\s*\d+)\s+(?:bonus\s+)?to\s+damage(?:\s+rolls?)?/i)?.[0] || "";
-  const sharedAttackDamageBonus = text.match(/([+-]\s*\d+)\s+(?:bonus\s+)?to\s+attack\s+and\s+damage(?:\s+rolls?)?/i)?.[0] || "";
-  return signedNumberFromText(explicitDamageBonus) || signedNumberFromText(sharedAttackDamageBonus);
+function homebrewWeaponItemBonus(item) {
+  const stats = homebrewItemStatistics(item);
+  return signedNumberFromText(stats.bonus) || signedNumberFromText(stats.attack);
 }
 
 function homebrewWeaponAttackBonus(item, abilities = {}, level = 1) {
-  const stats = homebrewItemStatistics(item);
-  const attackText = String(stats.attack || "").trim();
   const itemBonus = homebrewWeaponItemBonus(item);
-  if (!extractDamageText(homebrewItemAnalysisText(item)) && attackText && !/[+-]\s*\d+/.test(attackText)) return attackText;
   return signedModifier(homebrewWeaponAbilityModifier(item, abilities) + proficiencyBonusForLevel(level || 1) + itemBonus);
 }
 
@@ -515,28 +608,38 @@ function applyDamageModifiers(damage = "", abilityBonus = 0, itemBonus = 0) {
 
 function homebrewWeaponDamageText(item, abilities = {}) {
   const stats = homebrewItemStatistics(item);
-  const damage = String(stats.damage || extractDamageText(homebrewItemAnalysisText(item)) || "").trim();
-  if (damage) return applyDamageModifiers(damage, homebrewWeaponAbilityModifier(item, abilities), homebrewWeaponDamageBonus(item));
+  const properties = weaponPropertyKeys(stats.properties);
+  const damage = homebrewWeaponBaseDamageText(item);
+  const modifier = homebrewWeaponAbilityModifier(item, abilities);
+  const itemBonus = homebrewWeaponItemBonus(item);
+  const versatileDamage = String(stats.versatileDamage || "").trim();
+  if (damage && properties.includes("versatile") && versatileDamage) {
+    const damageType = damageTypeFromStats(stats);
+    const oneHandDamage = applyDamageModifiers(damageDiceFromStats(stats), modifier, itemBonus);
+    const twoHandDamage = applyDamageModifiers(versatileDamage, modifier, itemBonus);
+    return `${oneHandDamage} / ${twoHandDamage}${damageType ? ` ${damageType}` : ""}`;
+  }
+  if (damage) return applyDamageModifiers(damage, modifier, itemBonus);
   return String(item?.description || "Homebrew weapon").trim();
 }
 
 function homebrewWeaponModeText(item) {
-  const stats = homebrewItemStatistics(item);
   const mode = homebrewWeaponMode(item);
   if (mode === "finesse") return "Melee or Dexterity";
-  return String(stats.range || stats.properties || mode).trim();
+  return mode === "ranged" ? "Ranged" : "Melee";
 }
 
 function homebrewItemFeatureText(item) {
   if (!item?.name) return "";
+  if (isHomebrewWeaponItem(item)) return "";
   const stats = homebrewItemStatistics(item);
   const lines = [`${item.name} (Homebrew item)`];
   [
     ["Type", item.type],
     ["Damage", stats.damage],
     ["Range", stats.range],
-    ["Attack", stats.attack],
-    ["Properties", stats.properties],
+    ["Bonus", stats.bonus || stats.attack],
+    ["Properties", weaponPropertiesText(stats.properties)],
   ].forEach(([label, value]) => {
     const text = String(value || "").trim();
     if (text) lines.push(`${label}: ${text}`);
@@ -627,6 +730,9 @@ function equipmentWeaponSummaries(player = {}) {
         mode: homebrewWeaponModeText(homebrewItem),
         attackBonus: homebrewWeaponAttackBonus(homebrewItem, player.abilities || {}, player.level || 1),
         damageType: homebrewWeaponDamageText(homebrewItem, player.abilities || {}),
+        range: String(homebrewItemStatistics(homebrewItem).range || "").trim(),
+        properties: weaponPropertyDetails(homebrewItemStatistics(homebrewItem).properties, homebrewItem),
+        features: itemFeatureList(homebrewItem.features),
         homebrew: true,
       };
     }
@@ -641,6 +747,23 @@ function equipmentWeaponSummaries(player = {}) {
       mode: weapon.mode === "finesse" ? "Melee or Dexterity" : weapon.mode,
       attackBonus: signedModifier(modifier + proficiencyBonusForLevel(player.level || 1)),
       damageType: weaponDamageText(weapon, modifier),
+    };
+  }).filter(Boolean);
+}
+
+function equipmentHomebrewItemSummaries(player = {}) {
+  const seen = new Set();
+  return equipmentItems(player.equipment).map((item) => {
+    const homebrewItem = homebrewItemForEquipmentItem(item);
+    if (!homebrewItem || isHomebrewWeaponItem(homebrewItem)) return null;
+    const key = homebrewItem.id || normalizeEquipmentText(homebrewItem.name);
+    if (seen.has(key)) return null;
+    seen.add(key);
+    return {
+      name: homebrewItem.name,
+      type: homebrewItem.type || "Homebrew item",
+      description: homebrewItem.description || "",
+      features: itemFeatureList(homebrewItem.features),
     };
   }).filter(Boolean);
 }
@@ -689,8 +812,31 @@ function equipmentWeaponCardsMarkup(player = {}) {
           <div><dt>Attack</dt><dd>${escapeHtml(weapon.attackBonus)}</dd></div>
           <div><dt>Damage</dt><dd>${escapeHtml(weapon.damageType)}</dd></div>
           <div><dt>Mode</dt><dd>${escapeHtml(weapon.mode)}</dd></div>
+          ${weapon.range ? `<div><dt>Range</dt><dd>${escapeHtml(weapon.range)}</dd></div>` : ""}
         </dl>
+        ${weapon.properties?.length ? `<div class="equipment-detail-row"><span>Properties</span>${weaponPropertyIconListMarkup(weapon.properties)}</div>` : ""}
+        ${weapon.features?.length ? `<div class="equipment-detail-row"><span>Features</span>${weapon.features.map((feature) => `
+          <article class="equipment-feature-card">
+            <strong>${escapeHtml(feature.title || "Feature")}</strong>
+            ${feature.description ? `<p>${escapeHtml(feature.description)}</p>` : ""}
+          </article>`).join("")}</div>` : ""}
       </div>
+    </article>`).join("")}</div>`;
+}
+
+function equipmentHomebrewCardsMarkup(player = {}) {
+  const items = equipmentHomebrewItemSummaries(player);
+  if (!items.length) return "";
+  return `<div class="equipment-homebrew-list">${items.map((item) => `
+    <article class="equipment-homebrew-card">
+      <div class="card-kicker"><span>${escapeHtml(item.type)}</span></div>
+      <strong>${escapeHtml(item.name)}</strong>
+      ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
+      ${item.features.length ? `<div class="equipment-detail-row"><span>Features</span>${item.features.map((feature) => `
+        <article class="equipment-feature-card">
+          <strong>${escapeHtml(feature.title || "Feature")}</strong>
+          ${feature.description ? `<p>${escapeHtml(feature.description)}</p>` : ""}
+        </article>`).join("")}</div>` : ""}
     </article>`).join("")}</div>`;
 }
 
@@ -733,7 +879,7 @@ function dexRuleFromArmorText(text = "") {
 }
 
 function homebrewArmorFormula(item) {
-  if (inferHomebrewItemKind(item) !== "armor") return null;
+  if (!isHomebrewArmorItem(item)) return null;
   const text = homebrewItemAnalysisText(item);
   const lowerText = text.toLowerCase();
   const builtin = ARMOR_FORMULAS.find((armor) => lowerText.includes(armor.match));
@@ -1651,10 +1797,12 @@ function itemWeaponStatsMarkup(item) {
   if (item.type !== "Weapon") return "";
   const stats = item.statistics || {};
   const statItems = [
-    ["DMG", stats.damage],
+    ["DMG", homebrewWeaponBaseDamageText(item)],
+    ["MODE", homebrewWeaponModeText(item)],
     ["RNG", stats.range],
-    ["ATK", stats.attack],
-    ["PROP", stats.properties],
+    ["BONUS", stats.bonus || stats.attack],
+    ["VERS", stats.versatileDamage],
+    ["PROP", weaponPropertiesText(stats.properties)],
   ].filter(([, value]) => String(value || "").trim());
   if (!statItems.length) return "";
   return `
@@ -1662,6 +1810,17 @@ function itemWeaponStatsMarkup(item) {
             ${statItems.map(([label, value]) => `
               <span class="item-stat-icon"><strong>${escapeHtml(label)}</strong>${escapeHtml(value)}</span>
             `).join("")}
+          </div>`;
+}
+
+function itemWeaponPropertyBlocksMarkup(item) {
+  if (item.type !== "Weapon") return "";
+  const properties = weaponPropertyDetails(item.statistics?.properties, item);
+  if (!properties.length) return "";
+  return `
+          <div class="equipment-detail-row item-property-detail-row" aria-label="Weapon property details">
+            <span>Properties</span>
+            ${weaponPropertyIconListMarkup(properties)}
           </div>`;
 }
 
@@ -2427,13 +2586,20 @@ function populateWidgetForm(key, entry) {
     setFieldValue("#character-notes", entry.notes || "");
   } else if (key === "items") {
     const feature = firstItemFeature(entry);
+    const stats = entry.statistics || {};
+    const selectedProperties = new Set(weaponPropertyKeys(stats.properties));
     setFieldValue("#item-name", entry.name || "");
     setFieldValue("#item-type", entry.type || "Weapon");
     document.getElementById("item-type")?.dispatchEvent(new Event("change", { bubbles: true }));
-    setFieldValue("#item-weapon-damage", entry.statistics?.damage || "");
-    setFieldValue("#item-weapon-range", entry.statistics?.range || "");
-    setFieldValue("#item-weapon-attack", entry.statistics?.attack || "");
-    setFieldValue("#item-weapon-properties", entry.statistics?.properties || "");
+    setFieldValue("#item-weapon-damage", damageDiceFromStats(stats));
+    setFieldValue("#item-weapon-damage-type", damageTypeFromStats(stats));
+    setFieldValue("#item-weapon-range", stats.range || "");
+    setFieldValue("#item-weapon-attack", stats.bonus || stats.attack || "");
+    setFieldValue("#item-weapon-versatile-damage", stats.versatileDamage || "");
+    document.querySelectorAll('input[name="item-weapon-properties"]').forEach((input) => {
+      input.checked = selectedProperties.has(input.value);
+    });
+    document.getElementById("item-weapon-section")?.dispatchEvent(new Event("change", { bubbles: true }));
     setFieldValue("#item-weapon-feature-title", feature.title || "");
     setFieldValue("#item-weapon-feature-description", feature.description || "");
     setFieldValue("#item-description", entry.description || "");
@@ -2624,6 +2790,46 @@ function openWidgetDetail(key, entryId) {
   document.body.classList.add("widget-detail-open");
   document.body.appendChild(modal);
   modal.querySelector("[data-close-widget-detail]")?.focus();
+}
+
+function openWeaponPropertyOverlay(label = "", detail = "") {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop weapon-property-modal";
+  modal.innerHTML = `
+    <article class="weapon-property-dialog" role="dialog" aria-modal="true" aria-labelledby="weapon-property-title">
+      <button class="modal-close" type="button" data-close-property-info aria-label="Close property details">×</button>
+      <p class="eyebrow">Weapon property</p>
+      <h2 id="weapon-property-title">${escapeHtml(label || "Property")}</h2>
+      <p>${escapeHtml(detail || "No property description available.")}</p>
+    </article>`;
+
+  function close() {
+    modal.remove();
+    document.removeEventListener("keydown", onKeydown);
+  }
+
+  function onKeydown(event) {
+    if (event.key === "Escape") close();
+  }
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal || event.target.closest("[data-close-property-info]")) close();
+  });
+  document.addEventListener("keydown", onKeydown);
+  document.body.appendChild(modal);
+  modal.querySelector("[data-close-property-info]")?.focus();
+}
+
+function initWeaponPropertyInfo() {
+  if (document.body?.dataset.weaponPropertyInfoReady === "true") return;
+  if (document.body?.dataset) document.body.dataset.weaponPropertyInfoReady = "true";
+  document.addEventListener("click", (event) => {
+    const button = event.target?.closest?.("[data-property-info]");
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    openWeaponPropertyOverlay(button.dataset.propertyLabel, button.dataset.propertyDetail);
+  });
 }
 
 function wireWidgetInteractions(list, key) {
@@ -2846,13 +3052,14 @@ ${widgetActionMarkup(character, { edit: "Modify NPC", delete: "Delete NPC" })}
       const features = itemFeatureList(item.features);
       const featureSearch = features.map((feature) => `${feature.title} ${feature.description}`).join(" ");
       const showDescription = item.type !== "Weapon" || !features.length;
-      const searchable = textForSearch([item.name, item.type, item.description, stats.damage, stats.range, stats.attack, stats.properties, featureSearch, "item homebrew monster loot"]);
+      const searchable = textForSearch([item.name, item.type, item.description, stats.damage, stats.damageDice, stats.damageType, stats.range, stats.bonus, stats.attack, weaponPropertiesText(stats.properties), featureSearch, "item homebrew monster loot"]);
       return `
         <article class="content-card entry-card widget-card item-card" ${widgetOriginAttribute(item)} ${widgetDmAttribute("items", item)} ${widgetEditAttribute("items", item)} data-searchable="${escapeHtml(searchable)}" data-status="${status}">
           <div class="item-card-details">
             <div class="card-kicker"><span class="status-badge ${status === "prepared" ? "status-prepared" : "status-active"}">${statusLabel}</span><span>${escapeHtml(item.type)}</span></div>
             <h3>${escapeHtml(item.name)}</h3>
             ${itemWeaponStatsMarkup(item)}
+            ${itemWeaponPropertyBlocksMarkup(item)}
             ${showDescription ? widgetDescriptionMarkup(item.description) : ""}
             ${itemFeatureBlocksMarkup(item)}
             ${widgetTagsMarkup([item.createdAt, "Loot & rules"])}
@@ -2994,16 +3201,40 @@ function initItemWeaponOptions() {
   const weaponSection = document.getElementById("item-weapon-section");
   if (!typeSelect || !weaponSection) return;
 
-  const sync = () => {
-    const isWeapon = typeSelect.value === "Weapon";
-    weaponSection.hidden = !isWeapon;
-    weaponSection.querySelectorAll("input, textarea").forEach((field) => {
-      field.disabled = !isWeapon;
-      if (!isWeapon) field.value = "";
+  const weaponStatsFromForm = () => ({
+    properties: checkedFormValues(typeSelect.form, "item-weapon-properties"),
+  });
+
+  const syncWeaponDependentFields = () => {
+    const stats = weaponStatsFromForm();
+    [
+      ["range", weaponNeedsRange(stats)],
+      ["versatile", weaponNeedsVersatileDamage(stats)],
+    ].forEach(([key, isVisible]) => {
+      const wrapper = weaponSection.querySelector(`[data-weapon-extra="${key}"]`);
+      const field = wrapper?.querySelector("input, select, textarea");
+      if (!wrapper || !field) return;
+      wrapper.hidden = !isVisible;
+      field.disabled = !isVisible || typeSelect.value !== "Weapon";
+      if (!isVisible) field.value = "";
     });
   };
 
+  const sync = () => {
+    const isWeapon = typeSelect.value === "Weapon";
+    weaponSection.hidden = !isWeapon;
+    weaponSection.querySelectorAll("input, select, textarea").forEach((field) => {
+      field.disabled = !isWeapon;
+      if (!isWeapon) {
+        if (field.type === "checkbox" || field.type === "radio") field.checked = false;
+        else field.value = "";
+      }
+    });
+    syncWeaponDependentFields();
+  };
+
   typeSelect.addEventListener("change", sync);
+  weaponSection.addEventListener("change", syncWeaponDependentFields);
   typeSelect.form?.addEventListener("reset", () => requestAnimationFrame(sync));
   sync();
 }
@@ -3072,11 +3303,19 @@ function initDashboardForms() {
     const name = document.getElementById("item-name").value.trim();
     const type = document.getElementById("item-type").value;
     const image = selectedMediaImageFromForm(form);
+    const damageDice = document.getElementById("item-weapon-damage").value.trim();
+    const damageType = document.getElementById("item-weapon-damage-type")?.value.trim() || "";
+    const bonus = document.getElementById("item-weapon-attack").value.trim();
+    const properties = checkedFormValues(form, "item-weapon-properties");
+    const weaponStats = { properties };
     const statistics = type === "Weapon" ? {
-      damage: document.getElementById("item-weapon-damage").value.trim(),
-      range: document.getElementById("item-weapon-range").value.trim(),
-      attack: document.getElementById("item-weapon-attack").value.trim(),
-      properties: document.getElementById("item-weapon-properties").value.trim(),
+      damage: [damageDice, damageType].filter(Boolean).join(" "),
+      damageDice,
+      damageType,
+      range: weaponNeedsRange(weaponStats) ? document.getElementById("item-weapon-range").value.trim() : "",
+      bonus,
+      versatileDamage: weaponNeedsVersatileDamage(weaponStats) ? document.getElementById("item-weapon-versatile-damage")?.value.trim() || "" : "",
+      properties,
     } : {};
     const feature = type === "Weapon" ? {
       title: document.getElementById("item-weapon-feature-title").value.trim(),
@@ -4375,11 +4614,12 @@ function playerSectionDefinitions(player, options = {}) {
   const toolTags = (player.toolProficiencies || []).map(toolLabel);
   const equipmentTags = equipmentItems(player.equipment);
   const hasWeapons = equipmentWeaponSummaries(player).length > 0;
+  const homebrewEquipmentItems = equipmentHomebrewItemSummaries(player);
   const nonWeaponEquipmentTags = equipmentTags.filter((item) => {
     const homebrewItem = homebrewItemForEquipmentItem(item);
-    return !weaponForEquipmentItem(item) && !isHomebrewWeaponItem(homebrewItem);
+    return !homebrewItem && !weaponForEquipmentItem(item);
   });
-  const equipmentComplete = hasText(player.equipment) && hasText(player.features);
+  const equipmentComplete = equipmentTags.length > 0 || hasText(player.features);
   const equipmentStarted = equipmentComplete || languageTags.length || toolTags.length || equipmentTags.length;
   const combatStarted = hasText(player.classRole) || hasText(player.race) || ABILITIES.some((ability) => hasNumber(player.abilities?.[ability.key])) || equipmentStarted;
   const combatComplete = Boolean(abilitySectionComplete(player) && hasText(player.classRole) && hasText(player.race) && equipmentComplete);
@@ -4448,6 +4688,7 @@ function playerSectionDefinitions(player, options = {}) {
         ${languageTags.length ? `<section><h4>Languages</h4>${widgetTagsMarkup(languageTags)}</section>` : ""}
         ${toolTags.length ? `<section><h4>Tool proficiencies</h4>${widgetTagsMarkup(toolTags)}</section>` : ""}
         ${hasWeapons ? `<section><h4>Weapons</h4>${equipmentWeaponCardsMarkup(player)}</section>` : ""}
+        ${homebrewEquipmentItems.length ? `<section><h4>Homebrew items</h4>${equipmentHomebrewCardsMarkup(player)}</section>` : ""}
         ${nonWeaponEquipmentTags.length ? `<section><h4>Equipment</h4>${widgetTagsMarkup(nonWeaponEquipmentTags)}</section>` : ""}
         ${hasText(player.features) ? `<section><h4>Features and traits</h4>${featureBlocksMarkup(player.features)}</section>` : ""}
       </div>`,
@@ -5303,6 +5544,7 @@ function initCalendarPage() {
 if (!redirectToCanonicalLocalOrigin()) {
   importCanonicalLocalStoragePayload();
   initMobileNavigation();
+  initWeaponPropertyInfo();
   if (!initAppRoutes()) {
     updateTopNavActivePage(document.body?.dataset?.page || "dashboard");
     initCommandInterface();

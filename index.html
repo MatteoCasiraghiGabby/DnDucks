@@ -226,10 +226,27 @@
               <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
               <fieldset class="form-grid full-width item-weapon-section" id="item-weapon-section">
                 <legend>Weapon statistics</legend>
-                <label>Damage<input id="item-weapon-damage" type="text" placeholder="1d8 slashing" /></label>
-                <label>Range<input id="item-weapon-range" type="text" placeholder="Melee, 20/60 ft., thrown..." /></label>
-                <label>Attack bonus<input id="item-weapon-attack" type="text" placeholder="+1, proficiency, finesse..." /></label>
-                <label>Properties<input id="item-weapon-properties" type="text" placeholder="Light, finesse, versatile..." /></label>
+                <label>Damage dice<input id="item-weapon-damage" type="text" placeholder="1d8" /></label>
+                <label>Damage type<select id="item-weapon-damage-type"><option value="">Choose damage type</option><option>acid</option><option>bludgeoning</option><option>cold</option><option>fire</option><option>force</option><option>lightning</option><option>necrotic</option><option>piercing</option><option>poison</option><option>psychic</option><option>radiant</option><option>slashing</option><option>thunder</option></select></label>
+                <label data-weapon-extra="range">Range<input id="item-weapon-range" type="text" placeholder="20/60 ft., 80/320 ft...." /></label>
+                <label>Item bonus<input id="item-weapon-attack" type="number" step="1" placeholder="0" /></label>
+                <label data-weapon-extra="versatile">Versatile damage<input id="item-weapon-versatile-damage" type="text" placeholder="1d10" /></label>
+                <fieldset class="item-property-fieldset full-width">
+                  <legend>Weapon properties</legend>
+                  <div class="checkbox-grid item-property-grid">
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="ammunition" /><span>Ammunition</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="finesse" /><span>Finesse</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="heavy" /><span>Heavy</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="light" /><span>Light</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="loading" /><span>Loading</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="range" /><span>Range</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="reach" /><span>Reach</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="special" /><span>Special</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="thrown" /><span>Thrown</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="two-handed" /><span>Two-Handed</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="item-weapon-properties" value="versatile" /><span>Versatile</span></label>
+                  </div>
+                </fieldset>
                 <label>Feature title<input id="item-weapon-feature-title" type="text" placeholder="Vampire Touch, Returning, Cleave..." /></label>
                 <label class="full-width">Feature description<textarea id="item-weapon-feature-description" rows="2" placeholder="Describe what this weapon feature does at the table."></textarea></label>
               </fieldset>

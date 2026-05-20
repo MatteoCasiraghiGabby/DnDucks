@@ -284,9 +284,12 @@ test("homebrew dashboard weapons are recognized from character equipment", () =>
     description: "A cursed frozen spear.",
     statistics: {
       damage: "1d8 cold",
-      range: "Melee",
-      attack: "+1",
-      properties: "Cursed, icy",
+      damageDice: "1d8",
+      damageType: "cold",
+      mode: "melee",
+      range: "20/60 ft.",
+      bonus: "+1",
+      properties: ["reach", "thrown"],
     },
     features: [{ title: "Bound Spirit", description: "The spirit haunts the wielder." }],
   }]));
@@ -295,6 +298,7 @@ test("homebrew dashboard weapons are recognized from character equipment", () =>
     "#player-name": "Sam",
     "#player-character-name": "Mira",
     "#player-level": "3",
+    "#player-strength": "16",
     "#player-equipment": "Blood Spear",
   }));
   const summaries = app.equipmentWeaponSummaries(player);
@@ -302,25 +306,29 @@ test("homebrew dashboard weapons are recognized from character equipment", () =>
 
   assert.equal(player.attacks.length, 1);
   assert.equal(player.attacks[0].name, "Blood Spear");
-  assert.equal(player.attacks[0].attackBonus, "+3");
-  assert.equal(player.attacks[0].damageType, "1d8 cold");
+  assert.equal(player.attacks[0].attackBonus, "+6");
+  assert.equal(player.attacks[0].damageType, "1d8+4 cold");
   assert.equal(player.attacks[0].homebrew, true);
-  assert.match(player.features, /Blood Spear \(Homebrew item\)/);
-  assert.match(player.features, /Damage: 1d8 cold/);
-  assert.match(player.features, /Bound Spirit: The spirit haunts the wielder\./);
+  assert.doesNotMatch(player.features, /Bound Spirit/);
   assert.equal(summaries[0].name, "Blood Spear");
   assert.equal(summaries[0].mode, "Melee");
+  assert.deepEqual(Array.from(summaries[0].properties.map((property) => property.label)), ["Reach", "Thrown"]);
+  assert.equal(summaries[0].features[0].title, "Bound Spirit");
+  const weaponMarkup = app.equipmentWeaponCardsMarkup(player);
+  assert.match(weaponMarkup, /Properties[\s\S]*data-property-label="Reach"[\s\S]*>RE<\/button>[\s\S]*data-property-label="Thrown"[\s\S]*>TH<\/button>[\s\S]*Bound Spirit/);
+  assert.match(weaponMarkup, /data-property-detail="Adds 5 feet/);
+  assert.doesNotMatch(weaponMarkup, /<p>Adds 5 feet|<p>Can be thrown/);
   assert.match(formMarkup, /id="player-equipment-entry" type="text" list="player-equipment-options"/);
   assert.match(formMarkup, /<option value="Blood Spear"><\/option>/);
 });
 
-test("equipment entry imports homebrew item details into the hidden sheet fields", () => {
+test("equipment entry imports homebrew weapon names without duplicating weapon details into generic features", () => {
   const app = createFrontendSandbox();
   app.localStorage.setItem("dnducks.items", JSON.stringify([{
     id: "item-blood-spear",
     name: "Blood Spear",
     type: "Weapon",
-    statistics: { damage: "1d8 cold", attack: "+1" },
+    statistics: { damageDice: "1d8", damageType: "cold", bonus: "+1", properties: ["reach"] },
     features: [{ title: "Bound Spirit", description: "The spirit haunts the wielder." }],
   }]));
   const fields = {
@@ -337,18 +345,23 @@ test("equipment entry imports homebrew item details into the hidden sheet fields
 
   assert.equal(fields["#player-equipment"].value, "Blood Spear");
   assert.equal(fields["#player-equipment"].lastEvent, "input");
-  assert.match(fields["#player-features"].value, /Blood Spear \(Homebrew item\)/);
-  assert.match(fields["#player-features"].value, /Attack: \+1/);
-  assert.match(fields["#player-features"].value, /Bound Spirit: The spirit haunts the wielder\./);
+  assert.equal(fields["#player-features"].value, "");
 });
 
-test("homebrew weapon descriptions derive attacks from character statistics", () => {
+test("homebrew weapons use structured weapon properties instead of description inference", () => {
   const app = createFrontendSandbox();
   app.localStorage.setItem("dnducks.items", JSON.stringify([{
     id: "item-storm-needle",
     name: "Storm Needle",
-    type: "Magic Item",
+    type: "Weapon",
     description: "A finesse weapon. You gain a +1 bonus to attack and damage rolls. It deals 1d8 piercing damage.",
+    statistics: {
+      damageDice: "1d8",
+      damageType: "piercing",
+      mode: "melee",
+      bonus: "+1",
+      properties: ["finesse", "light"],
+    },
     features: [{ title: "Storm Lash", description: "On a hit, sparks crawl across the target." }],
   }]));
 
@@ -367,7 +380,75 @@ test("homebrew weapon descriptions derive attacks from character statistics", ()
   assert.equal(player.attacks[0].attackBonus, "+7");
   assert.equal(player.attacks[0].damageType, "1d8+4 piercing");
   assert.equal(summaries[0].mode, "Melee or Dexterity");
-  assert.match(player.features, /Description: A finesse weapon/);
+  assert.deepEqual(Array.from(summaries[0].properties.map((property) => property.label)), ["Finesse", "Light"]);
+  assert.doesNotMatch(player.features, /Description: A finesse weapon/);
+});
+
+test("homebrew versatile weapons use one computed attack summary", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-sentinel-spear",
+    name: "Sentinel Spear",
+    type: "Weapon",
+    statistics: {
+      damageDice: "1d6",
+      damageType: "piercing",
+      range: "20/60 ft.",
+      properties: ["thrown", "versatile"],
+      versatileDamage: "1d8",
+    },
+  }]));
+
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "3",
+    "#player-strength": "16",
+    "#player-dexterity": "10",
+    "#player-equipment": "Sentinel Spear",
+  }));
+  const summaries = app.equipmentWeaponSummaries(player);
+  const markup = app.equipmentWeaponCardsMarkup(player);
+
+  assert.equal(player.attacks.length, 1);
+  assert.equal(player.attacks[0].name, "Sentinel Spear");
+  assert.equal(player.attacks[0].attackBonus, "+5");
+  assert.equal(player.attacks[0].damageType, "1d6+3 / 1d8+3 piercing");
+  assert.equal(summaries[0].mode, "Melee");
+  assert.match(markup, /Attack[\s\S]*\+5[\s\S]*Damage[\s\S]*1d6\+3 \/ 1d8\+3 piercing[\s\S]*20\/60 ft\./);
+  assert.doesNotMatch(markup, /<dt>Ability<\/dt>|One-handed:/);
+  assert.match(markup, /data-property-label="Versatile"[\s\S]*>VS<\/button>/);
+  assert.match(markup, /data-property-detail="Can be used one-handed or two-handed\. Two-handed damage: 1d8\./);
+  assert.doesNotMatch(markup, /<p>Can be used one-handed/);
+});
+
+test("weapon form extras are tied to selected properties", () => {
+  const app = createFrontendSandbox();
+  const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+  const styles = fs.readFileSync(path.join(process.cwd(), "assets/styles.css"), "utf8");
+  const propertyMarkup = app.itemWeaponPropertyBlocksMarkup({
+    type: "Weapon",
+    statistics: { properties: ["reach"], range: "" },
+  });
+
+  assert.equal(app.weaponNeedsVersatileDamage({ properties: ["versatile"] }), true);
+  assert.equal(app.weaponNeedsVersatileDamage({ properties: ["finesse"] }), false);
+  assert.equal(app.weaponNeedsRange({ properties: ["range"] }), true);
+  assert.equal(app.weaponNeedsRange({ properties: ["thrown"] }), true);
+  assert.equal(app.weaponNeedsRange({ properties: ["finesse"] }), false);
+  assert.doesNotMatch(html, /item-weapon-modes|Weapon modes/);
+  assert.match(html, /data-weapon-extra="range"/);
+  assert.match(html, /data-weapon-extra="versatile"/);
+  assert.match(script, /syncWeaponDependentFields/);
+  assert.match(script, /wrapper\.hidden = !isVisible/);
+  assert.match(script, /if \(!isVisible\) field\.value = ""/);
+  assert.match(script, /function openWeaponPropertyOverlay/);
+  assert.match(script, /data-property-info/);
+  assert.match(styles, /\.weapon-property-icon/);
+  assert.match(styles, /\.weapon-property-modal/);
+  assert.match(propertyMarkup, /data-property-label="Reach"[\s\S]*>RE<\/button>/);
+  assert.doesNotMatch(propertyMarkup, /<p>Adds 5 feet/);
 });
 
 test("homebrew armor descriptions increase character armor class", () => {
