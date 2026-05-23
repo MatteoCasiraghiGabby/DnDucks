@@ -11,7 +11,9 @@ const { processMapImage } = require("./src/mapProcessingService");
 const {
   ALLOWED_CHARACTER_SUGGESTIONS,
   allAllowedSuggestionIds,
+  backgroundSuggestionFromPayload,
   findAllowedSuggestion,
+  upsertSuggestionInFile,
 } = require("./src/characterSuggestionData");
 
 const PORT = process.env.PORT || 3000;
@@ -42,8 +44,9 @@ const STATIC_TYPES = {
   ".ico": "image/x-icon",
 };
 
-async function createServer(materialStore = store, uploadedImageStore = imageStore, interactiveMapStore = mapStore) {
+async function createServer(materialStore = store, uploadedImageStore = imageStore, interactiveMapStore = mapStore, options = {}) {
   await Promise.all([materialStore.ensureReady(), uploadedImageStore.ensureReady(), interactiveMapStore.ensureReady()]);
+  const characterSuggestionsFilePath = options.characterSuggestionsFilePath;
 
   return http.createServer(async (req, res) => {
     let pathname = "";
@@ -82,6 +85,12 @@ async function createServer(materialStore = store, uploadedImageStore = imageSto
       if (pathname === "/api/characters/analyze") {
         res.setHeader("X-Route-Branch", "character-analysis-route");
         await handleCharacterAnalysisApi(req, res, pathname);
+        return;
+      }
+
+      if (pathname === "/api/character-suggestions/backgrounds") {
+        res.setHeader("X-Route-Branch", "character-background-suggestion-route");
+        await handleCharacterBackgroundSuggestionApi(req, res, pathname, characterSuggestionsFilePath);
         return;
       }
 
@@ -481,6 +490,30 @@ async function handleCharacterAnalysisApi(req, res, pathname) {
     allowed: ALLOWED_CHARACTER_SUGGESTIONS,
     model: process.env.OPENAI_API_KEY ? CHARACTER_ANALYSIS_MODEL : "local-keyword-matcher",
   });
+}
+
+async function handleCharacterBackgroundSuggestionApi(req, res, pathname, filePath) {
+  if (req.method !== "POST" && req.method !== "PUT") {
+    sendMethodNotAllowed(req, res, ["POST", "PUT", "OPTIONS"], { pathname, branch: "character-background-suggestion-method-guard" });
+    return;
+  }
+
+  const body = await parseJsonBody(req, { maxBodySize: 24 * 1024 });
+  const suggestion = upsertSuggestionInFile(backgroundSuggestionFromPayload(body), filePath);
+  const backgrounds = ALLOWED_CHARACTER_SUGGESTIONS.backgrounds || [];
+  const existingIndex = backgrounds.findIndex((item) => item.id === suggestion.id);
+  const nextSuggestion = {
+    id: suggestion.id,
+    label: suggestion.label,
+    description: suggestion.description,
+    mechanics: suggestion.mechanics,
+    source: suggestion.source,
+    tags: suggestion.tags,
+  };
+  if (existingIndex >= 0) backgrounds[existingIndex] = nextSuggestion;
+  else backgrounds.push(nextSuggestion);
+  ALLOWED_CHARACTER_SUGGESTIONS.backgrounds = backgrounds;
+  sendJson(res, existingIndex >= 0 ? 200 : 201, { ok: true, suggestion: nextSuggestion });
 }
 
 async function parseJsonBody(req, options = {}) {

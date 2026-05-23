@@ -220,10 +220,10 @@
           </section>
 
           <section class="workspace-section" id="items">
-            <div class="section-heading"><div><p class="eyebrow">Loot, monsters, rules</p><h2>Items &amp; Homebrew</h2></div></div>
+            <div class="section-heading"><div><p class="eyebrow">Loot, monsters, backgrounds</p><h2>Items &amp; Homebrew</h2></div></div>
             <form class="panel form-grid" id="item-form">
-              <label>Item or rule name<input id="item-name" type="text" placeholder="Item or rule name" required /></label>
-              <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option>Rule</option><option>Monster</option></select></label>
+              <label>Homebrew name<input id="item-name" type="text" placeholder="Item, spell, monster, or background name" required /></label>
+              <label>Type<select id="item-type" required><option>Weapon</option><option>Armor</option><option>Potion</option><option>Magic Item</option><option>Spell</option><option value="Background">Backgrounds</option><option>Monster</option></select></label>
               <fieldset class="form-grid full-width item-weapon-section" id="item-weapon-section">
                 <legend>Weapon statistics</legend>
                 <label>Damage dice<input id="item-weapon-damage" type="text" placeholder="1d8" /></label>
@@ -251,9 +251,18 @@
                 <label>Feature title<input id="item-weapon-feature-title" type="text" placeholder="Vampire Touch, Returning, Cleave..." /></label>
                 <label class="full-width">Feature description<textarea id="item-weapon-feature-description" rows="2" placeholder="Describe what this weapon feature does at the table."></textarea></label>
               </fieldset>
-              <label class="full-width">Item description<textarea id="item-description" rows="3" placeholder="Appearance, lore, rarity, owner, hooks..." required></textarea></label>
+              <fieldset class="form-grid full-width item-background-section" id="item-background-section" hidden>
+                <legend>Background structure</legend>
+                <label>Ability scores<input id="item-background-abilities" type="text" placeholder="Dexterity, Wisdom, Charisma" /></label>
+                <label>Origin feat<input id="item-background-origin-feat" type="text" placeholder="Lucky" /></label>
+                <label>Skill proficiencies<input id="item-background-skills" type="text" placeholder="Insight, Stealth" /></label>
+                <label>Tool proficiency<input id="item-background-tool" type="text" placeholder="Thieves' Tools" /></label>
+                <label class="full-width">Equipment<textarea id="item-background-equipment" rows="2" placeholder="Two Daggers, Thieves' Tools, a Gaming Set, a Bedroll, two Pouches, Traveler's Clothes, and 16 GP."></textarea></label>
+                <label class="full-width">Suggestion tags<input id="item-background-tags" type="text" placeholder="street, survivor, stealth, insight, lucky" /></label>
+              </fieldset>
+              <label class="full-width">Description<textarea id="item-description" rows="3" placeholder="Appearance, lore, origin, owner, hooks..." required></textarea></label>
               <div class="file-picker image-picker media-select-picker full-width" data-media-select>
-                <label>Optional item or monster image</label>
+                <label>Optional homebrew image</label>
                 <button class="btn btn-secondary image-picker-button" type="button" data-media-select-trigger>Choose from media</button>
                 <button class="btn btn-secondary" type="button" data-media-clear hidden>Clear image</button>
                 <span class="image-picker-status" data-image-status>No image chosen</span>

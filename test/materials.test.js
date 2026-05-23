@@ -8,14 +8,14 @@ const { MaterialStore } = require("../src/materialStore");
 const { ImageStorageService } = require("../src/imageStorageService");
 const { MapStorageService } = require("../src/mapStorageService");
 
-async function withServer(t) {
+async function withServer(t, options = {}) {
   const uploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-materials-"));
   const imageUploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-images-"));
   const mapUploadDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-maps-"));
   const store = new MaterialStore(uploadDir);
   const imageStore = new ImageStorageService(imageUploadDir);
   const mapStore = new MapStorageService(mapUploadDir);
-  const server = await createServer(store, imageStore, mapStore);
+  const server = await createServer(store, imageStore, mapStore, options);
   await new Promise((resolve) => server.listen(0, resolve));
   t.after(async () => {
     await new Promise((resolve) => server.close(resolve));
@@ -385,6 +385,40 @@ test("character analysis API returns validated suggestions without exposing Open
   assert.equal(payload.model, "local-keyword-matcher");
   assert.ok(payload.suggestions.length > 0);
   assert.ok(payload.suggestions.every((suggestion) => suggestion.id && suggestion.label && suggestion.explanation));
+});
+
+test("background suggestion API writes homebrew backgrounds to TSV", async (t) => {
+  const suggestionDir = await fs.mkdtemp(path.join(os.tmpdir(), "dnducks-character-suggestions-"));
+  const suggestionFile = path.join(suggestionDir, "character-suggestions.tsv");
+  await fs.writeFile(suggestionFile, "category\tid\tlabel\tdescription\tmechanics\tsource\ttags\n");
+  t.after(async () => {
+    await fs.rm(suggestionDir, { recursive: true, force: true });
+  });
+
+  const { baseUrl } = await withServer(t, { characterSuggestionsFilePath: suggestionFile });
+  const response = await fetch(`${baseUrl}/api/character-suggestions/backgrounds`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      label: "Mist Cartographer",
+      description: "Mapmaker of haunted roads.",
+      abilityScores: ["Dexterity", "Wisdom", "Charisma"],
+      originFeat: "Lucky",
+      skills: ["Insight", "Stealth"],
+      toolProficiency: "Thieves' Tools",
+      equipment: "Two Daggers, Thieves' Tools, and 16 GP.",
+      tags: ["street", "survivor", "stealth"],
+    }),
+  });
+  const payload = await response.json();
+  const tsv = await fs.readFile(suggestionFile, "utf8");
+
+  assert.equal(response.status, 201);
+  assert.equal(response.headers.get("x-route-branch"), "character-background-suggestion-route");
+  assert.equal(payload.suggestion.id, "background-mist-cartographer");
+  assert.match(tsv, /backgrounds\tbackground-mist-cartographer\tMist Cartographer\tMapmaker of haunted roads\./);
+  assert.match(tsv, /Ability scores: Dexterity\/Wisdom\/Charisma/);
+  assert.match(tsv, /street; survivor; stealth/);
 });
 
 test("character analysis API rate limits repeated requests", async (t) => {

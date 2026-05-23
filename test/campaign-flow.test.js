@@ -518,6 +518,28 @@ test("weapon form extras are tied to selected properties", () => {
   assert.doesNotMatch(propertyMarkup, /<p>Adds 5 feet/);
 });
 
+test("homebrew form offers backgrounds instead of rules", () => {
+  const app = createFrontendSandbox();
+  const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
+  const backgroundMarkup = app.itemBackgroundStatsMarkup({
+    type: "Background",
+    statistics: {
+      abilityScores: ["Dexterity", "Wisdom", "Charisma"],
+      originFeat: "Lucky",
+      skills: ["Insight", "Stealth"],
+      toolProficiency: "Thieves' Tools",
+      equipment: "Two Daggers and 16 GP.",
+    },
+  });
+
+  assert.match(html, /<option value="Background">Backgrounds<\/option>/);
+  assert.doesNotMatch(html, /<option>Rule<\/option>/);
+  assert.match(html, /id="item-background-abilities"/);
+  assert.match(backgroundMarkup, /Ability Scores[\s\S]*Dexterity, Wisdom, Charisma/);
+  assert.match(backgroundMarkup, /Origin Feat[\s\S]*Lucky/);
+  assert.match(backgroundMarkup, /Tool Proficiency[\s\S]*Thieves&#039; Tools/);
+});
+
 test("homebrew armor descriptions increase character armor class", () => {
   const app = createFrontendSandbox();
   app.localStorage.setItem("dnducks.items", JSON.stringify([{
