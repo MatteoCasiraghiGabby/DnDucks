@@ -200,6 +200,25 @@ const SKILLS = [
   { key: "survival", label: "Survival", ability: "wisdom" },
 ];
 
+const BACKGROUND_PACKAGES = [
+  { label: "Acolyte", abilityScores: ["Intelligence", "Wisdom", "Charisma"], originFeat: "Magic Initiate (Cleric)", skills: ["Insight", "Religion"], toolProficiency: "Calligrapher's Supplies", equipment: "Calligrapher's Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8 GP" },
+  { label: "Artisan", abilityScores: ["Strength", "Dexterity", "Intelligence"], originFeat: "Crafter", skills: ["Investigation", "Persuasion"], toolProficiency: "one artisan's tool", equipment: "Artisan's Tools, 2 Pouches, Traveler's Clothes, 32 GP" },
+  { label: "Charlatan", abilityScores: ["Dexterity", "Constitution", "Charisma"], originFeat: "Skilled", skills: ["Deception", "Sleight of Hand"], toolProficiency: "Forgery Kit", equipment: "Forgery Kit, Costume, Fine Clothes, 15 GP" },
+  { label: "Criminal", abilityScores: ["Dexterity", "Constitution", "Intelligence"], originFeat: "Alert", skills: ["Sleight of Hand", "Stealth"], toolProficiency: "Thieves' Tools", equipment: "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16 GP" },
+  { label: "Entertainer", abilityScores: ["Strength", "Dexterity", "Charisma"], originFeat: "Musician", skills: ["Acrobatics", "Performance"], toolProficiency: "one musical instrument", equipment: "Musical Instrument, 2 Costumes, Mirror, Perfume, Traveler's Clothes, 11 GP" },
+  { label: "Farmer", abilityScores: ["Strength", "Constitution", "Wisdom"], originFeat: "Tough", skills: ["Animal Handling", "Nature"], toolProficiency: "Carpenter's Tools", equipment: "Sickle, Carpenter's Tools, Healer's Kit, Iron Pot, Shovel, Traveler's Clothes, 30 GP" },
+  { label: "Guard", abilityScores: ["Strength", "Intelligence", "Wisdom"], originFeat: "Alert", skills: ["Athletics", "Perception"], toolProficiency: "one gaming set", equipment: "Spear, Light Crossbow, 20 Bolts, Gaming Set, Hooded Lantern, Manacles, Quiver, Traveler's Clothes, 12 GP" },
+  { label: "Guide", abilityScores: ["Dexterity", "Constitution", "Wisdom"], originFeat: "Magic Initiate (Druid)", skills: ["Stealth", "Survival"], toolProficiency: "Cartographer's Tools", equipment: "Shortbow, 20 Arrows, Cartographer's Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3 GP" },
+  { label: "Hermit", abilityScores: ["Constitution", "Wisdom", "Charisma"], originFeat: "Healer", skills: ["Medicine", "Religion"], toolProficiency: "Herbalism Kit", equipment: "Quarterstaff, Herbalism Kit, Bedroll, Book (philosophy), Lamp, Oil (3 flasks), Traveler's Clothes, 16 GP" },
+  { label: "Merchant", abilityScores: ["Constitution", "Intelligence", "Charisma"], originFeat: "Lucky", skills: ["Animal Handling", "Persuasion"], toolProficiency: "Navigator's Tools", equipment: "Navigator's Tools, 2 Pouches, Traveler's Clothes, 22 GP" },
+  { label: "Noble", abilityScores: ["Strength", "Intelligence", "Charisma"], originFeat: "Skilled", skills: ["History", "Persuasion"], toolProficiency: "one gaming set", equipment: "Gaming Set, Fine Clothes, Perfume, 29 GP" },
+  { label: "Sage", abilityScores: ["Constitution", "Intelligence", "Wisdom"], originFeat: "Magic Initiate (Wizard)", skills: ["Arcana", "History"], toolProficiency: "Calligrapher's Supplies", equipment: "Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8 GP" },
+  { label: "Sailor", abilityScores: ["Strength", "Dexterity", "Wisdom"], originFeat: "Tavern Brawler", skills: ["Acrobatics", "Perception"], toolProficiency: "Navigator's Tools", equipment: "Dagger, Navigator's Tools, Rope, Traveler's Clothes, 20 GP" },
+  { label: "Scribe", abilityScores: ["Dexterity", "Intelligence", "Wisdom"], originFeat: "Skilled", skills: ["Investigation", "Perception"], toolProficiency: "Calligrapher's Supplies", equipment: "Calligrapher's Supplies, Fine Clothes, Lamp, Oil (3 flasks), Parchment (12 sheets), 23 GP" },
+  { label: "Soldier", abilityScores: ["Strength", "Dexterity", "Constitution"], originFeat: "Savage Attacker", skills: ["Athletics", "Intimidation"], toolProficiency: "one gaming set", equipment: "Spear, Shortbow, 20 Arrows, Gaming Set, Healer's Kit, Quiver, Traveler's Clothes, 14 GP" },
+  { label: "Wayfarer", abilityScores: ["Dexterity", "Wisdom", "Charisma"], originFeat: "Lucky", skills: ["Insight", "Stealth"], toolProficiency: "Thieves' Tools", equipment: "2 Daggers, Thieves' Tools, Gaming Set, Bedroll, 2 Pouches, Traveler's Clothes, 16 GP" },
+];
+
 const WEAPONS = [
   { name: "Club", aliases: ["club"], damage: "1d4", type: "bludgeoning", mode: "melee" },
   { name: "Dagger", aliases: ["dagger"], damage: "1d4", type: "piercing", mode: "finesse" },
@@ -378,6 +397,47 @@ function toolLabel(key) {
   return TOOLS.find((tool) => tool.key === key)?.label || key;
 }
 
+function normalizeRulesText(value = "") {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function uniqueTextList(values = []) {
+  const seen = new Set();
+  return values.map((value) => String(value || "").trim()).filter((value) => {
+    if (!value) return false;
+    const key = normalizeRulesText(value);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function abilityKeyForLabel(value = "") {
+  const normalized = normalizeRulesText(value);
+  return ABILITIES.find((ability) => (
+    normalizeRulesText(ability.key) === normalized
+    || normalizeRulesText(ability.label) === normalized
+    || normalizeRulesText(ability.short) === normalized
+  ))?.key || "";
+}
+
+function abilityLabelForValue(value = "") {
+  const key = abilityKeyForLabel(value);
+  return ABILITIES.find((ability) => ability.key === key)?.label || String(value || "").trim();
+}
+
+function skillKeyForLabel(value = "") {
+  const normalized = normalizeRulesText(value);
+  return SKILLS.find((skill) => (
+    normalizeRulesText(skill.key) === normalized
+    || normalizeRulesText(skill.label) === normalized
+  ))?.key || "";
+}
+
+function skillKeysForLabels(values = []) {
+  return values.map(skillKeyForLabel).filter(Boolean);
+}
+
 function languageRulesForRace(race = "") {
   const value = String(race).toLowerCase();
   const fixed = ["common"];
@@ -457,6 +517,11 @@ function signedNumberFromText(value = "") {
   const match = text.match(/([+-]\s*\d+)/);
   if (match) return Number(match[1].replace(/\s+/g, ""));
   return /^\d+$/.test(text) ? Number(text) : 0;
+}
+
+function gpFromText(value = "") {
+  const match = String(value || "").match(/(\d+)\s*GP\b/i);
+  return match ? Number(match[1]) || 0 : 0;
 }
 
 function extractDamageText(value = "") {
@@ -1010,9 +1075,15 @@ function buildPlayerCharacter(form) {
   const characterName = formValue(form, "#player-character-name");
   const level = numberFormValue(form, "#player-level");
   const classRole = formValue(form, "#player-class-role");
-  const abilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  const baseAbilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  const backgroundAbilityBonuses = backgroundAbilityBonusesFromForm(form);
+  const abilities = applyBackgroundBonusesToScores(baseAbilities, backgroundAbilityBonuses);
   const proficiencyBonus = proficiencyBonusForLevel(level || 1);
-  const skillProficiencies = checkedFormValues(form, "player-skill-proficiencies");
+  const backgroundSkillProficiencies = splitListInput(formValue(form, "#player-background-skills"));
+  const skillProficiencies = uniqueTextList([
+    ...checkedFormValues(form, "player-skill-proficiencies"),
+    ...backgroundSkillProficiencies,
+  ]);
   const passivePerception = numberFormValue(form, "#player-passive-perception") || (10 + abilityModifier(abilities.wisdom) + (skillProficiencies.includes("perception") ? proficiencyBonus : 0));
   const race = formValue(form, "#player-race");
   const equipment = formValue(form, "#player-equipment");
@@ -1051,11 +1122,16 @@ function buildPlayerCharacter(form) {
     alignment: formValue(form, "#player-alignment"),
     experience: numberFormValue(form, "#player-experience"),
     abilities,
+    baseAbilities,
+    backgroundAbilityBonuses,
     proficiencyBonus,
     savingThrowProficiencies: checkedFormValues(form, "player-saving-throws"),
     skillProficiencies,
     languages: checkedFormValues(form, "player-languages"),
-    toolProficiencies: derivedToolProficienciesForClass(classRole),
+    toolProficiencies: uniqueTextList([
+      ...derivedToolProficienciesForClass(classRole),
+      ...splitListInput(formValue(form, "#player-tool-proficiencies")),
+    ]),
     combat,
     attacks: [...equipmentAttacks, ...manualAttacks],
     personality: {
@@ -1065,6 +1141,7 @@ function buildPlayerCharacter(form) {
       flaws: formValue(form, "#player-flaws"),
     },
     equipment,
+    gold: numberFormValue(form, "#player-gold"),
     features,
     description: formValue(form, "#player-description"),
     notes: formValue(form, "#player-notes"),
@@ -2345,7 +2422,236 @@ function appendTextareaValue(textarea, value) {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
+function appendUniqueTextareaLines(textarea, lines = []) {
+  if (!textarea) return;
+  const current = String(textarea.value || "").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  const next = uniqueTextList([...current, ...lines]);
+  textarea.value = next.join("\n");
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function addToHiddenListField(form, selector, values = []) {
+  const field = form.querySelector(selector);
+  if (!field) return;
+  const current = splitListInput(field.value);
+  field.value = uniqueTextList([...current, ...values]).join(", ");
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function removeFromHiddenListField(form, selector, values = []) {
+  const field = form.querySelector(selector);
+  if (!field || !values.length) return;
+  const remove = new Set(values.map(normalizeRulesText));
+  field.value = splitListInput(field.value).filter((value) => !remove.has(normalizeRulesText(value))).join(", ");
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function removeTextareaLines(textarea, lines = []) {
+  if (!textarea || !lines.length) return;
+  const remove = new Set(lines.map(normalizeRulesText));
+  textarea.value = String(textarea.value || "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line && !remove.has(normalizeRulesText(line)))
+    .join("\n");
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function removeTextareaBlock(textarea, block = "") {
+  if (!textarea || !block) return;
+  const current = String(textarea.value || "");
+  if (current.includes(block)) {
+    textarea.value = current.replace(block, "").split(/\n+/).map((line) => line.trim()).filter(Boolean).join("\n");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
+  const currentBlocks = String(textarea.value || "").split(/\n{2,}/).map((value) => value.trim()).filter(Boolean);
+  const removeKey = normalizeRulesText(block);
+  textarea.value = currentBlocks.filter((value) => normalizeRulesText(value) !== removeKey).join("\n\n");
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function setBackgroundSkillCheckboxes(form, skillKeys = []) {
+  const fixed = new Set(skillKeys);
+  form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
+    if (!fixed.has(input.value)) return;
+    input.checked = true;
+    input.dataset.backgroundFixed = "true";
+    input.closest("label")?.classList.add("is-fixed");
+  });
+}
+
+function clearBackgroundSkillCheckboxes(form, skillKeys = []) {
+  const remove = new Set(skillKeys);
+  form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
+    if (!remove.has(input.value) || input.dataset.backgroundFixed !== "true") return;
+    input.checked = false;
+    input.disabled = false;
+    delete input.dataset.backgroundFixed;
+    input.closest("label")?.classList.remove("is-fixed");
+  });
+}
+
+function clearManagedBackgroundPackage(form) {
+  const previousEquipment = splitListInput(form.dataset.backgroundEquipment || "");
+  const previousSkills = splitListInput(form.dataset.backgroundSkills || "");
+  const previousTools = splitListInput(form.dataset.backgroundTools || "");
+  removeTextareaLines(form.querySelector("#player-equipment"), previousEquipment);
+  removeTextareaBlock(form.querySelector("#player-features"), form.dataset.backgroundFeatureText || "");
+  removeFromHiddenListField(form, "#player-background-skills", previousSkills);
+  removeFromHiddenListField(form, "#player-tool-proficiencies", previousTools);
+  clearBackgroundSkillCheckboxes(form, previousSkills);
+  delete form.dataset.backgroundEquipment;
+  delete form.dataset.backgroundFeatureText;
+  delete form.dataset.backgroundSkills;
+  delete form.dataset.backgroundTools;
+  const bonusField = form.querySelector("#player-background-ability-bonuses");
+  if (bonusField) bonusField.value = "";
+  const goldField = form.querySelector("#player-gold");
+  if (goldField) goldField.value = "";
+}
+
+function applyBackgroundAbilityBonuses(form, bonuses = {}) {
+  const field = form.querySelector("#player-background-ability-bonuses");
+  if (field) {
+    field.value = serializeAbilityBonuses(bonuses);
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  const controls = form.querySelector("#player-background-ability-controls");
+  if (controls) {
+    controls.dataset.applied = "true";
+    controls.querySelectorAll("button, select").forEach((control) => { control.disabled = true; });
+  }
+}
+
+function backgroundAbilityOptionMarkup(abilities = [], selected = "") {
+  return abilities.map((ability) => {
+    const key = abilityKeyForLabel(ability);
+    const label = abilityLabelForValue(ability);
+    return `<option value="${escapeHtml(key)}" ${key === selected ? "selected" : ""}>${escapeHtml(label)}</option>`;
+  }).join("");
+}
+
+function parseAbilityBonuses(value = "") {
+  const bonuses = {};
+  String(value || "").split(/[;,]/).forEach((part) => {
+    const [rawKey, rawAmount] = part.split(":");
+    const key = abilityKeyForLabel(rawKey);
+    const amount = Number(rawAmount);
+    if (key && Number.isFinite(amount) && amount) bonuses[key] = amount;
+  });
+  return bonuses;
+}
+
+function serializeAbilityBonuses(bonuses = {}) {
+  return ABILITIES
+    .map((ability) => [ability.key, Number(bonuses[ability.key]) || 0])
+    .filter(([, amount]) => amount)
+    .map(([key, amount]) => `${key}:${amount}`)
+    .join(", ");
+}
+
+function backgroundAbilityBonusesFromForm(form) {
+  return parseAbilityBonuses(formValue(form, "#player-background-ability-bonuses"));
+}
+
+function applyBackgroundBonusesToScores(scores = {}, bonuses = {}) {
+  return Object.fromEntries(ABILITIES.map((ability) => {
+    const base = Number(scores[ability.key]) || 0;
+    const bonus = Number(bonuses[ability.key]) || 0;
+    return [ability.key, base ? Math.min(20, base + bonus) : bonus || ""];
+  }));
+}
+
+function renderBackgroundAbilityControls(form, background = {}) {
+  const controls = form.querySelector("#player-background-ability-controls");
+  if (!controls) return;
+  const abilityKeys = background.abilityScores.map(abilityKeyForLabel).filter(Boolean);
+  if (!abilityKeys.length) {
+    controls.hidden = true;
+    controls.innerHTML = "";
+    return;
+  }
+  if (abilityKeys.length <= 2) {
+    applyBackgroundAbilityBonuses(form, Object.fromEntries(abilityKeys.map((key) => [key, abilityKeys.length === 1 ? 2 : 1])));
+    controls.hidden = true;
+    controls.innerHTML = "";
+    return;
+  }
+  controls.hidden = false;
+  controls.dataset.applied = "false";
+  controls.innerHTML = `
+    <div><span>${escapeHtml(background.label)} ability scores</span><strong>${escapeHtml(background.abilityScores.join(", "))}</strong></div>
+    <label>+2
+      <select id="player-background-boost-primary">${backgroundAbilityOptionMarkup(background.abilityScores, abilityKeys[0])}</select>
+    </label>
+    <label>+1
+      <select id="player-background-boost-secondary">${backgroundAbilityOptionMarkup(background.abilityScores, abilityKeys[1])}</select>
+    </label>
+    <button class="btn btn-secondary" type="button" data-apply-background-ability-boosts>Apply +2/+1</button>
+    <button class="btn btn-secondary" type="button" data-apply-background-even-boosts>Apply +1/+1/+1</button>`;
+}
+
+function backgroundAbilityBonusSummary(form) {
+  const bonuses = backgroundAbilityBonusesFromForm(form);
+  const parts = ABILITIES.map((ability) => {
+    const amount = Number(bonuses[ability.key]) || 0;
+    return amount ? `${ability.short} ${signedModifier(amount)}` : "";
+  }).filter(Boolean);
+  return parts.join(", ");
+}
+
+function applySelectedBackgroundAbilityBoosts(form) {
+  const primary = form.querySelector("#player-background-boost-primary")?.value;
+  const secondary = form.querySelector("#player-background-boost-secondary")?.value;
+  if (!primary || !secondary || primary === secondary) return;
+  applyBackgroundAbilityBonuses(form, { [primary]: 2, [secondary]: 1 });
+}
+
+function applyEvenBackgroundAbilityBoosts(form) {
+  const controls = form.querySelector("#player-background-ability-controls");
+  const keys = Array.from(controls?.querySelectorAll("select") || [])
+    .flatMap((select) => Array.from(select.options || []).map((option) => option.value))
+    .filter(Boolean);
+  applyBackgroundAbilityBonuses(form, Object.fromEntries(Array.from(new Set(keys)).slice(0, 3).map((key) => [key, 1])));
+}
+
+function applyBackgroundPackageToForm(form, background = {}) {
+  const packageData = normalizeBackgroundPackage(background);
+  if (!packageData.label) return;
+  clearManagedBackgroundPackage(form);
+  const backgroundInput = form.querySelector("#player-background");
+  if (backgroundInput) {
+    backgroundInput.value = packageData.label;
+  }
+  const skillKeys = skillKeysForLabels(packageData.skills);
+  const equipmentParts = backgroundEquipmentParts(packageData.equipment);
+  const equipmentItems = equipmentParts.items;
+  const featureText = backgroundFeatureText(packageData);
+  addToHiddenListField(form, "#player-background-skills", skillKeys);
+  setBackgroundSkillCheckboxes(form, skillKeys);
+  addToHiddenListField(form, "#player-tool-proficiencies", [packageData.toolProficiency]);
+  appendEquipmentItemsToSheet(form, equipmentItems);
+  appendTextareaValue(form.querySelector("#player-features"), featureText);
+  const goldField = form.querySelector("#player-gold");
+  if (goldField) {
+    goldField.value = String(equipmentParts.gold || 0);
+    goldField.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  form.dataset.backgroundEquipment = equipmentItems.join(", ");
+  form.dataset.backgroundFeatureText = featureText;
+  form.dataset.backgroundSkills = skillKeys.join(", ");
+  form.dataset.backgroundTools = packageData.toolProficiency;
+  renderBackgroundAbilityControls(form, packageData);
+  applyClassRestrictions(form);
+  updatePlayerFormDerivedFields(form);
+}
+
 function applyCharacterSuggestion(form, suggestion, textOverride = "") {
+  if (suggestion.category === "backgrounds") {
+    applyBackgroundPackageToForm(form, backgroundPackageFromSuggestion(suggestion));
+    return;
+  }
   const targetSelector = CHARACTER_SUGGESTION_TARGETS[suggestion.category];
   const target = targetSelector ? form.querySelector(targetSelector) : null;
   appendTextareaValue(target, textOverride || suggestionApplyText(suggestion));
@@ -2659,6 +2965,83 @@ function backgroundMechanicsText(stats = {}) {
     stats.toolProficiency ? `Tool: ${stats.toolProficiency}.` : "",
     stats.equipment ? `Equipment: ${stats.equipment}` : "",
   ].filter(Boolean).join(" ");
+}
+
+function normalizeBackgroundPackage(background = {}) {
+  return {
+    label: String(background.label || background.name || "").trim(),
+    description: String(background.description || "").trim(),
+    abilityScores: backgroundStatList(background.abilityScores).map(abilityLabelForValue).filter(Boolean),
+    originFeat: String(background.originFeat || "").trim(),
+    skills: backgroundStatList(background.skills),
+    toolProficiency: String(background.toolProficiency || "").trim(),
+    equipment: String(background.equipment || "").replace(/^Choose A or B:\s*\(A\)\s*/i, "").replace(/;\s*or\s*\(B\)\s*50\s*GP\.?$/i, "").trim(),
+  };
+}
+
+function parseBackgroundMechanics(mechanics = "") {
+  const text = String(mechanics || "");
+  const matchSection = (label, nextLabels = []) => {
+    const nextPattern = nextLabels.length ? `(?=\\s+(?:${nextLabels.join("|")}):|$)` : "$";
+    const match = text.match(new RegExp(`${label}:\\s*([\\s\\S]*?)${nextPattern}`, "i"));
+    return match?.[1]?.trim().replace(/\.$/, "") || "";
+  };
+  return normalizeBackgroundPackage({
+    abilityScores: splitListInput(matchSection("Ability scores?", ["Origin feat", "Feat", "Skills?", "Skill Proficiencies", "Tool", "Equipment"]).replace(/\//g, ",")),
+    originFeat: matchSection("(?:Origin feat|Feat)", ["Skills?", "Skill Proficiencies", "Tool", "Equipment"]),
+    skills: splitListInput(matchSection("(?:Skills?|Skill Proficiencies)", ["Tool", "Equipment"]).replace(/\s+and\s+/gi, ", ")),
+    toolProficiency: matchSection("Tool(?: Proficiency)?", ["Equipment"]),
+    equipment: matchSection("Equipment"),
+  });
+}
+
+function backgroundPackageFromSuggestion(suggestion = {}) {
+  const parsed = parseBackgroundMechanics(suggestion.mechanics);
+  return normalizeBackgroundPackage({
+    ...parsed,
+    label: suggestion.label,
+    description: suggestion.description,
+  });
+}
+
+function backgroundPackageForName(name = "") {
+  const normalized = normalizeRulesText(name);
+  if (!normalized) return null;
+  const standard = BACKGROUND_PACKAGES.find((background) => normalizeRulesText(background.label) === normalized);
+  if (standard) return normalizeBackgroundPackage(standard);
+  const homebrew = getStoredCollection("items").find((item) => (
+    String(item?.type || "").trim().toLowerCase() === "background"
+    && normalizeRulesText(item?.name) === normalized
+  ));
+  if (!homebrew) return null;
+  return normalizeBackgroundPackage({
+    label: homebrew.name,
+    description: homebrew.description,
+    ...backgroundStatistics(homebrew),
+  });
+}
+
+function backgroundOptionNames() {
+  const standard = BACKGROUND_PACKAGES.map((background) => background.label);
+  const homebrew = getStoredCollection("items")
+    .filter((item) => String(item?.type || "").trim().toLowerCase() === "background")
+    .map((item) => String(item?.name || "").trim())
+    .filter(Boolean);
+  return Array.from(new Set([...standard, ...homebrew])).sort((a, b) => a.localeCompare(b));
+}
+
+function backgroundFeatureText(background = {}) {
+  const lines = [
+    background.originFeat ? `${background.originFeat} (Feat)` : "",
+    background.originFeat ? `Granted by the ${background.label} background.` : "",
+  ];
+  if (background.description) lines.push(background.description);
+  return lines.filter(Boolean).join("\n");
+}
+
+function backgroundEquipmentParts(equipment = "") {
+  const items = splitListInput(equipment).filter((item) => !/\b\d+\s*GP\b/i.test(item));
+  return { items, gold: gpFromText(equipment) };
 }
 
 async function syncBackgroundSuggestionFile(entry = {}) {
@@ -4795,6 +5178,11 @@ function playerSectionDefinitions(player, options = {}) {
   const languageTags = (player.languages || []).map(languageLabel);
   const toolTags = (player.toolProficiencies || []).map(toolLabel);
   const equipmentTags = equipmentItems(player.equipment);
+  const backgroundBonuses = player.backgroundAbilityBonuses || {};
+  const backgroundBonusTags = ABILITIES.map((ability) => {
+    const amount = Number(backgroundBonuses[ability.key]) || 0;
+    return amount ? `${ability.short} ${signedModifier(amount)}` : "";
+  }).filter(Boolean);
   const hasWeapons = equipmentWeaponSummaries(player).length > 0;
   const homebrewEquipmentItems = equipmentHomebrewItemSummaries(player);
   const featureBlocksVisible = featureBlocksForPlayer(player);
@@ -4817,10 +5205,30 @@ function playerSectionDefinitions(player, options = {}) {
         ${widgetTagsMarkup([`Player: ${player.playerName}`, player.classRole, player.level ? `Level ${player.level}` : "", player.race, player.alignment])}`,
     },
     {
+      key: "personality",
+      title: "Personality and story",
+      complete: storyBlocks.length > 0,
+      body: `<div class="story-widget-grid">${storyBlocks.map(([label, value]) => `
+        <section>
+          <h4>${escapeHtml(label)}</h4>
+          <p>${escapeHtml(value)}</p>
+        </section>`).join("")}</div>`,
+    },
+    {
+      key: "background",
+      title: "Background",
+      complete: hasText(player.background),
+      body: `
+        <h3>${escapeHtml(player.background || "Choose a background")}</h3>
+        ${backgroundBonusTags.length ? `<div class="passive-perception-pill"><span>Ability bonuses</span><strong>${escapeHtml(backgroundBonusTags.join(", "))}</strong></div>` : ""}
+        ${widgetTagsMarkup([...(player.skillProficiencies || []).map((skill) => SKILLS.find((item) => item.key === skill)?.label || skill), ...toolTags])}`,
+    },
+    {
       key: "abilities",
       title: "Abilities",
       complete: abilitySectionComplete(player),
-      body: `<dl class="section-widget-stat-grid">${ABILITIES.map((ability) => `
+      body: `${backgroundBonusTags.length ? `<div class="passive-perception-pill"><span>Background bonuses</span><strong>${escapeHtml(backgroundBonusTags.join(", "))}</strong></div>` : ""}
+      <dl class="section-widget-stat-grid">${ABILITIES.map((ability) => `
         <div><dt>${escapeHtml(ability.short)}</dt><dd>${escapeHtml(player.abilities?.[ability.key])} <small>${signedModifier(abilityModifier(player.abilities?.[ability.key]))}</small></dd></div>`).join("")}</dl>`,
     },
     {
@@ -4853,16 +5261,6 @@ function playerSectionDefinitions(player, options = {}) {
       ${canRollHitPoints ? `<button class="btn btn-secondary hp-widget-roll" type="button" data-roll-hit-points>Roll HP for levels 2-${escapeHtml(player.level)}</button>` : ""}`,
     },
     {
-      key: "personality",
-      title: "Personality and story",
-      complete: storyBlocks.length > 0,
-      body: `<div class="story-widget-grid">${storyBlocks.map(([label, value]) => `
-        <section>
-          <h4>${escapeHtml(label)}</h4>
-          <p>${escapeHtml(value)}</p>
-        </section>`).join("")}</div>`,
-    },
-    {
       key: "equipment",
       title: "Equipment and features",
       complete: equipmentStarted,
@@ -4874,6 +5272,7 @@ function playerSectionDefinitions(player, options = {}) {
         ${homebrewEquipmentItems.length ? `<section><h4>Homebrew items</h4>${equipmentHomebrewCardsMarkup(player)}</section>` : ""}
         ${nonWeaponEquipmentTags.length ? `<section><h4>Equipment</h4>${widgetTagsMarkup(nonWeaponEquipmentTags)}</section>` : ""}
         ${featureBlocksVisible.length ? `<section><h4>Features and traits</h4>${featureBlocksMarkup("", featureBlocksVisible)}</section>` : ""}
+        <section><h4>Gold</h4><button class="btn btn-secondary gp-shop-button" type="button" data-open-equipment-shop>${escapeHtml(player.gold || 0)} GP</button></section>
       </div>`,
     },
   ];
@@ -4929,6 +5328,7 @@ function playerCharacterFormMarkup() {
       ${datalistMarkup("player-class-options", PLAYER_CLASSES.map((item) => item.name))}
       ${datalistMarkup("player-race-options", PLAYER_RACES)}
       ${datalistMarkup("player-alignment-options", PLAYER_ALIGNMENTS)}
+      ${datalistMarkup("player-background-options", backgroundOptionNames())}
       ${datalistMarkup("player-equipment-options", equipmentOptionNames())}
 
       <fieldset class="sheet-form-section sheet-form-identity">
@@ -4939,6 +5339,27 @@ function playerCharacterFormMarkup() {
         <label>Level<input id="player-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
         <label>Race<input id="player-race" type="text" list="player-race-options" placeholder="Human" /></label>
         <label>Alignment<input id="player-alignment" type="text" list="player-alignment-options" placeholder="Neutral Good" /></label>
+      </fieldset>
+
+      <fieldset class="sheet-form-section">
+        <legend>Personality and story</legend>
+        <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
+        <label>Personality traits<textarea id="player-personality-traits" rows="3" placeholder="How they behave at the table and in the world..."></textarea></label>
+        <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
+        <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
+        <div class="character-suggestion-workflow full-width">
+          <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest backgrounds and traits</button>
+          <span id="character-suggestion-status" aria-live="polite"></span>
+          <div class="character-suggestion-panel" id="character-suggestion-panel" hidden></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="sheet-form-section">
+        <legend>Background</legend>
+        <label class="full-width">Background<input id="player-background" type="text" list="player-background-options" placeholder="Acolyte" /></label>
+        <div class="sheet-derived-grid full-width" id="player-background-ability-controls" hidden></div>
+        <div class="passive-perception-pill full-width"><span>Background ability bonuses</span><strong id="player-background-ability-bonus-summary">Choose a background to assign bonuses.</strong></div>
+        <input id="player-background-ability-bonuses" type="hidden" />
       </fieldset>
 
       <fieldset class="sheet-form-section">
@@ -4973,19 +5394,6 @@ function playerCharacterFormMarkup() {
       </fieldset>
 
       <fieldset class="sheet-form-section">
-        <legend>Personality and story</legend>
-        <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
-        <label>Personality traits<textarea id="player-personality-traits" rows="3" placeholder="How they behave at the table and in the world..."></textarea></label>
-        <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
-        <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
-        <div class="character-suggestion-workflow full-width">
-          <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest backgrounds and traits</button>
-          <span id="character-suggestion-status" aria-live="polite"></span>
-          <div class="character-suggestion-panel" id="character-suggestion-panel" hidden></div>
-        </div>
-      </fieldset>
-
-      <fieldset class="sheet-form-section">
         <legend>Equipment and features</legend>
         <div class="equipment-subsection full-width">
           <h3>Languages</h3>
@@ -4996,6 +5404,10 @@ function playerCharacterFormMarkup() {
         <label class="full-width">Equipment<input id="player-equipment-entry" type="text" list="player-equipment-options" placeholder="Write an item, then press Enter: dagger, leather armor, thieves' tools..." /></label>
         <textarea id="player-equipment" hidden aria-hidden="true"></textarea>
         <textarea id="player-features" hidden aria-hidden="true"></textarea>
+        <input id="player-background-skills" type="hidden" />
+        <input id="player-tool-proficiencies" type="hidden" />
+        <input id="player-gold" type="hidden" />
+        <div class="equipment-shop-panel full-width" id="equipment-shop-panel" hidden></div>
       </fieldset>
 
       <div class="form-message full-width" id="player-form-message" aria-live="polite"></div>
@@ -5009,18 +5421,25 @@ function playerCharacterFormMarkup() {
 function updatePlayerFormDerivedFields(form) {
   const level = numberFormValue(form, "#player-level") || 1;
   const proficiencyBonus = proficiencyBonusForLevel(level);
-  const scores = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  const baseScores = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  const scores = applyBackgroundBonusesToScores(baseScores, backgroundAbilityBonusesFromForm(form));
   const classRole = formValue(form, "#player-class-role");
   const race = formValue(form, "#player-race");
   const equipment = formValue(form, "#player-equipment");
   if (level <= 1) clearRolledHitPoints(form);
   ABILITIES.forEach((ability) => {
     const output = document.getElementById(`player-${ability.key}-modifier`);
-    if (output) output.textContent = signedModifier(abilityModifier(scores[ability.key]));
+    const bonus = Number(backgroundAbilityBonusesFromForm(form)[ability.key]) || 0;
+    if (output) output.textContent = `${signedModifier(abilityModifier(scores[ability.key]))}${bonus ? ` (${signedModifier(bonus)} background)` : ""}`;
   });
+  const bonusSummary = document.getElementById("player-background-ability-bonus-summary");
+  if (bonusSummary) bonusSummary.textContent = backgroundAbilityBonusSummary(form) || "Choose a background to assign bonuses.";
   const proficiencyOutput = document.getElementById("player-proficiency-bonus");
   if (proficiencyOutput) proficiencyOutput.textContent = signedModifier(proficiencyBonus);
-  const hasPerception = checkedFormValues(form, "player-skill-proficiencies").includes("perception");
+  const hasPerception = uniqueTextList([
+    ...checkedFormValues(form, "player-skill-proficiencies"),
+    ...splitListInput(formValue(form, "#player-background-skills")),
+  ]).includes("perception");
   const passivePerception = 10 + abilityModifier(scores.wisdom) + (hasPerception ? proficiencyBonus : 0);
   const passiveInput = document.getElementById("player-passive-perception");
   const passiveOutput = document.getElementById("player-passive-perception-preview");
@@ -5051,7 +5470,9 @@ function clearRolledHitPoints(form) {
 function rollHitPointsForLevel(form) {
   const level = Math.max(1, Math.min(20, Number(numberFormValue(form, "#player-level")) || 1));
   const classRole = formValue(form, "#player-class-role");
-  const constitution = numberFormValue(form, "#player-constitution");
+  const constitution = applyBackgroundBonusesToScores({
+    constitution: numberFormValue(form, "#player-constitution"),
+  }, backgroundAbilityBonusesFromForm(form)).constitution;
   const sides = hitDieSides(classRole);
   const conMod = abilityModifier(constitution);
   const baseHitPoints = Math.max(1, sides + conMod);
@@ -5078,6 +5499,12 @@ function bindPlayerSummaryControls(form) {
       refreshPlayerSectionSummary(form);
     });
   });
+  document.querySelectorAll("[data-open-equipment-shop]").forEach((button) => {
+    button.addEventListener("click", () => {
+      renderEquipmentShop(form);
+      form.querySelector("#equipment-shop-panel")?.scrollIntoView?.({ block: "nearest" });
+    });
+  });
 }
 
 function refreshPlayerSectionSummary(form) {
@@ -5097,7 +5524,7 @@ function appendEquipmentItemsToSheet(form, items = []) {
   }).filter((item) => item.equipmentText);
   if (!equipment || !nextItems.length) return;
   const currentItems = equipmentItems(equipment.value);
-  equipment.value = [...currentItems, ...nextItems.map((item) => item.equipmentText)].join("\n");
+  equipment.value = uniqueTextList([...currentItems, ...nextItems.map((item) => item.equipmentText)]).join("\n");
   equipment.dispatchEvent(new Event("input", { bubbles: true }));
   if (features) {
     features.value = nextItems.reduce((value, item) => appendUniqueTextBlock(value, item.featureText), features.value);
@@ -5114,6 +5541,71 @@ function commitEquipmentDraft(form, { includeCurrent = false } = {}) {
   draft.value = includeCurrent ? "" : (lines.at(-1) || "");
 }
 
+function homebrewShopItems() {
+  return getStoredCollection("items")
+    .filter((item) => String(item?.type || "").trim().toLowerCase() !== "background")
+    .map((item) => {
+      const stats = item?.statistics && typeof item.statistics === "object" ? item.statistics : {};
+      const price = gpFromText([stats.price, stats.cost, stats.value, stats.gold, item.description].filter(Boolean).join(" "));
+      return {
+        name: item.name,
+        type: item.type || "Item",
+        description: item.description || "",
+        price,
+      };
+    })
+    .filter((item) => item.name);
+}
+
+function equipmentShopMarkup(form, query = "") {
+  const gold = numberFormValue(form, "#player-gold");
+  const normalizedQuery = normalizeRulesText(query);
+  const items = homebrewShopItems().filter((item) => {
+    if (!normalizedQuery) return true;
+    return normalizeRulesText([item.name, item.type, item.description].join(" ")).includes(normalizedQuery);
+  });
+  return `
+    <div class="equipment-shop-heading">
+      <div><h3>Homebrew shop</h3><p>${escapeHtml(gold)} GP available</p></div>
+      <button class="btn btn-ghost" type="button" data-close-equipment-shop>Close</button>
+    </div>
+    <label>Search inventory<input id="equipment-shop-search" type="search" value="${escapeHtml(query)}" placeholder="Search homebrew items..." /></label>
+    <div class="equipment-shop-list">
+      ${items.length ? items.map((item) => {
+        const canBuy = item.price <= gold;
+        return `<article class="equipment-shop-item">
+          <div>
+            <strong>${escapeHtml(item.name)}</strong>
+            <span>${escapeHtml(item.type)}${item.price ? ` · ${escapeHtml(item.price)} GP` : " · Free"}</span>
+            ${item.description ? `<p>${escapeHtml(item.description.slice(0, 140))}</p>` : ""}
+          </div>
+          <button class="btn btn-secondary" type="button" data-buy-homebrew-item="${escapeHtml(item.name)}" ${canBuy ? "" : "disabled"}>${canBuy ? "Buy" : "Too expensive"}</button>
+        </article>`;
+      }).join("") : `<div class="empty-state">No homebrew inventory items match this search.</div>`}
+    </div>`;
+}
+
+function renderEquipmentShop(form, query = "") {
+  const panel = form.querySelector("#equipment-shop-panel");
+  if (!panel) return;
+  panel.hidden = false;
+  panel.innerHTML = equipmentShopMarkup(form, query);
+}
+
+function buyHomebrewItemFromShop(form, itemName = "") {
+  const item = homebrewShopItems().find((candidate) => normalizeRulesText(candidate.name) === normalizeRulesText(itemName));
+  if (!item) return;
+  const goldField = form.querySelector("#player-gold");
+  const gold = numberFormValue(form, "#player-gold");
+  if (item.price > gold) return;
+  appendEquipmentItemsToSheet(form, [item.name]);
+  if (goldField) {
+    goldField.value = String(Math.max(0, gold - item.price));
+    goldField.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  renderEquipmentShop(form, form.querySelector("#equipment-shop-search")?.value || "");
+}
+
 function allowedSkillKeysForClass(info) {
   if (!info) return new Set(SKILLS.map((skill) => skill.key));
   if (info.skillChoices === "any") return new Set(SKILLS.map((skill) => skill.key));
@@ -5122,16 +5614,24 @@ function allowedSkillKeysForClass(info) {
 
 function enforceSkillLimit(form, info) {
   const skillInputs = Array.from(form.querySelectorAll?.('input[name="player-skill-proficiencies"]') || []);
-  const checked = skillInputs.filter((input) => input.checked);
+  const backgroundFixed = skillInputs.filter((input) => input.dataset.backgroundFixed === "true");
+  backgroundFixed.forEach((input) => {
+    input.checked = true;
+    input.disabled = true;
+    input.closest("label")?.classList.add("is-fixed");
+    input.closest("label")?.classList.remove("is-disabled");
+  });
+  const checked = skillInputs.filter((input) => input.checked && input.dataset.backgroundFixed !== "true");
   const limit = info?.skillLimit || checked.length;
   checked.forEach((input, index) => {
     if (index >= limit) input.checked = false;
   });
   if (!info) return;
   const allowedSkills = allowedSkillKeysForClass(info);
-  const selectedCount = skillInputs.filter((input) => input.checked).length;
+  const selectedCount = skillInputs.filter((input) => input.checked && input.dataset.backgroundFixed !== "true").length;
   const limitReached = selectedCount >= limit;
   skillInputs.forEach((input) => {
+    if (input.dataset.backgroundFixed === "true") return;
     if (!allowedSkills.has(input.value)) return;
     const disabled = !input.checked && limitReached;
     input.disabled = disabled;
@@ -5178,6 +5678,13 @@ function applyClassRestrictions(form) {
       input.closest("label")?.classList.remove("is-disabled", "is-fixed");
     });
     form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
+      if (input.dataset.backgroundFixed === "true") {
+        input.checked = true;
+        input.disabled = true;
+        input.closest("label")?.classList.add("is-fixed");
+        input.closest("label")?.classList.remove("is-disabled");
+        return;
+      }
       input.disabled = false;
       input.closest("label")?.classList.remove("is-disabled");
     });
@@ -5193,6 +5700,13 @@ function applyClassRestrictions(form) {
   });
   const allowedSkills = allowedSkillKeysForClass(info);
   form.querySelectorAll?.('input[name="player-skill-proficiencies"]').forEach((input) => {
+    if (input.dataset.backgroundFixed === "true") {
+      input.checked = true;
+      input.disabled = true;
+      input.closest("label")?.classList.add("is-fixed");
+      input.closest("label")?.classList.remove("is-disabled");
+      return;
+    }
     const isAllowed = allowedSkills.has(input.value);
     input.disabled = !isAllowed;
     input.checked = input.checked && isAllowed;
@@ -5263,6 +5777,27 @@ function initPlayerCharacterForm(form) {
       refreshPlayerSectionSummary(form);
     });
   });
+  form.addEventListener("click", (event) => {
+    if (event.target?.matches("[data-apply-background-ability-boosts]")) {
+      applySelectedBackgroundAbilityBoosts(form);
+      updatePlayerFormDerivedFields(form);
+      refreshPlayerSectionSummary(form);
+    }
+    if (event.target?.matches("[data-apply-background-even-boosts]")) {
+      applyEvenBackgroundAbilityBoosts(form);
+      updatePlayerFormDerivedFields(form);
+      refreshPlayerSectionSummary(form);
+    }
+    if (event.target?.matches("[data-close-equipment-shop]")) {
+      const panel = form.querySelector("#equipment-shop-panel");
+      if (panel) panel.hidden = true;
+    }
+    if (event.target?.dataset?.buyHomebrewItem) {
+      buyHomebrewItemFromShop(form, event.target.dataset.buyHomebrewItem);
+      updatePlayerFormDerivedFields(form);
+      refreshPlayerSectionSummary(form);
+    }
+  });
   form.addEventListener("keydown", (event) => {
     if (event.target?.id !== "player-equipment-entry" || event.key !== "Enter" || event.shiftKey) return;
     event.preventDefault();
@@ -5274,6 +5809,10 @@ function initPlayerCharacterForm(form) {
     if (event.target?.id === "player-equipment-entry" && String(event.target.value || "").includes("\n")) {
       commitEquipmentDraft(form);
     }
+    if (event.target?.id === "equipment-shop-search") {
+      renderEquipmentShop(form, event.target.value);
+      return;
+    }
     if (["player-class-role", "player-level", "player-constitution"].includes(event.target?.id)) clearRolledHitPoints(form);
     if (event.target?.id === "player-class-role" || event.target?.id === "player-race") applyClassRestrictions(form);
     updatePlayerFormDerivedFields(form);
@@ -5281,6 +5820,10 @@ function initPlayerCharacterForm(form) {
   });
   form.addEventListener("change", (event) => {
     if (["player-class-role", "player-level", "player-constitution"].includes(event.target?.id)) clearRolledHitPoints(form);
+    if (event.target?.id === "player-background") {
+      const background = backgroundPackageForName(event.target.value);
+      if (background) applyBackgroundPackageToForm(form, background);
+    }
     if (
 	      event.target?.id === "player-class-role"
 	      || event.target?.id === "player-race"

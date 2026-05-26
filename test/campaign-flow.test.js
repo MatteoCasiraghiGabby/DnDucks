@@ -94,6 +94,66 @@ function mockPlayerForm(values) {
   };
 }
 
+function createCharacterFormStub(initialValues = {}) {
+  const makeClassList = () => ({ add() {}, remove() {}, toggle() {} });
+  const fields = {};
+  [
+    "#player-name", "#player-character-name", "#player-class-role", "#player-level", "#player-race",
+    "#player-background", "#player-alignment", "#player-experience", "#player-equipment",
+    "#player-equipment-entry", "#player-features", "#player-background-skills", "#player-tool-proficiencies",
+    "#player-background-ability-bonuses", "#player-gold", "#equipment-shop-panel", "#equipment-shop-search",
+    "#player-passive-perception", "#player-hp-max",
+    "#player-strength", "#player-dexterity", "#player-constitution", "#player-intelligence", "#player-wisdom", "#player-charisma",
+  ].forEach((selector) => {
+    fields[selector] = {
+      value: initialValues[selector] ?? "",
+      dataset: {},
+      hidden: false,
+      innerHTML: "",
+      dispatchEvent(event) { this.lastEvent = event.type; },
+      querySelectorAll: () => [],
+      querySelector: () => null,
+      scrollIntoView: () => {},
+    };
+  });
+  const skillInputs = [
+    "acrobatics", "animalHandling", "arcana", "athletics", "deception", "history", "insight", "intimidation",
+    "investigation", "medicine", "nature", "perception", "performance", "persuasion", "religion", "sleightOfHand",
+    "stealth", "survival",
+  ].map((value) => ({
+    value,
+    name: "player-skill-proficiencies",
+    checked: false,
+    disabled: false,
+    dataset: {},
+    closest: () => ({ classList: makeClassList() }),
+  }));
+  const languageInputs = [];
+  fields["#player-background-ability-controls"] = {
+    value: "",
+    dataset: {},
+    hidden: true,
+    innerHTML: "",
+    dispatchEvent() {},
+    querySelectorAll: () => [],
+    querySelector: () => null,
+  };
+  return {
+    dataset: {},
+    fields,
+    skillInputs,
+    querySelector(selector) {
+      return fields[selector] || null;
+    },
+    querySelectorAll(selector) {
+      if (selector === 'input[name="player-skill-proficiencies"]') return skillInputs;
+      if (selector === 'input[name="player-languages"]') return languageInputs;
+      if (selector === 'input[name="player-saving-throws"]') return [];
+      return [];
+    },
+  };
+}
+
 test("player character validation requires player and character names and numeric levels", () => {
   const app = createFrontendSandbox();
   const invalid = app.buildPlayerCharacter(mockPlayerForm({ "#player-level": "zero" }));
@@ -521,6 +581,7 @@ test("weapon form extras are tied to selected properties", () => {
 test("homebrew form offers backgrounds instead of rules", () => {
   const app = createFrontendSandbox();
   const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
+  const formMarkup = app.playerCharacterFormMarkup();
   const backgroundMarkup = app.itemBackgroundStatsMarkup({
     type: "Background",
     statistics: {
@@ -535,9 +596,113 @@ test("homebrew form offers backgrounds instead of rules", () => {
   assert.match(html, /<option value="Background">Backgrounds<\/option>/);
   assert.doesNotMatch(html, /<option>Rule<\/option>/);
   assert.match(html, /id="item-background-abilities"/);
+  assert.match(formMarkup, /id="player-background" type="text" list="player-background-options"/);
+  assert.match(formMarkup, /id="player-background-ability-controls"/);
+  assert.match(formMarkup, /id="player-gold"/);
+  assert.match(formMarkup, /id="equipment-shop-panel"/);
   assert.match(backgroundMarkup, /Ability Scores[\s\S]*Dexterity, Wisdom, Charisma/);
   assert.match(backgroundMarkup, /Origin Feat[\s\S]*Lucky/);
   assert.match(backgroundMarkup, /Tool Proficiency[\s\S]*Thieves&#039; Tools/);
+});
+
+test("chosen backgrounds decompose into character sheet sections", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "1",
+    "#player-strength": "10",
+    "#player-dexterity": "10",
+    "#player-constitution": "10",
+    "#player-intelligence": "10",
+    "#player-wisdom": "10",
+    "#player-charisma": "10",
+  });
+
+  app.applyBackgroundPackageToForm(form, app.backgroundPackageForName("Criminal"));
+  const player = app.buildPlayerCharacter(form);
+
+  assert.equal(form.fields["#player-background"].value, "Criminal");
+  assert.match(form.fields["#player-features"].value, /Alert \(Feat\)/);
+  assert.match(form.fields["#player-equipment"].value, /2 Daggers[\s\S]*Thieves' Tools[\s\S]*Crowbar/);
+  assert.doesNotMatch(form.fields["#player-equipment"].value, /16 GP/);
+  assert.equal(form.fields["#player-gold"].value, "16");
+  assert.equal(form.fields["#player-background-skills"].value, "sleightOfHand, stealth");
+  assert.equal(form.fields["#player-tool-proficiencies"].value, "Thieves' Tools");
+  assert.equal(form.skillInputs.find((input) => input.value === "sleightOfHand").checked, true);
+  assert.equal(form.skillInputs.find((input) => input.value === "stealth").checked, true);
+  assert.equal(form.fields["#player-background-ability-controls"].hidden, false);
+  assert.match(form.fields["#player-background-ability-controls"].innerHTML, /Apply \+2\/\+1/);
+  assert.equal(player.background, "Criminal");
+  assert.equal(player.gold, 16);
+  assert.ok(player.skillProficiencies.includes("sleightOfHand"));
+  assert.ok(player.skillProficiencies.includes("stealth"));
+  assert.ok(player.toolProficiencies.includes("Thieves' Tools"));
+});
+
+test("changing backgrounds replaces generated background parts", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({ "#player-level": "1" });
+
+  app.applyBackgroundPackageToForm(form, app.backgroundPackageForName("Criminal"));
+  app.applyBackgroundPackageToForm(form, app.backgroundPackageForName("Sage"));
+
+  assert.equal(form.fields["#player-background"].value, "Sage");
+  assert.doesNotMatch(form.fields["#player-features"].value, /Alert \(Feat\)/);
+  assert.match(form.fields["#player-features"].value, /Magic Initiate \(Wizard\) \(Feat\)/);
+  assert.doesNotMatch(form.fields["#player-equipment"].value, /Crowbar|Thieves' Tools/);
+  assert.match(form.fields["#player-equipment"].value, /Quarterstaff[\s\S]*Calligrapher's Supplies/);
+  assert.equal(form.fields["#player-gold"].value, "8");
+  assert.equal(form.fields["#player-background-skills"].value, "arcana, history");
+  assert.equal(form.fields["#player-tool-proficiencies"].value, "Calligrapher's Supplies");
+});
+
+test("backgrounds with fixed ability scores apply the increase automatically", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "1",
+    "#player-strength": "10",
+  });
+
+  app.applyBackgroundPackageToForm(form, {
+    label: "Stoneborn",
+    abilityScores: ["Strength"],
+    originFeat: "Tough",
+    skills: [],
+    equipment: "",
+  });
+
+  const player = app.buildPlayerCharacter(form);
+
+  assert.equal(form.fields["#player-strength"].value, "10");
+  assert.equal(form.fields["#player-background-ability-bonuses"].value, "strength:2");
+  assert.equal(player.abilities.strength, 12);
+  assert.equal(form.fields["#player-background-ability-controls"].hidden, true);
+});
+
+test("homebrew shop spends background gold and adds bought items", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-orwell",
+    name: "ORWELL",
+    type: "Magic Item",
+    description: "A suspicious eye. Price: 5 GP.",
+  }]));
+  const form = createCharacterFormStub({
+    "#player-level": "1",
+    "#player-gold": "16",
+  });
+
+  app.renderEquipmentShop(form);
+  assert.equal(form.fields["#equipment-shop-panel"].hidden, false);
+  assert.match(form.fields["#equipment-shop-panel"].innerHTML, /ORWELL[\s\S]*5 GP/);
+
+  app.buyHomebrewItemFromShop(form, "ORWELL");
+
+  assert.equal(form.fields["#player-gold"].value, "11");
+  assert.match(form.fields["#player-equipment"].value, /ORWELL/);
 });
 
 test("homebrew armor descriptions increase character armor class", () => {

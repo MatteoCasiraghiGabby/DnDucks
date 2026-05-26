@@ -19,7 +19,7 @@ test("character suggestions load from the editable TSV file", () => {
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.some((item) => item.id === "feat-alert" && item.tags.includes("watchful")));
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.some((item) => item.id === "feat-great-weapon-master" && item.tags.includes("heavy weapon")));
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-acolyte" && item.mechanics.includes("Magic Initiate (Cleric)")));
-  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-wayfarer" && item.mechanics.includes("Thieves' Tools")));
+  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-wayfarer" && item.mechanics.includes("2 Daggers")));
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.every((item) => item.source === ""));
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits.every((item) => item.source === ""));
 });
