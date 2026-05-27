@@ -201,23 +201,25 @@ const SKILLS = [
 ];
 
 const BACKGROUND_PACKAGES = [
-  { label: "Acolyte", abilityScores: ["Intelligence", "Wisdom", "Charisma"], originFeat: "Magic Initiate (Cleric)", skills: ["Insight", "Religion"], toolProficiency: "Calligrapher's Supplies", equipment: "Calligrapher's Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8 GP" },
-  { label: "Artisan", abilityScores: ["Strength", "Dexterity", "Intelligence"], originFeat: "Crafter", skills: ["Investigation", "Persuasion"], toolProficiency: "one artisan's tool", equipment: "Artisan's Tools, 2 Pouches, Traveler's Clothes, 32 GP" },
-  { label: "Charlatan", abilityScores: ["Dexterity", "Constitution", "Charisma"], originFeat: "Skilled", skills: ["Deception", "Sleight of Hand"], toolProficiency: "Forgery Kit", equipment: "Forgery Kit, Costume, Fine Clothes, 15 GP" },
-  { label: "Criminal", abilityScores: ["Dexterity", "Constitution", "Intelligence"], originFeat: "Alert", skills: ["Sleight of Hand", "Stealth"], toolProficiency: "Thieves' Tools", equipment: "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16 GP" },
-  { label: "Entertainer", abilityScores: ["Strength", "Dexterity", "Charisma"], originFeat: "Musician", skills: ["Acrobatics", "Performance"], toolProficiency: "one musical instrument", equipment: "Musical Instrument, 2 Costumes, Mirror, Perfume, Traveler's Clothes, 11 GP" },
-  { label: "Farmer", abilityScores: ["Strength", "Constitution", "Wisdom"], originFeat: "Tough", skills: ["Animal Handling", "Nature"], toolProficiency: "Carpenter's Tools", equipment: "Sickle, Carpenter's Tools, Healer's Kit, Iron Pot, Shovel, Traveler's Clothes, 30 GP" },
-  { label: "Guard", abilityScores: ["Strength", "Intelligence", "Wisdom"], originFeat: "Alert", skills: ["Athletics", "Perception"], toolProficiency: "one gaming set", equipment: "Spear, Light Crossbow, 20 Bolts, Gaming Set, Hooded Lantern, Manacles, Quiver, Traveler's Clothes, 12 GP" },
-  { label: "Guide", abilityScores: ["Dexterity", "Constitution", "Wisdom"], originFeat: "Magic Initiate (Druid)", skills: ["Stealth", "Survival"], toolProficiency: "Cartographer's Tools", equipment: "Shortbow, 20 Arrows, Cartographer's Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3 GP" },
-  { label: "Hermit", abilityScores: ["Constitution", "Wisdom", "Charisma"], originFeat: "Healer", skills: ["Medicine", "Religion"], toolProficiency: "Herbalism Kit", equipment: "Quarterstaff, Herbalism Kit, Bedroll, Book (philosophy), Lamp, Oil (3 flasks), Traveler's Clothes, 16 GP" },
-  { label: "Merchant", abilityScores: ["Constitution", "Intelligence", "Charisma"], originFeat: "Lucky", skills: ["Animal Handling", "Persuasion"], toolProficiency: "Navigator's Tools", equipment: "Navigator's Tools, 2 Pouches, Traveler's Clothes, 22 GP" },
-  { label: "Noble", abilityScores: ["Strength", "Intelligence", "Charisma"], originFeat: "Skilled", skills: ["History", "Persuasion"], toolProficiency: "one gaming set", equipment: "Gaming Set, Fine Clothes, Perfume, 29 GP" },
-  { label: "Sage", abilityScores: ["Constitution", "Intelligence", "Wisdom"], originFeat: "Magic Initiate (Wizard)", skills: ["Arcana", "History"], toolProficiency: "Calligrapher's Supplies", equipment: "Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8 GP" },
-  { label: "Sailor", abilityScores: ["Strength", "Dexterity", "Wisdom"], originFeat: "Tavern Brawler", skills: ["Acrobatics", "Perception"], toolProficiency: "Navigator's Tools", equipment: "Dagger, Navigator's Tools, Rope, Traveler's Clothes, 20 GP" },
-  { label: "Scribe", abilityScores: ["Dexterity", "Intelligence", "Wisdom"], originFeat: "Skilled", skills: ["Investigation", "Perception"], toolProficiency: "Calligrapher's Supplies", equipment: "Calligrapher's Supplies, Fine Clothes, Lamp, Oil (3 flasks), Parchment (12 sheets), 23 GP" },
-  { label: "Soldier", abilityScores: ["Strength", "Dexterity", "Constitution"], originFeat: "Savage Attacker", skills: ["Athletics", "Intimidation"], toolProficiency: "one gaming set", equipment: "Spear, Shortbow, 20 Arrows, Gaming Set, Healer's Kit, Quiver, Traveler's Clothes, 14 GP" },
-  { label: "Wayfarer", abilityScores: ["Dexterity", "Wisdom", "Charisma"], originFeat: "Lucky", skills: ["Insight", "Stealth"], toolProficiency: "Thieves' Tools", equipment: "2 Daggers, Thieves' Tools, Gaming Set, Bedroll, 2 Pouches, Traveler's Clothes, 16 GP" },
+  { label: "Acolyte", description: "Temple-trained servant of faith, rites, doctrine, and divine service.", abilityScores: ["Intelligence", "Wisdom", "Charisma"], originFeat: "Magic Initiate (Cleric)", skills: ["Insight", "Religion"], toolProficiency: "Calligrapher's Supplies", equipment: "Calligrapher's Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8 GP" },
+  { label: "Artisan", description: "Workshop-trained craftsperson with practical trade skill, customer sense, and a careful eye for detail.", abilityScores: ["Strength", "Dexterity", "Intelligence"], originFeat: "Crafter", skills: ["Investigation", "Persuasion"], toolProficiency: "one artisan's tool", equipment: "Artisan's Tools, 2 Pouches, Traveler's Clothes, 32 GP" },
+  { label: "Charlatan", description: "Tavern-wise deceiver, swindler, forger, or social manipulator who learned to sell convincing lies.", abilityScores: ["Dexterity", "Constitution", "Charisma"], originFeat: "Skilled", skills: ["Deception", "Sleight of Hand"], toolProficiency: "Forgery Kit", equipment: "Forgery Kit, Costume, Fine Clothes, 15 GP" },
+  { label: "Criminal", description: "Streetwise lawbreaker, burglar, cutpurse, gang member, or lone operator shaped by the underworld.", abilityScores: ["Dexterity", "Constitution", "Intelligence"], originFeat: "Alert", skills: ["Sleight of Hand", "Stealth"], toolProficiency: "Thieves' Tools", equipment: "2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16 GP" },
+  { label: "Entertainer", description: "Performer raised around fairs, carnivals, stages, music, acrobatics, poetry, and applause.", abilityScores: ["Strength", "Dexterity", "Charisma"], originFeat: "Musician", skills: ["Acrobatics", "Performance"], toolProficiency: "one musical instrument", equipment: "Musical Instrument, 2 Costumes, Mirror, Perfume, Traveler's Clothes, 11 GP" },
+  { label: "Farmer", description: "Land-raised worker shaped by animals, crops, patience, physical endurance, and respect for nature.", abilityScores: ["Strength", "Constitution", "Wisdom"], originFeat: "Tough", skills: ["Animal Handling", "Nature"], toolProficiency: "Carpenter's Tools", equipment: "Sickle, Carpenter's Tools, Healer's Kit, Iron Pot, Shovel, Traveler's Clothes, 30 GP" },
+  { label: "Guard", description: "Watch-trained protector used to patrols, walls, gates, troublemakers, raids, and public order.", abilityScores: ["Strength", "Intelligence", "Wisdom"], originFeat: "Alert", skills: ["Athletics", "Perception"], toolProficiency: "one gaming set", equipment: "Spear, Light Crossbow, 20 Bolts, Gaming Set, Hooded Lantern, Manacles, Quiver, Traveler's Clothes, 12 GP" },
+  { label: "Guide", description: "Wilderness-raised pathfinder, scout, and survivalist trained by travel, danger, maps, and nature magic.", abilityScores: ["Dexterity", "Constitution", "Wisdom"], originFeat: "Magic Initiate (Druid)", skills: ["Stealth", "Survival"], toolProficiency: "Cartographer's Tools", equipment: "Shortbow, 20 Arrows, Cartographer's Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3 GP" },
+  { label: "Hermit", description: "Secluded contemplative shaped by solitude, medicine, religion, forest life, and mysteries of creation.", abilityScores: ["Constitution", "Wisdom", "Charisma"], originFeat: "Healer", skills: ["Medicine", "Religion"], toolProficiency: "Herbalism Kit", equipment: "Quarterstaff, Herbalism Kit, Bedroll, Book (philosophy), Lamp, Oil (3 flasks), Traveler's Clothes, 16 GP" },
+  { label: "Merchant", description: "Trader, shop apprentice, caravan worker, or traveling seller trained in commerce and negotiation.", abilityScores: ["Constitution", "Intelligence", "Charisma"], originFeat: "Lucky", skills: ["Animal Handling", "Persuasion"], toolProficiency: "Navigator's Tools", equipment: "Navigator's Tools, 2 Pouches, Traveler's Clothes, 22 GP" },
+  { label: "Noble", description: "Castle-raised aristocrat educated around privilege, courtly politics, history, persuasion, and leadership.", abilityScores: ["Strength", "Intelligence", "Charisma"], originFeat: "Skilled", skills: ["History", "Persuasion"], toolProficiency: "one gaming set", equipment: "Gaming Set, Fine Clothes, Perfume, 29 GP" },
+  { label: "Sage", description: "Library-shaped scholar, researcher, archivist, or arcane student hungry for lore and deeper knowledge.", abilityScores: ["Constitution", "Intelligence", "Wisdom"], originFeat: "Magic Initiate (Wizard)", skills: ["Arcana", "History"], toolProficiency: "Calligrapher's Supplies", equipment: "Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8 GP" },
+  { label: "Sailor", description: "Seafarer shaped by ports, ships, storms, ropework, deck life, stories, and ocean travel.", abilityScores: ["Strength", "Dexterity", "Wisdom"], originFeat: "Tavern Brawler", skills: ["Acrobatics", "Perception"], toolProficiency: "Navigator's Tools", equipment: "Dagger, Navigator's Tools, Rope, Traveler's Clothes, 20 GP" },
+  { label: "Scribe", description: "Copyist, clerk, poet, archivist, or government writer trained in documents and exacting detail.", abilityScores: ["Dexterity", "Intelligence", "Wisdom"], originFeat: "Skilled", skills: ["Investigation", "Perception"], toolProficiency: "Calligrapher's Supplies", equipment: "Calligrapher's Supplies, Fine Clothes, Lamp, Oil (3 flasks), Parchment (12 sheets), 23 GP" },
+  { label: "Soldier", description: "Battle-trained warrior, veteran, militia member, or disciplined recruit shaped by drill and war.", abilityScores: ["Strength", "Dexterity", "Constitution"], originFeat: "Savage Attacker", skills: ["Athletics", "Intimidation"], toolProficiency: "one gaming set", equipment: "Spear, Shortbow, 20 Arrows, Gaming Set, Healer's Kit, Quiver, Traveler's Clothes, 14 GP" },
+  { label: "Wayfarer", description: "Street-raised survivor of hardship, odd jobs, hunger, theft, pride, and stubborn hope.", abilityScores: ["Dexterity", "Wisdom", "Charisma"], originFeat: "Lucky", skills: ["Insight", "Stealth"], toolProficiency: "Thieves' Tools", equipment: "2 Daggers, Thieves' Tools, Gaming Set, Bedroll, 2 Pouches, Traveler's Clothes, 16 GP" },
 ];
+
+const BACKGROUND_GOLD_OPTION = 50;
 
 const WEAPONS = [
   { name: "Club", aliases: ["club"], damage: "1d4", type: "bludgeoning", mode: "melee" },
@@ -875,6 +877,18 @@ function homebrewFeatureBlockTitlesForEquipment(equipment = "") {
 function featureBlocksForPlayer(player = {}) {
   const hiddenTitles = homebrewFeatureBlockTitlesForEquipment(player.equipment);
   return featureBlocks(player.features).filter((block) => !hiddenTitles.has(normalizeEquipmentText(block.title)));
+}
+
+function backgroundFeatureBlockTitle(player = {}) {
+  const background = backgroundPackageForName(player.background);
+  return background?.originFeat ? normalizeEquipmentText(`${background.originFeat} (Feat)`) : "";
+}
+
+function featureBlocksForSectionWidget(player = {}) {
+  const backgroundTitle = backgroundFeatureBlockTitle(player);
+  return featureBlocksForPlayer(player).filter((block) => (
+    !backgroundTitle || normalizeEquipmentText(block.title) !== backgroundTitle
+  ));
 }
 
 function featureTextForPlayer(player = {}) {
@@ -2505,10 +2519,18 @@ function clearManagedBackgroundPackage(form) {
   delete form.dataset.backgroundFeatureText;
   delete form.dataset.backgroundSkills;
   delete form.dataset.backgroundTools;
+  delete form.dataset.backgroundEquipmentPackage;
+  delete form.dataset.backgroundEquipmentGold;
+  delete form.dataset.backgroundEquipmentChoice;
   const bonusField = form.querySelector("#player-background-ability-bonuses");
   if (bonusField) bonusField.value = "";
   const goldField = form.querySelector("#player-gold");
   if (goldField) goldField.value = "";
+  const equipmentControls = form.querySelector("#player-background-equipment-controls");
+  if (equipmentControls) {
+    equipmentControls.hidden = true;
+    equipmentControls.innerHTML = "";
+  }
 }
 
 function applyBackgroundAbilityBonuses(form, bonuses = {}) {
@@ -2520,7 +2542,7 @@ function applyBackgroundAbilityBonuses(form, bonuses = {}) {
   const controls = form.querySelector("#player-background-ability-controls");
   if (controls) {
     controls.dataset.applied = "true";
-    controls.querySelectorAll("button, select").forEach((control) => { control.disabled = true; });
+    controls.classList?.add("is-applied");
   }
 }
 
@@ -2530,6 +2552,15 @@ function backgroundAbilityOptionMarkup(abilities = [], selected = "") {
     const label = abilityLabelForValue(ability);
     return `<option value="${escapeHtml(key)}" ${key === selected ? "selected" : ""}>${escapeHtml(label)}</option>`;
   }).join("");
+}
+
+function backgroundAbilityMechanicsText(abilities = []) {
+  const shorts = abilities.map((ability) => {
+    const key = abilityKeyForLabel(ability);
+    const short = ABILITIES.find((item) => item.key === key)?.short;
+    return short ? `${short.slice(0, 1)}${short.slice(1).toLowerCase()}` : abilityLabelForValue(ability);
+  }).filter(Boolean);
+  return shorts.length ? `Choose from ${shorts.join("/")} (+2/+1 or +1/+1/+1)` : "";
 }
 
 function parseAbilityBonuses(value = "") {
@@ -2580,8 +2611,9 @@ function renderBackgroundAbilityControls(form, background = {}) {
   }
   controls.hidden = false;
   controls.dataset.applied = "false";
+  const mechanicsText = backgroundAbilityMechanicsText(background.abilityScores);
   controls.innerHTML = `
-    <div><span>${escapeHtml(background.label)} ability scores</span><strong>${escapeHtml(background.abilityScores.join(", "))}</strong></div>
+    <div><span>Mechanics: ability scores</span><strong>${escapeHtml(mechanicsText)}</strong></div>
     <label>+2
       <select id="player-background-boost-primary">${backgroundAbilityOptionMarkup(background.abilityScores, abilityKeys[0])}</select>
     </label>
@@ -2603,7 +2635,12 @@ function backgroundAbilityBonusSummary(form) {
 
 function applySelectedBackgroundAbilityBoosts(form) {
   const primary = form.querySelector("#player-background-boost-primary")?.value;
-  const secondary = form.querySelector("#player-background-boost-secondary")?.value;
+  const secondarySelect = form.querySelector("#player-background-boost-secondary");
+  let secondary = secondarySelect?.value;
+  if (primary && secondary && primary === secondary) {
+    secondary = Array.from(secondarySelect?.options || []).map((option) => option.value).find((value) => value && value !== primary);
+    if (secondarySelect && secondary) secondarySelect.value = secondary;
+  }
   if (!primary || !secondary || primary === secondary) return;
   applyBackgroundAbilityBonuses(form, { [primary]: 2, [secondary]: 1 });
 }
@@ -2614,6 +2651,48 @@ function applyEvenBackgroundAbilityBoosts(form) {
     .flatMap((select) => Array.from(select.options || []).map((option) => option.value))
     .filter(Boolean);
   applyBackgroundAbilityBonuses(form, Object.fromEntries(Array.from(new Set(keys)).slice(0, 3).map((key) => [key, 1])));
+}
+
+function renderBackgroundEquipmentControls(form, background = {}, equipmentParts = {}) {
+  const controls = form.querySelector("#player-background-equipment-controls");
+  if (!controls) return;
+  const listedGold = Number(equipmentParts.gold) || 0;
+  const listedItems = equipmentParts.items || [];
+  controls.hidden = false;
+  controls.innerHTML = `
+    <div><span>Starting gold</span><strong>${escapeHtml(listedGold)} GP assigned</strong></div>
+    <label class="background-equipment-option">
+      <input type="radio" name="player-background-equipment-mode" value="package" checked />
+      <span>Use listed equipment${listedItems.length ? ` (${escapeHtml(listedItems.length)} items)` : ""}</span>
+    </label>
+    <label class="background-equipment-option">
+      <input type="radio" name="player-background-equipment-mode" value="gold" />
+      <span>Take +${escapeHtml(BACKGROUND_GOLD_OPTION)} GP instead of the listed equipment</span>
+    </label>`;
+}
+
+function syncBackgroundEquipmentChoiceControls(form, choice = "package") {
+  form.querySelectorAll?.('input[name="player-background-equipment-mode"]').forEach((input) => {
+    input.checked = input.value === choice;
+  });
+}
+
+function applyBackgroundEquipmentChoice(form, choice = "package") {
+  const selectedChoice = choice === "gold" ? "gold" : "package";
+  const previousEquipment = splitListInput(form.dataset.backgroundEquipment || "");
+  const packageEquipment = splitListInput(form.dataset.backgroundEquipmentPackage || "");
+  const packageGold = Number(form.dataset.backgroundEquipmentGold) || 0;
+  removeTextareaLines(form.querySelector("#player-equipment"), previousEquipment);
+  const nextEquipment = selectedChoice === "gold" ? [] : packageEquipment;
+  appendEquipmentItemsToSheet(form, nextEquipment);
+  const goldField = form.querySelector("#player-gold");
+  if (goldField) {
+    goldField.value = String(selectedChoice === "gold" ? packageGold + BACKGROUND_GOLD_OPTION : packageGold);
+    goldField.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  form.dataset.backgroundEquipment = nextEquipment.join(", ");
+  form.dataset.backgroundEquipmentChoice = selectedChoice;
+  syncBackgroundEquipmentChoiceControls(form, selectedChoice);
 }
 
 function applyBackgroundPackageToForm(form, background = {}) {
@@ -2631,17 +2710,14 @@ function applyBackgroundPackageToForm(form, background = {}) {
   addToHiddenListField(form, "#player-background-skills", skillKeys);
   setBackgroundSkillCheckboxes(form, skillKeys);
   addToHiddenListField(form, "#player-tool-proficiencies", [packageData.toolProficiency]);
-  appendEquipmentItemsToSheet(form, equipmentItems);
   appendTextareaValue(form.querySelector("#player-features"), featureText);
-  const goldField = form.querySelector("#player-gold");
-  if (goldField) {
-    goldField.value = String(equipmentParts.gold || 0);
-    goldField.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-  form.dataset.backgroundEquipment = equipmentItems.join(", ");
+  form.dataset.backgroundEquipmentPackage = equipmentItems.join(", ");
+  form.dataset.backgroundEquipmentGold = String(equipmentParts.gold || 0);
   form.dataset.backgroundFeatureText = featureText;
   form.dataset.backgroundSkills = skillKeys.join(", ");
   form.dataset.backgroundTools = packageData.toolProficiency;
+  renderBackgroundEquipmentControls(form, packageData, equipmentParts);
+  applyBackgroundEquipmentChoice(form, "package");
   renderBackgroundAbilityControls(form, packageData);
   applyClassRestrictions(form);
   updatePlayerFormDerivedFields(form);
@@ -2996,6 +3072,13 @@ function parseBackgroundMechanics(mechanics = "") {
 }
 
 function backgroundPackageFromSuggestion(suggestion = {}) {
+  const standard = backgroundPackageForName(suggestion.label);
+  if (standard) {
+    return normalizeBackgroundPackage({
+      ...standard,
+      description: suggestion.description || standard.description,
+    });
+  }
   const parsed = parseBackgroundMechanics(suggestion.mechanics);
   return normalizeBackgroundPackage({
     ...parsed,
@@ -3037,6 +3120,26 @@ function backgroundFeatureText(background = {}) {
   ];
   if (background.description) lines.push(background.description);
   return lines.filter(Boolean).join("\n");
+}
+
+function backgroundNarrativeDescription(background = {}) {
+  return String(background.description || "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line && !/^(source|date|package|mechanics|ability scores?|origin feat|skills?|skill proficienc(?:y|ies)|tool proficienc(?:y|ies)|equipment)\s*:/i.test(line))
+    .join("\n");
+}
+
+function backgroundEffectTags(background = {}, backgroundBonusTags = []) {
+  const skills = (background.skills || []).filter(Boolean).join(", ");
+  const gold = gpFromText(background.equipment);
+  return [
+    background.originFeat ? `Feat: ${background.originFeat}` : "",
+    backgroundBonusTags.length ? `Ability bonuses: ${backgroundBonusTags.join(", ")}` : "",
+    skills ? `Skills: ${skills}` : "",
+    background.toolProficiency ? `Tool: ${background.toolProficiency}` : "",
+    gold ? `Starting gold: ${gold} GP` : "",
+  ].filter(Boolean);
 }
 
 function backgroundEquipmentParts(equipment = "") {
@@ -5183,14 +5286,18 @@ function playerSectionDefinitions(player, options = {}) {
     const amount = Number(backgroundBonuses[ability.key]) || 0;
     return amount ? `${ability.short} ${signedModifier(amount)}` : "";
   }).filter(Boolean);
+  const backgroundPackage = backgroundPackageForName(player.background) || {};
+  const backgroundNarrative = backgroundNarrativeDescription(backgroundPackage);
+  const backgroundEffects = backgroundEffectTags(backgroundPackage, backgroundBonusTags);
   const hasWeapons = equipmentWeaponSummaries(player).length > 0;
   const homebrewEquipmentItems = equipmentHomebrewItemSummaries(player);
-  const featureBlocksVisible = featureBlocksForPlayer(player);
+  const featureBlocksVisible = featureBlocksForSectionWidget(player);
   const nonWeaponEquipmentTags = equipmentTags.filter((item) => {
     const homebrewItem = homebrewItemForEquipmentItem(item);
     return !homebrewItem && !weaponForEquipmentItem(item);
   });
-  const equipmentComplete = equipmentTags.length > 0 || hasText(player.features);
+  const hasGold = Number(player.gold) > 0;
+  const equipmentComplete = equipmentTags.length > 0 || hasText(player.features) || hasGold;
   const equipmentStarted = equipmentComplete || languageTags.length || toolTags.length || equipmentTags.length;
   const combatStarted = hasText(player.classRole) || hasText(player.race) || ABILITIES.some((ability) => hasNumber(player.abilities?.[ability.key])) || equipmentStarted;
   const combatComplete = Boolean(abilitySectionComplete(player) && hasText(player.classRole) && hasText(player.race) && equipmentComplete);
@@ -5220,8 +5327,8 @@ function playerSectionDefinitions(player, options = {}) {
       complete: hasText(player.background),
       body: `
         <h3>${escapeHtml(player.background || "Choose a background")}</h3>
-        ${backgroundBonusTags.length ? `<div class="passive-perception-pill"><span>Ability bonuses</span><strong>${escapeHtml(backgroundBonusTags.join(", "))}</strong></div>` : ""}
-        ${widgetTagsMarkup([...(player.skillProficiencies || []).map((skill) => SKILLS.find((item) => item.key === skill)?.label || skill), ...toolTags])}`,
+        ${backgroundNarrative ? `<p class="background-widget-narrative">${escapeHtml(backgroundNarrative)}</p>` : ""}
+        ${widgetTagsMarkup(backgroundEffects)}`,
     },
     {
       key: "abilities",
@@ -5346,7 +5453,9 @@ function playerCharacterFormMarkup() {
         <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
         <label>Personality traits<textarea id="player-personality-traits" rows="3" placeholder="How they behave at the table and in the world..."></textarea></label>
         <label>Ideals<textarea id="player-ideals" rows="3" placeholder="What principles guide them?"></textarea></label>
+        <label>Bonds<textarea id="player-bonds" rows="3" placeholder="Who or what keeps them moving?"></textarea></label>
         <label>Flaws<textarea id="player-flaws" rows="3" placeholder="What can create trouble or drama?"></textarea></label>
+        <label class="full-width">Backstory and notes<textarea id="player-notes" rows="4" placeholder="Where they come from, what they want, and what the DM should remember..."></textarea></label>
         <div class="character-suggestion-workflow full-width">
           <button class="btn btn-secondary" type="button" id="analyze-character-description">Suggest backgrounds and traits</button>
           <span id="character-suggestion-status" aria-live="polite"></span>
@@ -5359,6 +5468,7 @@ function playerCharacterFormMarkup() {
         <label class="full-width">Background<input id="player-background" type="text" list="player-background-options" placeholder="Acolyte" /></label>
         <div class="sheet-derived-grid full-width" id="player-background-ability-controls" hidden></div>
         <div class="passive-perception-pill full-width"><span>Background ability bonuses</span><strong id="player-background-ability-bonus-summary">Choose a background to assign bonuses.</strong></div>
+        <div class="sheet-derived-grid background-equipment-choice-grid full-width" id="player-background-equipment-controls" hidden></div>
         <input id="player-background-ability-bonuses" type="hidden" />
       </fieldset>
 
@@ -5407,6 +5517,10 @@ function playerCharacterFormMarkup() {
         <input id="player-background-skills" type="hidden" />
         <input id="player-tool-proficiencies" type="hidden" />
         <input id="player-gold" type="hidden" />
+        <div class="equipment-gold-control full-width">
+          <span>Gold</span>
+          <button class="btn btn-secondary gp-shop-button" type="button" id="player-gold-shop-button" data-open-equipment-shop>0 GP</button>
+        </div>
         <div class="equipment-shop-panel full-width" id="equipment-shop-panel" hidden></div>
       </fieldset>
 
@@ -5434,6 +5548,8 @@ function updatePlayerFormDerivedFields(form) {
   });
   const bonusSummary = document.getElementById("player-background-ability-bonus-summary");
   if (bonusSummary) bonusSummary.textContent = backgroundAbilityBonusSummary(form) || "Choose a background to assign bonuses.";
+  const goldButton = document.getElementById("player-gold-shop-button");
+  if (goldButton) goldButton.textContent = `${numberFormValue(form, "#player-gold") || 0} GP`;
   const proficiencyOutput = document.getElementById("player-proficiency-bonus");
   if (proficiencyOutput) proficiencyOutput.textContent = signedModifier(proficiencyBonus);
   const hasPerception = uniqueTextList([
@@ -5792,6 +5908,10 @@ function initPlayerCharacterForm(form) {
       const panel = form.querySelector("#equipment-shop-panel");
       if (panel) panel.hidden = true;
     }
+    if (event.target?.matches("[data-open-equipment-shop]")) {
+      renderEquipmentShop(form);
+      form.querySelector("#equipment-shop-panel")?.scrollIntoView?.({ block: "nearest" });
+    }
     if (event.target?.dataset?.buyHomebrewItem) {
       buyHomebrewItemFromShop(form, event.target.dataset.buyHomebrewItem);
       updatePlayerFormDerivedFields(form);
@@ -5823,6 +5943,12 @@ function initPlayerCharacterForm(form) {
     if (event.target?.id === "player-background") {
       const background = backgroundPackageForName(event.target.value);
       if (background) applyBackgroundPackageToForm(form, background);
+    }
+    if (event.target?.id === "player-background-boost-primary" || event.target?.id === "player-background-boost-secondary") {
+      applySelectedBackgroundAbilityBoosts(form);
+    }
+    if (event.target?.name === "player-background-equipment-mode") {
+      applyBackgroundEquipmentChoice(form, event.target.value);
     }
     if (
 	      event.target?.id === "player-class-role"
@@ -6018,6 +6144,10 @@ function playerAttackRows(player) {
 function characterSheetMarkup(player) {
   const proficiencyBonus = player.proficiencyBonus || proficiencyBonusForLevel(player.level);
   const combat = player.combat || {};
+  const equipmentText = [
+    player.equipment,
+    Number(player.gold) > 0 ? `Gold: ${player.gold} GP` : "",
+  ].filter(hasText).join("\n");
   const proficiencyText = [
     (player.languages || []).length ? `Languages: ${(player.languages || []).map(languageLabel).join(", ")}` : "",
     (player.toolProficiencies || []).length ? `Tools: ${(player.toolProficiencies || []).map(toolLabel).join(", ")}` : "",
@@ -6077,7 +6207,7 @@ function characterSheetMarkup(player) {
               <tbody>${playerAttackRows(player)}</tbody>
             </table>
           </section>
-          ${sheetTextBlock("Equipment", player.equipment)}
+          ${sheetTextBlock("Equipment", equipmentText)}
         </section>
 
         <section class="sheet-column">

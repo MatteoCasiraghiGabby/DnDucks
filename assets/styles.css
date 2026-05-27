@@ -1846,6 +1846,71 @@ code { color: var(--ember-2); }
   margin-top: 4px;
   font-size: 1.35rem;
 }
+#player-background-ability-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+#player-background-ability-controls > div:first-child {
+  grid-column: 1 / -1;
+}
+#player-background-ability-controls > label {
+  display: grid;
+  gap: 7px;
+  min-height: 76px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  background: rgba(255, 250, 236, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(38, 27, 20, 0.035);
+}
+#player-background-ability-controls select {
+  min-height: 40px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: none;
+}
+#player-background-ability-controls .btn {
+  width: 100%;
+  min-height: 44px;
+  border-color: rgba(127, 29, 29, 0.34);
+  color: var(--text-on-dark);
+  font-weight: 900;
+  background: linear-gradient(135deg, #bd513b, #8f372d);
+  box-shadow: 0 10px 18px rgba(159, 60, 46, 0.18), inset 0 1px 0 rgba(255, 248, 234, 0.24);
+}
+.background-equipment-choice-grid {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+.background-equipment-option,
+.equipment-gold-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 250, 236, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(38, 27, 20, 0.035);
+}
+.background-equipment-option input {
+  width: auto;
+  min-height: auto;
+}
+.background-equipment-option span,
+.equipment-gold-control > span {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 850;
+  text-transform: none;
+}
+.equipment-gold-control {
+  justify-content: space-between;
+}
 .proficiency-columns { grid-template-columns: 0.9fr 1.4fr; }
 .proficiency-columns h3 {
   margin: 0 0 8px;
@@ -1947,6 +2012,23 @@ code { color: var(--ember-2); }
 .equipment-widget-sections p {
   margin: 0;
   white-space: pre-wrap;
+}
+.background-widget-narrative {
+  margin: 0;
+  color: var(--text);
+  font-weight: 650;
+  line-height: 1.55;
+}
+.gp-shop-button,
+.equipment-shop-item .btn {
+  border-color: rgba(127, 29, 29, 0.34);
+  color: var(--text-on-dark);
+  background: linear-gradient(135deg, #bd513b, #8f372d);
+  box-shadow: 0 10px 18px rgba(159, 60, 46, 0.18), inset 0 1px 0 rgba(255, 248, 234, 0.24);
+}
+.gp-shop-button {
+  justify-self: start;
+  min-width: 118px;
 }
 .feature-widget-list,
 .equipment-weapon-list,
@@ -3195,6 +3277,10 @@ body.widget-detail-open { overflow: hidden; }
   .hero { padding-top: 34px; }
   .content-card,
   .panel { padding: 20px; }
+  #player-background-ability-controls,
+  .sheet-derived-grid {
+    grid-template-columns: 1fr;
+  }
   .player-preview-card {
     grid-template-columns: 1fr;
     padding: 16px;

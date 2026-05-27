@@ -101,7 +101,8 @@ function createCharacterFormStub(initialValues = {}) {
     "#player-name", "#player-character-name", "#player-class-role", "#player-level", "#player-race",
     "#player-background", "#player-alignment", "#player-experience", "#player-equipment",
     "#player-equipment-entry", "#player-features", "#player-background-skills", "#player-tool-proficiencies",
-    "#player-background-ability-bonuses", "#player-gold", "#equipment-shop-panel", "#equipment-shop-search",
+    "#player-bonds", "#player-notes",
+    "#player-background-ability-bonuses", "#player-background-equipment-controls", "#player-gold", "#player-gold-shop-button", "#equipment-shop-panel", "#equipment-shop-search",
     "#player-passive-perception", "#player-hp-max",
     "#player-strength", "#player-dexterity", "#player-constitution", "#player-intelligence", "#player-wisdom", "#player-charisma",
   ].forEach((selector) => {
@@ -597,8 +598,12 @@ test("homebrew form offers backgrounds instead of rules", () => {
   assert.doesNotMatch(html, /<option>Rule<\/option>/);
   assert.match(html, /id="item-background-abilities"/);
   assert.match(formMarkup, /id="player-background" type="text" list="player-background-options"/);
+  assert.match(formMarkup, /id="player-bonds"/);
+  assert.match(formMarkup, /id="player-notes"/);
   assert.match(formMarkup, /id="player-background-ability-controls"/);
+  assert.match(formMarkup, /id="player-background-equipment-controls"/);
   assert.match(formMarkup, /id="player-gold"/);
+  assert.match(formMarkup, /id="player-gold-shop-button"[\s\S]*0 GP/);
   assert.match(formMarkup, /id="equipment-shop-panel"/);
   assert.match(backgroundMarkup, /Ability Scores[\s\S]*Dexterity, Wisdom, Charisma/);
   assert.match(backgroundMarkup, /Origin Feat[\s\S]*Lucky/);
@@ -633,11 +638,72 @@ test("chosen backgrounds decompose into character sheet sections", () => {
   assert.equal(form.skillInputs.find((input) => input.value === "stealth").checked, true);
   assert.equal(form.fields["#player-background-ability-controls"].hidden, false);
   assert.match(form.fields["#player-background-ability-controls"].innerHTML, /Apply \+2\/\+1/);
+  assert.match(form.fields["#player-background-ability-controls"].innerHTML, /Choose from Dex\/Con\/Int \(\+2\/\+1 or \+1\/\+1\/\+1\)/);
+  assert.equal(form.fields["#player-background-equipment-controls"].hidden, false);
+  assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Starting gold[\s\S]*16 GP assigned/);
+  assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Take \+50 GP instead/);
+  form.fields["#player-background-boost-primary"] = { value: "dexterity" };
+  form.fields["#player-background-boost-secondary"] = { value: "constitution" };
+  app.applySelectedBackgroundAbilityBoosts(form);
+  assert.equal(form.fields["#player-background-ability-bonuses"].value, "dexterity:2, constitution:1");
   assert.equal(player.background, "Criminal");
   assert.equal(player.gold, 16);
   assert.ok(player.skillProficiencies.includes("sleightOfHand"));
   assert.ok(player.skillProficiencies.includes("stealth"));
   assert.ok(player.toolProficiencies.includes("Thieves' Tools"));
+
+  const sections = app.playerSectionDefinitions(player);
+  const backgroundSection = sections.find((section) => section.key === "background");
+  const equipmentSection = sections.find((section) => section.key === "equipment");
+  assert.match(backgroundSection.body, /Streetwise lawbreaker/);
+  assert.match(backgroundSection.body, /Feat: Alert/);
+  assert.match(backgroundSection.body, /Starting gold: 16 GP/);
+  assert.doesNotMatch(backgroundSection.body, /Ability scores:|Equipment:|source|date/i);
+  assert.doesNotMatch(equipmentSection.body, /Granted by the Criminal background|Streetwise lawbreaker/);
+});
+
+test("background equipment can be exchanged for starting gold", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "1",
+  });
+
+  app.applyBackgroundPackageToForm(form, app.backgroundPackageForName("Criminal"));
+  app.applyBackgroundEquipmentChoice(form, "gold");
+  const player = app.buildPlayerCharacter(form);
+
+  assert.equal(form.fields["#player-gold"].value, "66");
+  assert.equal(form.fields["#player-equipment"].value, "");
+  assert.equal(player.gold, 66);
+  assert.ok(player.toolProficiencies.includes("Thieves' Tools"));
+  assert.ok(player.skillProficiencies.includes("sleightOfHand"));
+  assert.doesNotMatch(player.equipment, /Daggers|Crowbar|Thieves' Tools/);
+  const equipmentSection = app.playerSectionDefinitions(player).find((section) => section.key === "equipment");
+  assert.match(equipmentSection.body, /66 GP/);
+});
+
+test("background suggestions use the same package path as direct background selection", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "1",
+  });
+
+  app.applyCharacterSuggestion(form, {
+    category: "backgrounds",
+    label: "Criminal",
+    description: "Streetwise lawbreaker.",
+    mechanics: "Ability scores: Con/Dex/Int. Origin feat: Alert. Skills: Sleight of Hand, Stealth. Tool: Thieves' Tools. Equipment: 2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16 GP.",
+  });
+
+  assert.equal(form.fields["#player-background"].value, "Criminal");
+  assert.equal(form.fields["#player-gold"].value, "16");
+  assert.match(form.fields["#player-background-ability-controls"].innerHTML, /Choose from Dex\/Con\/Int \(\+2\/\+1 or \+1\/\+1\/\+1\)/);
+  assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Starting gold[\s\S]*16 GP assigned/);
+  assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Take \+50 GP instead/);
 });
 
 test("changing backgrounds replaces generated background parts", () => {
