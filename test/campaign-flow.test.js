@@ -631,15 +631,75 @@ test("lineages replace racial trait suggestions and apply traits automatically",
   assert.match(markup, /value="Warforged"/);
   assert.match(markup, /id="player-lineage-ability-controls"/);
   assert.match(markup, /id="player-lineage-traits"/);
+  assert.doesNotMatch(markup, /Lineage ability bonuses/);
 
   app.applyLineagePackageToForm(form, app.lineagePackageForName("Tiefling"));
   const player = app.buildPlayerCharacter(form);
 
   assert.equal(form.fields["#player-lineage-ability-bonuses"].value, "intelligence:1, charisma:2");
-  assert.match(form.fields["#player-lineage-traits"].value, /Tiefling \(Lineage traits\)[\s\S]*Darkvision[\s\S]*Infernal Legacy/);
+  assert.match(form.fields["#player-lineage-traits"].value, /Darkvision \(Lineage trait\)[\s\S]*Infernal Legacy \(Lineage trait\)/);
+  assert.doesNotMatch(form.fields["#player-lineage-traits"].value, /Tiefling \(Lineage traits\)|Languages:|Traits:/);
   assert.equal(player.abilities.charisma, 12);
   assert.equal(player.abilities.intelligence, 11);
-  assert.match(player.features, /Tiefling \(Lineage traits\)/);
+  assert.match(player.features, /Darkvision \(Lineage trait\)/);
+  assert.match(player.features, /Infernal Legacy \(Lineage trait\)/);
+  assert.doesNotMatch(player.features, /Tiefling \(Lineage traits\)|Languages:|Traits:/);
+
+  app.applyLineagePackageToForm(form, app.lineagePackageForName("Half-Elf"));
+  const halfElf = app.buildPlayerCharacter(form);
+  const equipmentSection = app.playerSectionDefinitions(halfElf).find((section) => section.key === "equipment");
+  assert.match(equipmentSection.body, /Fey Ancestry \(Lineage trait\)/);
+  assert.match(equipmentSection.body, /Darkvision \(Lineage trait\)/);
+  assert.match(equipmentSection.body, /Skill Versatility \(Lineage trait\)/);
+  assert.doesNotMatch(equipmentSection.body, /Trance \(Lineage trait\)|Keen Senses \(Lineage trait\)/);
+  assert.doesNotMatch(equipmentSection.body, /Half-Elf \(Lineage traits\)|Languages:|Traits:/);
+});
+
+test("suggestion cards only show backgrounds and feats without editable textareas", () => {
+  const app = createFrontendSandbox();
+  const panel = { innerHTML: "", dataset: {}, hidden: true };
+
+  app.renderCharacterSuggestions(panel, {
+    model: "local",
+    suggestions: [{
+      category: "racialTraits",
+      label: "Darkvision",
+      description: "Already granted by lineage.",
+      mechanics: "You can see in darkness.",
+      explanation: "Matches Half-Elf.",
+      confidence: 0.95,
+    }, {
+      category: "feats",
+      label: "Alert",
+      description: "Watchful talent.",
+      mechanics: "Gain initiative benefits.",
+      explanation: "Matches watchful behavior.",
+      confidence: 0.7,
+    }],
+  });
+
+  assert.match(panel.innerHTML, /Suggested backgrounds and feats/);
+  assert.match(panel.innerHTML, /Feat or talent/);
+  assert.doesNotMatch(panel.innerHTML, /Darkvision|racial trait|Species or racial|Edit suggestion|data-suggestion-edit/i);
+  assert.equal(app.characterSuggestionsFromPanel(panel).length, 1);
+});
+
+test("bonus skill choices are not limited to the class skill subgroup", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-class-role": "Wizard",
+    "#player-race": "Half-Elf",
+  });
+  app.applyLineagePackageToForm(form, app.lineagePackageForName("Half-Elf"));
+  form.skillInputs.find((input) => input.value === "arcana").checked = true;
+  form.skillInputs.find((input) => input.value === "history").checked = true;
+  const athletics = form.skillInputs.find((input) => input.value === "athletics");
+  athletics.checked = true;
+
+  app.applyClassRestrictions(form);
+
+  assert.equal(athletics.checked, true);
+  assert.equal(athletics.disabled, false);
 });
 
 test("chosen backgrounds decompose into character sheet sections", () => {
@@ -688,15 +748,41 @@ test("chosen backgrounds decompose into character sheet sections", () => {
   assert.ok(player.skillProficiencies.includes("sleightOfHand"));
   assert.ok(player.skillProficiencies.includes("stealth"));
   assert.ok(player.toolProficiencies.includes("Thieves' Tools"));
+  assert.match(form.fields["#player-features"].value, /Gain a major bonus to Initiative/);
+  assert.doesNotMatch(form.fields["#player-features"].value, /Granted by the Criminal background|Streetwise lawbreaker/);
 
   const sections = app.playerSectionDefinitions(player);
   const backgroundSection = sections.find((section) => section.key === "background");
   const equipmentSection = sections.find((section) => section.key === "equipment");
   assert.match(backgroundSection.body, /Streetwise lawbreaker/);
+  assert.match(backgroundSection.body, /background-widget-card[\s\S]*Criminal[\s\S]*Streetwise lawbreaker/);
   assert.match(backgroundSection.body, /Feat: Alert/);
   assert.match(backgroundSection.body, /Starting gold: 16 GP/);
   assert.doesNotMatch(backgroundSection.body, /Ability scores:|Equipment:|source|date/i);
+  assert.match(equipmentSection.body, /Alert \(Feat\)[\s\S]*Gain a major bonus to Initiative/);
   assert.doesNotMatch(equipmentSection.body, /Granted by the Criminal background|Streetwise lawbreaker/);
+});
+
+test("ability widgets summarize lineage and background bonuses together", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "1",
+    "#player-strength": "10",
+    "#player-dexterity": "10",
+    "#player-constitution": "10",
+    "#player-intelligence": "10",
+    "#player-wisdom": "10",
+    "#player-charisma": "10",
+    "#player-lineage-ability-bonuses": "charisma:2",
+    "#player-background-ability-bonuses": "dexterity:2, constitution:1",
+  }));
+  const abilitySection = app.playerSectionDefinitions(player).find((section) => section.key === "abilities");
+
+  assert.match(abilitySection.body, /Ability bonuses/);
+  assert.match(abilitySection.body, /Race: CHA \+2/);
+  assert.match(abilitySection.body, /Background: DEX \+2, CON \+1/);
 });
 
 test("background equipment can be exchanged for starting gold", () => {
@@ -741,6 +827,32 @@ test("background suggestions use the same package path as direct background sele
   assert.match(form.fields["#player-background-ability-controls"].innerHTML, /Choose from Dex\/Con\/Int \(\+2\/\+1 or \+1\/\+1\/\+1\)/);
   assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Starting gold[\s\S]*16 GP assigned/);
   assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Take \+50 GP instead/);
+});
+
+test("feat suggestions add rules text instead of suggestion metadata", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub();
+
+  app.applyCharacterSuggestion(form, {
+    category: "feats",
+    label: "Alert",
+    description: "Feat for watchful, tactical, or quick-reacting characters.",
+    mechanics: "Gain a major bonus to Initiative.",
+  });
+
+  assert.match(form.fields["#player-features"].value, /Alert \(Feat\)[\s\S]*Gain a major bonus to Initiative/);
+  assert.doesNotMatch(form.fields["#player-features"].value, /Feat for watchful|Mechanics:/);
+});
+
+test("skill-granting background feats unlock additional skill choices", () => {
+  const app = createFrontendSandbox();
+  const sageForm = createCharacterFormStub({ "#player-class-role": "Wizard" });
+  app.applyBackgroundPackageToForm(sageForm, app.backgroundPackageForName("Sage"));
+  assert.equal(sageForm.skillInputs.find((input) => input.value === "performance").disabled, true);
+
+  const nobleForm = createCharacterFormStub({ "#player-class-role": "Wizard" });
+  app.applyBackgroundPackageToForm(nobleForm, app.backgroundPackageForName("Noble"));
+  assert.equal(nobleForm.skillInputs.find((input) => input.value === "performance").disabled, false);
 });
 
 test("changing backgrounds replaces generated background parts", () => {

@@ -385,6 +385,7 @@ test("character analysis API returns validated suggestions without exposing Open
   assert.equal(payload.model, "local-keyword-matcher");
   assert.ok(payload.suggestions.length > 0);
   assert.ok(payload.suggestions.every((suggestion) => suggestion.id && suggestion.label && suggestion.explanation));
+  assert.ok(payload.suggestions.every((suggestion) => ["backgrounds", "feats"].includes(suggestion.category)));
 });
 
 test("background suggestion API writes homebrew backgrounds to TSV", async (t) => {

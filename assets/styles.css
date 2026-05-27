@@ -2035,11 +2035,18 @@ code { color: var(--ember-2); }
   text-transform: uppercase;
 }
 .story-widget-grid section,
+.background-widget-card,
 .feature-widget-card {
+  display: grid;
+  gap: 10px;
   border: 1px solid rgba(55, 42, 31, 0.12);
   border-radius: 12px;
   padding: 10px;
   background: rgba(255, 246, 230, 0.62);
+}
+.feature-widget-card {
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: start;
 }
 .story-widget-grid p,
 .equipment-widget-sections p {
@@ -2051,6 +2058,9 @@ code { color: var(--ember-2); }
   color: var(--text);
   font-weight: 650;
   line-height: 1.55;
+}
+.background-widget-card h3 {
+  margin: 0;
 }
 .gp-shop-button,
 .equipment-shop-item .btn {
@@ -2074,6 +2084,18 @@ code { color: var(--ember-2); }
 .equipment-homebrew-card > strong {
   color: var(--text);
   font-weight: 950;
+}
+.feature-widget-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  color: var(--text-on-dark);
+  font-size: 0.78rem;
+  font-weight: 950;
+  background: linear-gradient(135deg, #8f372d, #bd513b);
+  box-shadow: inset 0 1px 0 rgba(255, 248, 234, 0.24);
 }
 .feature-widget-card p {
   color: var(--muted-2);
@@ -3125,6 +3147,22 @@ select:focus {
   font-variant-numeric: tabular-nums;
   line-height: 1;
   background: #dff0ce;
+}
+.section-summary-card .ability-bonus-pill {
+  display: grid;
+  grid-template-columns: auto minmax(180px, auto);
+  max-width: 100%;
+}
+.section-summary-card .ability-bonus-pill strong {
+  width: auto;
+  min-width: 180px;
+  height: auto;
+  min-height: 38px;
+  border-radius: 999px;
+  padding: 8px 12px;
+  line-height: 1.2;
+  text-align: left;
+  justify-content: flex-start;
 }
 .section-summary-card .skill-chip-grid {
   display: flex;
