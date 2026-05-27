@@ -677,7 +677,7 @@ function localCharacterSuggestions({ description, context }) {
   const suggestions = Object.entries(ALLOWED_CHARACTER_SUGGESTIONS)
     .flatMap(([category, items]) => scoreSuggestionCategory(category, items, text, tokens))
     .sort((a, b) => b.score - a.score);
-  const perCategoryLimit = { backgrounds: 2, racialTraits: 2, feats: 2 };
+  const perCategoryLimit = { backgrounds: 2, feats: 2 };
   const used = {};
   return {
     suggestions: suggestions.filter((suggestion) => {

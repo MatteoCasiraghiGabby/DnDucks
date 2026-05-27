@@ -102,6 +102,7 @@ function createCharacterFormStub(initialValues = {}) {
     "#player-background", "#player-alignment", "#player-experience", "#player-equipment",
     "#player-equipment-entry", "#player-features", "#player-background-skills", "#player-tool-proficiencies",
     "#player-bonds", "#player-notes",
+    "#player-lineage-ability-controls", "#player-lineage-ability-bonuses", "#player-lineage-traits",
     "#player-background-ability-bonuses", "#player-background-equipment-controls", "#player-gold", "#player-gold-shop-button", "#equipment-shop-panel", "#equipment-shop-search",
     "#player-passive-perception", "#player-hp-max",
     "#player-strength", "#player-dexterity", "#player-constitution", "#player-intelligence", "#player-wisdom", "#player-charisma",
@@ -601,6 +602,7 @@ test("homebrew form offers backgrounds instead of rules", () => {
   assert.match(formMarkup, /id="player-bonds"/);
   assert.match(formMarkup, /id="player-notes"/);
   assert.match(formMarkup, /id="player-background-ability-controls"/);
+  assert.doesNotMatch(formMarkup, /Background ability bonuses/);
   assert.match(formMarkup, /id="player-background-equipment-controls"/);
   assert.match(formMarkup, /id="player-gold"/);
   assert.match(formMarkup, /id="player-gold-shop-button"[\s\S]*0 GP/);
@@ -608,6 +610,36 @@ test("homebrew form offers backgrounds instead of rules", () => {
   assert.match(backgroundMarkup, /Ability Scores[\s\S]*Dexterity, Wisdom, Charisma/);
   assert.match(backgroundMarkup, /Origin Feat[\s\S]*Lucky/);
   assert.match(backgroundMarkup, /Tool Proficiency[\s\S]*Thieves&#039; Tools/);
+});
+
+test("lineages replace racial trait suggestions and apply traits automatically", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-level": "1",
+    "#player-strength": "10",
+    "#player-dexterity": "10",
+    "#player-constitution": "10",
+    "#player-intelligence": "10",
+    "#player-wisdom": "10",
+    "#player-charisma": "10",
+  });
+  const markup = app.playerCharacterFormMarkup();
+
+  assert.match(markup, /value="Aarakocra"/);
+  assert.match(markup, /value="Warforged"/);
+  assert.match(markup, /id="player-lineage-ability-controls"/);
+  assert.match(markup, /id="player-lineage-traits"/);
+
+  app.applyLineagePackageToForm(form, app.lineagePackageForName("Tiefling"));
+  const player = app.buildPlayerCharacter(form);
+
+  assert.equal(form.fields["#player-lineage-ability-bonuses"].value, "intelligence:1, charisma:2");
+  assert.match(form.fields["#player-lineage-traits"].value, /Tiefling \(Lineage traits\)[\s\S]*Darkvision[\s\S]*Infernal Legacy/);
+  assert.equal(player.abilities.charisma, 12);
+  assert.equal(player.abilities.intelligence, 11);
+  assert.match(player.features, /Tiefling \(Lineage traits\)/);
 });
 
 test("chosen backgrounds decompose into character sheet sections", () => {
@@ -637,11 +669,16 @@ test("chosen backgrounds decompose into character sheet sections", () => {
   assert.equal(form.skillInputs.find((input) => input.value === "sleightOfHand").checked, true);
   assert.equal(form.skillInputs.find((input) => input.value === "stealth").checked, true);
   assert.equal(form.fields["#player-background-ability-controls"].hidden, false);
-  assert.match(form.fields["#player-background-ability-controls"].innerHTML, /Apply \+2\/\+1/);
+  assert.doesNotMatch(form.fields["#player-background-ability-controls"].innerHTML, /Apply \+2\/\+1/);
+  assert.match(form.fields["#player-background-ability-controls"].innerHTML, /data-apply-background-ability-boosts[\s\S]*>\+2\/\+1<\/button>/);
+  assert.match(form.fields["#player-background-ability-controls"].innerHTML, /data-apply-background-even-boosts[\s\S]*>\+1\/\+1\/\+1<\/button>/);
+  assert.match(form.fields["#player-background-ability-controls"].innerHTML, /id="player-background-boost-fields" hidden/);
   assert.match(form.fields["#player-background-ability-controls"].innerHTML, /Choose from Dex\/Con\/Int \(\+2\/\+1 or \+1\/\+1\/\+1\)/);
   assert.equal(form.fields["#player-background-equipment-controls"].hidden, false);
   assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Starting gold[\s\S]*16 GP assigned/);
   assert.match(form.fields["#player-background-equipment-controls"].innerHTML, /Take \+50 GP instead/);
+  app.applyEvenBackgroundAbilityBoosts(form);
+  assert.equal(form.fields["#player-background-ability-bonuses"].value, "dexterity:1, constitution:1, intelligence:1");
   form.fields["#player-background-boost-primary"] = { value: "dexterity" };
   form.fields["#player-background-boost-secondary"] = { value: "constitution" };
   app.applySelectedBackgroundAbilityBoosts(form);

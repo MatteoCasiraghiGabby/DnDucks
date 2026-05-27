@@ -126,7 +126,47 @@ const PLAYER_CLASSES = [
   { name: "Wizard", hitDie: "d6", primary: "Intelligence", saves: ["intelligence", "wisdom"], skillLimit: 2, skillChoices: ["arcana", "history", "insight", "investigation", "medicine", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
 ];
 
-const PLAYER_RACES = ["Dragonborn", "Dwarf", "Elf", "Gnome", "Half-Elf", "Halfling", "Half-Orc", "Human", "Tiefling"];
+const PLAYER_RACES = [
+  "Aarakocra", "Aasimar", "Aetherborn", "Astral Elf", "Autognome", "Aven", "Bugbear", "Centaur", "Changeling", "Custom",
+  "Deep Gnome", "Dhampir", "Dragonborn", "Duergar", "Dwarf", "Eladrin", "Elf", "Fairy", "Firbolg",
+  "Genasi (Air)", "Genasi (Earth)", "Genasi (Fire)", "Genasi (Water)", "Giff", "Githyanki", "Githzerai", "Glitchling", "Gnome", "Goblin", "Goliath", "Grung",
+  "Hadozee", "Half-Elf", "Half-Orc", "Halfling", "Harengon", "Hexblood", "Hobgoblin", "Human",
+  "Kalashtar", "Kender", "Kenku", "Khenra", "Kobold", "Kor", "Leonin", "Lizardfolk", "Locathah", "Loxodon",
+  "Merfolk", "Minotaur", "Naga", "Orc", "Owlin", "Owlfolk", "Plasmoid", "Rabbitfolk", "Reborn", "Revenant",
+  "Satyr", "Sea Elf", "Shadar-Kai", "Shifter", "Simic Hybrid", "Siren", "Tabaxi", "Thri-kreen", "Tiefling", "Tortle", "Triton",
+  "Vampire", "Vedalken", "Verdan", "Viashino", "Warforged", "Yuan-Ti",
+];
+
+const LINEAGE_FIXED_ASI = {
+  aetherborn: { charisma: 2 },
+  aven: { dexterity: 2 },
+  custom: { choose: 2 },
+  dragonborn: { strength: 2, charisma: 1 },
+  dwarf: { constitution: 2 },
+  elf: { dexterity: 2 },
+  gnome: { intelligence: 2 },
+  grung: { dexterity: 2, constitution: 1 },
+  halfelf: { charisma: 2, choose: 2 },
+  halforc: { strength: 2, constitution: 1 },
+  halfling: { dexterity: 2 },
+  human: { strength: 1, dexterity: 1, constitution: 1, intelligence: 1, wisdom: 1, charisma: 1 },
+  kalashtar: { wisdom: 2, charisma: 1 },
+  khenra: { dexterity: 2, strength: 1 },
+  kor: { dexterity: 2, wisdom: 1 },
+  leonin: { constitution: 2, strength: 1 },
+  locathah: { strength: 2, dexterity: 1 },
+  loxodon: { constitution: 2, wisdom: 1 },
+  merfolk: { charisma: 1 },
+  naga: { constitution: 2, intelligence: 1 },
+  simichybrid: { constitution: 2 },
+  siren: { charisma: 2 },
+  tiefling: { charisma: 2, intelligence: 1 },
+  vampire: { charisma: 2 },
+  vedalken: { intelligence: 2, wisdom: 1 },
+  verdan: { charisma: 2, constitution: 1 },
+  viashino: { dexterity: 2, strength: 1 },
+  warforged: { constitution: 2 },
+};
 const PLAYER_ALIGNMENTS = ["Lawful Good", "Neutral Good", "Chaotic Good", "Lawful Neutral", "True Neutral", "Chaotic Neutral", "Lawful Evil", "Neutral Evil", "Chaotic Evil", "Unaligned"];
 
 const LANGUAGES = [
@@ -440,22 +480,57 @@ function skillKeysForLabels(values = []) {
   return values.map(skillKeyForLabel).filter(Boolean);
 }
 
-function languageRulesForRace(race = "") {
-  const value = String(race).toLowerCase();
+function lineageKey(value = "") {
+  return normalizeRulesText(value).replace(/[^a-z0-9]/g, "");
+}
+
+function lineagePackageForName(name = "") {
+  const normalized = normalizeRulesText(name);
+  if (!normalized) return null;
+  const display = PLAYER_RACES.find((race) => normalizeRulesText(race) === normalized);
+  if (!display) return null;
+  const key = lineageKey(display);
+  return {
+    name: display,
+    key,
+    asi: LINEAGE_FIXED_ASI[key] || "choice",
+    traits: lineageTraitNamesForRace(display),
+    speed: lineageSpeed(display),
+    languages: lineageLanguages(display),
+    extraLanguages: lineageExtraLanguageLimit(display),
+  };
+}
+
+function lineageLanguages(race = "") {
+  const value = normalizeRulesText(race);
   const fixed = ["common"];
-  let extraLimit = 0;
-  if (value.includes("dragonborn")) fixed.push("draconic");
-  else if (value.includes("half-elf")) {
-    fixed.push("elvish");
-    extraLimit = 1;
-  } else if (value.includes("half-orc")) fixed.push("orc");
-  else if (value.includes("dwarf")) fixed.push("dwarvish");
-  else if (value.includes("elf")) fixed.push("elvish");
-  else if (value.includes("gnome")) fixed.push("gnomish");
-  else if (value.includes("halfling")) fixed.push("halfling");
-  else if (value.includes("human")) extraLimit = 1;
-  else if (value.includes("tiefling")) fixed.push("infernal");
-  return { fixed: Array.from(new Set(fixed)), extraLimit };
+  const add = (language) => { if (language) fixed.push(language); };
+  if (value.includes("dragonborn") || value.includes("kobold") || value.includes("lizardfolk") || value.includes("viashino") || value.includes("yuan ti")) add("draconic");
+  else if (value.includes("dwarf") || value.includes("duergar")) add("dwarvish");
+  else if (value.includes("elf") || value.includes("eladrin") || value.includes("shadar kai") || value.includes("simic")) add("elvish");
+  else if (value.includes("gith")) add("gith");
+  else if (value.includes("gnome")) add("gnomish");
+  else if (value.includes("goblin") || value.includes("hobgoblin") || value.includes("bugbear") || value.includes("verdan")) add("goblin");
+  else if (value.includes("goliath") || value.includes("firbolg")) add("giant");
+  else if (value.includes("halfling")) add("halfling");
+  else if (value.includes("orc")) add("orc");
+  else if (value.includes("tiefling")) add("infernal");
+  else if (value.includes("aasimar")) add("celestial");
+  else if (value.includes("fairy") || value.includes("satyr") || value.includes("centaur")) add("sylvan");
+  else if (value.includes("genasi") || value.includes("triton")) add("primordial");
+  else if (value.includes("plasmoid") || value.includes("thri kreen")) add("deepSpeech");
+  return Array.from(new Set(fixed));
+}
+
+function lineageExtraLanguageLimit(race = "") {
+  const value = normalizeRulesText(race);
+  if (value.includes("human") || value.includes("half elf")) return 1;
+  return 0;
+}
+
+function languageRulesForRace(race = "") {
+  const lineage = lineagePackageForName(race);
+  return { fixed: lineage?.languages || ["common"], extraLimit: lineage?.extraLanguages || 0 };
 }
 
 function derivedToolProficienciesForClass(classRole = "") {
@@ -955,11 +1030,58 @@ function classHitDice(level, classRole = "") {
   return `${Math.max(1, Number(level) || 1)}d${hitDieSides(classRole)}`;
 }
 
-function raceSpeed(race = "") {
-  const value = String(race).toLowerCase();
+function lineageSpeed(race = "") {
+  const value = normalizeRulesText(race);
   if (value.includes("wood elf")) return 35;
-  if (value.includes("dwarf") || value.includes("gnome") || value.includes("halfling")) return 25;
+  if (value.includes("aarakocra") || value.includes("satyr") || value.includes("dhampir") || value.includes("firbolg") || value.includes("harengon") || value.includes("khenra") || value.includes("leonin")) return 35;
+  if (value.includes("centaur")) return 40;
+  if (value.includes("dwarf") || value.includes("gnome") || value.includes("halfling") || value.includes("grung") || value.includes("siren")) return 25;
   return 30;
+}
+
+function raceSpeed(race = "") {
+  return lineagePackageForName(race)?.speed || lineageSpeed(race);
+}
+
+function lineageTraitNamesForRace(race = "") {
+  const value = normalizeRulesText(race);
+  const traits = [];
+  const add = (...items) => items.forEach((item) => { if (item) traits.push(item); });
+  if (/elf|eladrin|shadar kai|fairy|firbolg|satyr|centaur|hobgoblin|goblin|bugbear/.test(value)) add("Fey Ancestry");
+  if (/dwarf|elf|gnome|tiefling|aasimar|kobold|orc|half orc|bugbear|goblin|hobgoblin|leonin|shifter|tabaxi|yuan ti|plasmoid|thri kreen|dhampir|hexblood|deep gnome/.test(value)) add("Darkvision");
+  if (/duergar|deep gnome|gith|kalashtar|vedalken|yuan ti|satyr/.test(value)) add("Mental or magical resilience");
+  if (/aarakocra|fairy|owlin|owlfolk|aven|siren/.test(value)) add("Flight");
+  if (/genasi/.test(value)) add("Elemental legacy", "Elemental resistance");
+  if (/dragonborn/.test(value)) add("Draconic Ancestry", "Breath Weapon", "Damage Resistance");
+  if (/tiefling/.test(value)) add("Hellish Resistance", "Infernal Legacy");
+  if (/dwarf|duergar/.test(value)) add("Dwarven Resilience", "Stonecunning");
+  if (/elf|eladrin|sea elf|shadar kai|astral elf/.test(value)) add("Trance", "Keen Senses");
+  if (/gnome/.test(value)) add("Gnome Cunning");
+  if (/halfling/.test(value)) add("Lucky", "Brave", "Halfling Nimbleness");
+  if (/half elf/.test(value)) add("Skill Versatility");
+  if (/half orc|orc/.test(value)) add("Relentless Endurance", "Powerful Build");
+  if (/human/.test(value)) add("Resourceful", "Skillful", "Versatile");
+  if (/changeling/.test(value)) add("Shapechanger", "Changeling Instincts");
+  if (/warforged|autognome|glitchling/.test(value)) add("Constructed Resilience", "Sentry's Rest", "Integrated Protection");
+  if (/dhampir/.test(value)) add("Deathless Nature", "Spider Climb", "Vampiric Bite");
+  if (/hexblood/.test(value)) add("Eerie Token", "Hex Magic");
+  if (/reborn|revenant/.test(value)) add("Deathless Nature", "Knowledge from a Past Life");
+  if (/goliath/.test(value)) add("Stone's Endurance", "Mountain Born", "Powerful Build");
+  if (/lizardfolk|tortle|loxodon|locathah/.test(value)) add("Natural Armor");
+  if (/triton|locathah|grung|merfolk|genasi water/.test(value)) add("Amphibious", "Swim");
+  if (/giff/.test(value)) add("Hippo Build", "Firearms Mastery", "Astral Spark");
+  if (/hadozee/.test(value)) add("Dexterous Feet", "Glide", "Hadozee Dodge");
+  if (/kenku/.test(value)) add("Kenku Recall", "Mimicry");
+  if (/harengon|rabbitfolk/.test(value)) add("Hare-Trigger", "Leporine Senses", "Lucky Footwork", "Rabbit Hop");
+  if (/tabaxi/.test(value)) add("Feline Agility", "Cat's Claws", "Cat's Talent");
+  if (/minotaur/.test(value)) add("Horns", "Goring Rush", "Hammering Horns");
+  if (/plasmoid/.test(value)) add("Amorphous", "Shape Self");
+  if (/thri kreen/.test(value)) add("Chameleon Carapace", "Secondary Arms", "Sleepless", "Telepathy");
+  if (/kender/.test(value)) add("Fearless", "Kender Aptitude", "Taunt");
+  if (/kalashtar/.test(value)) add("Dual Mind", "Mind Link", "Severed from Dreams");
+  if (/custom/.test(value)) add("Feat", "Variable Trait");
+  if (!traits.length) add("Lineage Traits");
+  return Array.from(new Set(traits));
 }
 
 const ARMOR_FORMULAS = [
@@ -1090,8 +1212,9 @@ function buildPlayerCharacter(form) {
   const level = numberFormValue(form, "#player-level");
   const classRole = formValue(form, "#player-class-role");
   const baseAbilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  const lineageAbilityBonuses = lineageAbilityBonusesFromForm(form);
   const backgroundAbilityBonuses = backgroundAbilityBonusesFromForm(form);
-  const abilities = applyBackgroundBonusesToScores(baseAbilities, backgroundAbilityBonuses);
+  const abilities = applyBackgroundBonusesToScores(baseAbilities, combineAbilityBonuses(lineageAbilityBonuses, backgroundAbilityBonuses));
   const proficiencyBonus = proficiencyBonusForLevel(level || 1);
   const backgroundSkillProficiencies = splitListInput(formValue(form, "#player-background-skills"));
   const skillProficiencies = uniqueTextList([
@@ -1121,7 +1244,7 @@ function buildPlayerCharacter(form) {
     passivePerception,
   };
   const features = appendUniqueTextBlock(
-    formValue(form, "#player-features"),
+    appendUniqueTextBlock(formValue(form, "#player-features"), formValue(form, "#player-lineage-traits")),
     homebrewFeatureTextForEquipment(equipment)
   );
   return {
@@ -1137,6 +1260,7 @@ function buildPlayerCharacter(form) {
     experience: numberFormValue(form, "#player-experience"),
     abilities,
     baseAbilities,
+    lineageAbilityBonuses,
     backgroundAbilityBonuses,
     proficiencyBonus,
     savingThrowProficiencies: checkedFormValues(form, "player-saving-throws"),
@@ -2384,13 +2508,11 @@ function parseJsonResponse(text) {
 
 const CHARACTER_SUGGESTION_TARGETS = {
   backgrounds: "#player-features",
-  racialTraits: "#player-features",
   feats: "#player-features",
 };
 
 const CHARACTER_SUGGESTION_LABELS = {
   backgrounds: "Background package",
-  racialTraits: "Species or racial trait",
   feats: "Feat or talent",
 };
 
@@ -2586,6 +2708,20 @@ function backgroundAbilityBonusesFromForm(form) {
   return parseAbilityBonuses(formValue(form, "#player-background-ability-bonuses"));
 }
 
+function lineageAbilityBonusesFromForm(form) {
+  return parseAbilityBonuses(formValue(form, "#player-lineage-ability-bonuses"));
+}
+
+function combineAbilityBonuses(...bonusSets) {
+  return bonusSets.reduce((combined, bonuses) => {
+    ABILITIES.forEach((ability) => {
+      const amount = Number(bonuses?.[ability.key]) || 0;
+      if (amount) combined[ability.key] = (Number(combined[ability.key]) || 0) + amount;
+    });
+    return combined;
+  }, {});
+}
+
 function applyBackgroundBonusesToScores(scores = {}, bonuses = {}) {
   return Object.fromEntries(ABILITIES.map((ability) => {
     const base = Number(scores[ability.key]) || 0;
@@ -2598,6 +2734,8 @@ function renderBackgroundAbilityControls(form, background = {}) {
   const controls = form.querySelector("#player-background-ability-controls");
   if (!controls) return;
   const abilityKeys = background.abilityScores.map(abilityKeyForLabel).filter(Boolean);
+  delete controls.dataset.abilityKeys;
+  delete controls.dataset.boostMode;
   if (!abilityKeys.length) {
     controls.hidden = true;
     controls.innerHTML = "";
@@ -2611,21 +2749,30 @@ function renderBackgroundAbilityControls(form, background = {}) {
   }
   controls.hidden = false;
   controls.dataset.applied = "false";
+  controls.dataset.abilityKeys = abilityKeys.join(",");
   const mechanicsText = backgroundAbilityMechanicsText(background.abilityScores);
   controls.innerHTML = `
-    <div><span>Mechanics: ability scores</span><strong>${escapeHtml(mechanicsText)}</strong></div>
-    <label>+2
-      <select id="player-background-boost-primary">${backgroundAbilityOptionMarkup(background.abilityScores, abilityKeys[0])}</select>
-    </label>
-    <label>+1
-      <select id="player-background-boost-secondary">${backgroundAbilityOptionMarkup(background.abilityScores, abilityKeys[1])}</select>
-    </label>
-    <button class="btn btn-secondary" type="button" data-apply-background-ability-boosts>Apply +2/+1</button>
-    <button class="btn btn-secondary" type="button" data-apply-background-even-boosts>Apply +1/+1/+1</button>`;
+    <div class="background-ability-mechanics"><span>Mechanics: ability scores</span><p>${escapeHtml(mechanicsText)}</p></div>
+    <div class="background-ability-mode-grid">
+      <button class="btn btn-secondary" type="button" data-apply-background-ability-boosts aria-expanded="false" aria-controls="player-background-boost-fields">+2/+1</button>
+      <button class="btn btn-secondary" type="button" data-apply-background-even-boosts>+1/+1/+1</button>
+    </div>
+    <div class="background-ability-select-grid" id="player-background-boost-fields" hidden>
+      <label>+2
+        <select id="player-background-boost-primary">${backgroundAbilityOptionMarkup(background.abilityScores, abilityKeys[0])}</select>
+      </label>
+      <label>+1
+        <select id="player-background-boost-secondary">${backgroundAbilityOptionMarkup(background.abilityScores, abilityKeys[1])}</select>
+      </label>
+    </div>`;
 }
 
 function backgroundAbilityBonusSummary(form) {
   const bonuses = backgroundAbilityBonusesFromForm(form);
+  return abilityBonusSummaryFromBonuses(bonuses);
+}
+
+function abilityBonusSummaryFromBonuses(bonuses = {}) {
   const parts = ABILITIES.map((ability) => {
     const amount = Number(bonuses[ability.key]) || 0;
     return amount ? `${ability.short} ${signedModifier(amount)}` : "";
@@ -2634,6 +2781,7 @@ function backgroundAbilityBonusSummary(form) {
 }
 
 function applySelectedBackgroundAbilityBoosts(form) {
+  setBackgroundAbilityBoostMode(form, "split");
   const primary = form.querySelector("#player-background-boost-primary")?.value;
   const secondarySelect = form.querySelector("#player-background-boost-secondary");
   let secondary = secondarySelect?.value;
@@ -2647,10 +2795,120 @@ function applySelectedBackgroundAbilityBoosts(form) {
 
 function applyEvenBackgroundAbilityBoosts(form) {
   const controls = form.querySelector("#player-background-ability-controls");
-  const keys = Array.from(controls?.querySelectorAll("select") || [])
+  setBackgroundAbilityBoostMode(form, "even");
+  const storedKeys = String(controls?.dataset?.abilityKeys || "").split(",").filter(Boolean);
+  const keys = storedKeys.length ? storedKeys : Array.from(controls?.querySelectorAll("select") || [])
     .flatMap((select) => Array.from(select.options || []).map((option) => option.value))
     .filter(Boolean);
   applyBackgroundAbilityBonuses(form, Object.fromEntries(Array.from(new Set(keys)).slice(0, 3).map((key) => [key, 1])));
+}
+
+function setBackgroundAbilityBoostMode(form, mode) {
+  const controls = form.querySelector("#player-background-ability-controls");
+  if (controls?.dataset) controls.dataset.boostMode = mode;
+  const splitFields = form.querySelector("#player-background-boost-fields");
+  const splitButton = form.querySelector("[data-apply-background-ability-boosts]");
+  const evenButton = form.querySelector("[data-apply-background-even-boosts]");
+  if (splitFields) splitFields.hidden = mode !== "split";
+  if (splitButton) {
+    splitButton.setAttribute?.("aria-expanded", mode === "split" ? "true" : "false");
+    splitButton.classList?.toggle("is-selected", mode === "split");
+  }
+  if (evenButton) evenButton.classList?.toggle("is-selected", mode === "even");
+}
+
+function setHiddenAbilityBonuses(form, selector, bonuses = {}) {
+  const field = form.querySelector(selector);
+  if (field) {
+    field.value = serializeAbilityBonuses(bonuses);
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
+function renderLineageAbilityControls(form, lineage = {}) {
+  const controls = form.querySelector("#player-lineage-ability-controls");
+  if (!controls) return;
+  const asi = lineage.asi || "choice";
+  if (asi !== "choice") {
+    const fixed = Object.fromEntries(Object.entries(asi).filter(([key, amount]) => (
+      ABILITIES.some((ability) => ability.key === key) && Number(amount)
+    )));
+    setHiddenAbilityBonuses(form, "#player-lineage-ability-bonuses", fixed);
+    controls.hidden = true;
+    controls.innerHTML = "";
+    return;
+  }
+  controls.hidden = false;
+  controls.innerHTML = `
+    <div class="background-ability-mechanics"><span>Lineage ability scores</span><p>Choose any abilities (+2/+1 or +1/+1/+1)</p></div>
+    <div class="background-ability-mode-grid">
+      <button class="btn btn-secondary" type="button" data-apply-lineage-ability-boosts aria-expanded="false" aria-controls="player-lineage-boost-fields">+2/+1</button>
+      <button class="btn btn-secondary" type="button" data-apply-lineage-even-boosts>+1/+1/+1</button>
+    </div>
+    <div class="background-ability-select-grid" id="player-lineage-boost-fields" hidden>
+      <label>+2
+        <select id="player-lineage-boost-primary">${ABILITIES.map((ability) => `<option value="${escapeHtml(ability.key)}">${escapeHtml(ability.label)}</option>`).join("")}</select>
+      </label>
+      <label>+1
+        <select id="player-lineage-boost-secondary">${ABILITIES.map((ability, index) => `<option value="${escapeHtml(ability.key)}" ${index === 1 ? "selected" : ""}>${escapeHtml(ability.label)}</option>`).join("")}</select>
+      </label>
+    </div>`;
+  applySelectedLineageAbilityBoosts(form);
+}
+
+function setLineageAbilityBoostMode(form, mode) {
+  const splitFields = form.querySelector("#player-lineage-boost-fields");
+  const splitButton = form.querySelector("[data-apply-lineage-ability-boosts]");
+  const evenButton = form.querySelector("[data-apply-lineage-even-boosts]");
+  if (splitFields) splitFields.hidden = mode !== "split";
+  if (splitButton) {
+    splitButton.setAttribute?.("aria-expanded", mode === "split" ? "true" : "false");
+    splitButton.classList?.toggle("is-selected", mode === "split");
+  }
+  if (evenButton) evenButton.classList?.toggle("is-selected", mode === "even");
+}
+
+function applySelectedLineageAbilityBoosts(form) {
+  setLineageAbilityBoostMode(form, "split");
+  const primary = form.querySelector("#player-lineage-boost-primary")?.value;
+  const secondarySelect = form.querySelector("#player-lineage-boost-secondary");
+  let secondary = secondarySelect?.value;
+  if (primary && secondary && primary === secondary) {
+    secondary = Array.from(secondarySelect?.options || []).map((option) => option.value).find((value) => value && value !== primary);
+    if (secondarySelect && secondary) secondarySelect.value = secondary;
+  }
+  if (!primary || !secondary || primary === secondary) return;
+  setHiddenAbilityBonuses(form, "#player-lineage-ability-bonuses", { [primary]: 2, [secondary]: 1 });
+}
+
+function applyEvenLineageAbilityBoosts(form) {
+  setLineageAbilityBoostMode(form, "even");
+  setHiddenAbilityBonuses(form, "#player-lineage-ability-bonuses", Object.fromEntries(ABILITIES.slice(0, 3).map((ability) => [ability.key, 1])));
+}
+
+function lineageTraitTextForRace(race = "") {
+  const lineage = lineagePackageForName(race);
+  if (!lineage) return "";
+  return [
+    `${lineage.name} (Lineage traits)`,
+    `Speed: ${lineage.speed} ft.`,
+    lineage.languages?.length ? `Languages: ${lineage.languages.map(languageLabel).join(", ")}${lineage.extraLanguages ? ` plus ${lineage.extraLanguages} choice` : ""}.` : "",
+    lineage.traits?.length ? `Traits: ${lineage.traits.join(", ")}.` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function applyLineagePackageToForm(form, lineage = {}) {
+  if (!lineage?.name) return;
+  const raceInput = form.querySelector("#player-race");
+  if (raceInput) raceInput.value = lineage.name;
+  const traitsField = form.querySelector("#player-lineage-traits");
+  if (traitsField) {
+    traitsField.value = lineageTraitTextForRace(lineage.name);
+    traitsField.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  renderLineageAbilityControls(form, lineage);
+  applyClassRestrictions(form);
+  updatePlayerFormDerivedFields(form);
 }
 
 function renderBackgroundEquipmentControls(form, background = {}, equipmentParts = {}) {
@@ -5446,6 +5704,10 @@ function playerCharacterFormMarkup() {
         <label>Level<input id="player-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
         <label>Race<input id="player-race" type="text" list="player-race-options" placeholder="Human" /></label>
         <label>Alignment<input id="player-alignment" type="text" list="player-alignment-options" placeholder="Neutral Good" /></label>
+        <div class="sheet-derived-grid full-width" id="player-lineage-ability-controls" hidden></div>
+        <div class="passive-perception-pill full-width"><span>Lineage ability bonuses</span><strong id="player-lineage-ability-bonus-summary">Choose a lineage to assign bonuses.</strong></div>
+        <input id="player-lineage-ability-bonuses" type="hidden" />
+        <textarea id="player-lineage-traits" hidden aria-hidden="true"></textarea>
       </fieldset>
 
       <fieldset class="sheet-form-section">
@@ -5467,7 +5729,6 @@ function playerCharacterFormMarkup() {
         <legend>Background</legend>
         <label class="full-width">Background<input id="player-background" type="text" list="player-background-options" placeholder="Acolyte" /></label>
         <div class="sheet-derived-grid full-width" id="player-background-ability-controls" hidden></div>
-        <div class="passive-perception-pill full-width"><span>Background ability bonuses</span><strong id="player-background-ability-bonus-summary">Choose a background to assign bonuses.</strong></div>
         <div class="sheet-derived-grid background-equipment-choice-grid full-width" id="player-background-equipment-controls" hidden></div>
         <input id="player-background-ability-bonuses" type="hidden" />
       </fieldset>
@@ -5536,16 +5797,20 @@ function updatePlayerFormDerivedFields(form) {
   const level = numberFormValue(form, "#player-level") || 1;
   const proficiencyBonus = proficiencyBonusForLevel(level);
   const baseScores = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
-  const scores = applyBackgroundBonusesToScores(baseScores, backgroundAbilityBonusesFromForm(form));
+  const lineageBonuses = lineageAbilityBonusesFromForm(form);
+  const backgroundBonuses = backgroundAbilityBonusesFromForm(form);
+  const scores = applyBackgroundBonusesToScores(baseScores, combineAbilityBonuses(lineageBonuses, backgroundBonuses));
   const classRole = formValue(form, "#player-class-role");
   const race = formValue(form, "#player-race");
   const equipment = formValue(form, "#player-equipment");
   if (level <= 1) clearRolledHitPoints(form);
   ABILITIES.forEach((ability) => {
     const output = document.getElementById(`player-${ability.key}-modifier`);
-    const bonus = Number(backgroundAbilityBonusesFromForm(form)[ability.key]) || 0;
-    if (output) output.textContent = `${signedModifier(abilityModifier(scores[ability.key]))}${bonus ? ` (${signedModifier(bonus)} background)` : ""}`;
+    const bonus = (Number(lineageBonuses[ability.key]) || 0) + (Number(backgroundBonuses[ability.key]) || 0);
+    if (output) output.textContent = `${signedModifier(abilityModifier(scores[ability.key]))}${bonus ? ` (${signedModifier(bonus)} bonus)` : ""}`;
   });
+  const lineageSummary = document.getElementById("player-lineage-ability-bonus-summary");
+  if (lineageSummary) lineageSummary.textContent = abilityBonusSummaryFromBonuses(lineageBonuses) || "Choose a lineage to assign bonuses.";
   const bonusSummary = document.getElementById("player-background-ability-bonus-summary");
   if (bonusSummary) bonusSummary.textContent = backgroundAbilityBonusSummary(form) || "Choose a background to assign bonuses.";
   const goldButton = document.getElementById("player-gold-shop-button");
@@ -5588,7 +5853,7 @@ function rollHitPointsForLevel(form) {
   const classRole = formValue(form, "#player-class-role");
   const constitution = applyBackgroundBonusesToScores({
     constitution: numberFormValue(form, "#player-constitution"),
-  }, backgroundAbilityBonusesFromForm(form)).constitution;
+  }, combineAbilityBonuses(lineageAbilityBonusesFromForm(form), backgroundAbilityBonusesFromForm(form))).constitution;
   const sides = hitDieSides(classRole);
   const conMod = abilityModifier(constitution);
   const baseHitPoints = Math.max(1, sides + conMod);
@@ -5904,6 +6169,16 @@ function initPlayerCharacterForm(form) {
       updatePlayerFormDerivedFields(form);
       refreshPlayerSectionSummary(form);
     }
+    if (event.target?.matches("[data-apply-lineage-ability-boosts]")) {
+      applySelectedLineageAbilityBoosts(form);
+      updatePlayerFormDerivedFields(form);
+      refreshPlayerSectionSummary(form);
+    }
+    if (event.target?.matches("[data-apply-lineage-even-boosts]")) {
+      applyEvenLineageAbilityBoosts(form);
+      updatePlayerFormDerivedFields(form);
+      refreshPlayerSectionSummary(form);
+    }
     if (event.target?.matches("[data-close-equipment-shop]")) {
       const panel = form.querySelector("#equipment-shop-panel");
       if (panel) panel.hidden = true;
@@ -5944,8 +6219,15 @@ function initPlayerCharacterForm(form) {
       const background = backgroundPackageForName(event.target.value);
       if (background) applyBackgroundPackageToForm(form, background);
     }
+    if (event.target?.id === "player-race") {
+      const lineage = lineagePackageForName(event.target.value);
+      if (lineage) applyLineagePackageToForm(form, lineage);
+    }
     if (event.target?.id === "player-background-boost-primary" || event.target?.id === "player-background-boost-secondary") {
       applySelectedBackgroundAbilityBoosts(form);
+    }
+    if (event.target?.id === "player-lineage-boost-primary" || event.target?.id === "player-lineage-boost-secondary") {
+      applySelectedLineageAbilityBoosts(form);
     }
     if (event.target?.name === "player-background-equipment-mode") {
       applyBackgroundEquipmentChoice(form, event.target.value);

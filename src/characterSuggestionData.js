@@ -3,7 +3,6 @@ const path = require("node:path");
 
 const CHARACTER_SUGGESTION_CATEGORIES = {
   backgrounds: "Background package",
-  racialTraits: "Species or racial trait",
   feats: "Feat or talent",
 };
 

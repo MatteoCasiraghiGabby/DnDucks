@@ -12,7 +12,7 @@ const {
 } = require("../src/characterSuggestionData");
 
 test("character suggestions load from the editable TSV file", () => {
-  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits.some((item) => item.id === "racial-trait-darkvision-60"));
+  assert.equal(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits, undefined);
   assert.equal(ALLOWED_CHARACTER_SUGGESTIONS.backgroundFeatures, undefined);
   assert.equal(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.length, 16);
   assert.equal(ALLOWED_CHARACTER_SUGGESTIONS.feats.length, 83);
@@ -21,7 +21,6 @@ test("character suggestions load from the editable TSV file", () => {
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-acolyte" && item.mechanics.includes("Magic Initiate (Cleric)")));
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.backgrounds.some((item) => item.id === "background-wayfarer" && item.mechanics.includes("2 Daggers")));
   assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.feats.every((item) => item.source === ""));
-  assert.ok(ALLOWED_CHARACTER_SUGGESTIONS.racialTraits.every((item) => item.source === ""));
 });
 
 test("manual TSV entries parse into suggestion categories", () => {

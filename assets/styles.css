@@ -1846,14 +1846,41 @@ code { color: var(--ember-2); }
   margin-top: 4px;
   font-size: 1.35rem;
 }
-#player-background-ability-controls {
+#player-background-ability-controls,
+#player-lineage-ability-controls {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
 }
-#player-background-ability-controls > div:first-child {
+#player-background-ability-controls > div:first-child,
+#player-lineage-ability-controls > div:first-child {
   grid-column: 1 / -1;
 }
-#player-background-ability-controls > label {
+.background-ability-mechanics p {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 400;
+}
+#player-background-ability-controls .background-ability-mode-grid,
+#player-background-ability-controls .background-ability-select-grid,
+#player-lineage-ability-controls .background-ability-mode-grid,
+#player-lineage-ability-controls .background-ability-select-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#player-background-ability-controls .background-ability-select-grid[hidden],
+#player-lineage-ability-controls .background-ability-select-grid[hidden] {
+  display: none;
+}
+#player-background-ability-controls .background-ability-select-grid > label,
+#player-lineage-ability-controls .background-ability-select-grid > label {
   display: grid;
   gap: 7px;
   min-height: 76px;
@@ -1867,13 +1894,15 @@ code { color: var(--ember-2); }
   background: rgba(255, 250, 236, 0.28);
   box-shadow: inset 0 0 0 1px rgba(38, 27, 20, 0.035);
 }
-#player-background-ability-controls select {
+#player-background-ability-controls select,
+#player-lineage-ability-controls select {
   min-height: 40px;
   font-size: 0.95rem;
   font-weight: 800;
   text-transform: none;
 }
-#player-background-ability-controls .btn {
+#player-background-ability-controls .btn,
+#player-lineage-ability-controls .btn {
   width: 100%;
   min-height: 44px;
   border-color: rgba(127, 29, 29, 0.34);
@@ -1881,6 +1910,10 @@ code { color: var(--ember-2); }
   font-weight: 900;
   background: linear-gradient(135deg, #bd513b, #8f372d);
   box-shadow: 0 10px 18px rgba(159, 60, 46, 0.18), inset 0 1px 0 rgba(255, 248, 234, 0.24);
+}
+#player-background-ability-controls .btn.is-selected,
+#player-lineage-ability-controls .btn.is-selected {
+  outline: 3px solid rgba(182, 122, 57, 0.22);
 }
 .background-equipment-choice-grid {
   grid-template-columns: 1fr;

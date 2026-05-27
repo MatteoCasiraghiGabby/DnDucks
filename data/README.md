@@ -7,10 +7,9 @@ Open it with a spreadsheet app or a text editor. Keep the first header row uncha
 Allowed `category` values:
 
 - `backgrounds`
-- `racialTraits`
 - `feats`
 
-Use a unique `id` for every row. Keep it lowercase and dash-separated, for example `feat-duelist` or `racial-trait-stonecunning`.
+Use a unique `id` for every row. Keep it lowercase and dash-separated, for example `feat-duelist` or `background-wayfarer`.
 
 Use semicolons in `tags` to list the words that should trigger the suggestion:
 
