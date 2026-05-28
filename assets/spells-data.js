@@ -1,4 +1,5 @@
 // Spell names and factual table metadata are derived from https://dnd5e.wikidot.com/spells on 2026-05-28.
+// Class spell-list metadata is derived from the linked Wikidot class spell-list pages on 2026-05-28.
 // Descriptions below are original app summaries generated from that metadata, not copied rules text.
 globalThis.DNDUCKS_SPELLS = [
   {
@@ -13,7 +14,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:acid-splash",
-    "description": "Acid Splash is a cantrip from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Acid Splash is a cantrip from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-blade-ward",
@@ -27,7 +35,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blade-ward",
-    "description": "Blade Ward is a cantrip from the abjuration school. It takes 1 action to cast, reaches self, lasts 1 round, and uses V, S components."
+    "description": "Blade Ward is a cantrip from the abjuration school. It takes 1 action to cast, reaches self, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-booming-blade",
@@ -41,7 +57,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:booming-blade",
-    "description": "Booming Blade is a cantrip from the evocation school. It takes 1 action to cast, reaches self (5-foot radius), lasts 1 round, and uses S, M components."
+    "description": "Booming Blade is a cantrip from the evocation school. It takes 1 action to cast, reaches self (5-foot radius), lasts 1 round, and uses S, M components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-chill-touch",
@@ -55,7 +79,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:chill-touch",
-    "description": "Chill Touch is a cantrip from the necromancy school. It takes 1 action to cast, reaches 120 feet, lasts 1 round, and uses V, S components."
+    "description": "Chill Touch is a cantrip from the necromancy school. It takes 1 action to cast, reaches 120 feet, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-control-flames",
@@ -69,7 +100,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous or 1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:control-flames",
-    "description": "Control Flames is a cantrip from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous or 1 hour, and uses S components."
+    "description": "Control Flames is a cantrip from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous or 1 hour, and uses S components.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-create-bonfire",
@@ -83,7 +121,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:create-bonfire",
-    "description": "Create Bonfire is a cantrip from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Create Bonfire is a cantrip from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-dancing-lights",
@@ -97,7 +144,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dancing-lights",
-    "description": "Dancing Lights is a cantrip from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dancing Lights is a cantrip from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-druidcraft",
@@ -111,7 +166,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:druidcraft",
-    "description": "Druidcraft is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Druidcraft is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "0-eldritch-blast",
@@ -125,7 +183,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:eldritch-blast",
-    "description": "Eldritch Blast is a cantrip from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Eldritch Blast is a cantrip from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Warlock"
+    ]
   },
   {
     "id": "0-encode-thoughts",
@@ -139,7 +200,8 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:encode-thoughts",
-    "description": "Encode Thoughts is a cantrip from the enchantment school. It takes 1 action to cast, reaches self, lasts 8 hours, and uses S components."
+    "description": "Encode Thoughts is a cantrip from the enchantment school. It takes 1 action to cast, reaches self, lasts 8 hours, and uses S components.",
+    "classes": []
   },
   {
     "id": "0-fire-bolt",
@@ -153,7 +215,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fire-bolt",
-    "description": "Fire Bolt is a cantrip from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Fire Bolt is a cantrip from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-friends",
@@ -167,7 +236,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:friends",
-    "description": "Friends is a cantrip from the enchantment school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Friends is a cantrip from the enchantment school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-frostbite",
@@ -181,7 +258,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:frostbite",
-    "description": "Frostbite is a cantrip from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Frostbite is a cantrip from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-green-flame-blade",
@@ -195,7 +281,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:green-flame-blade",
-    "description": "Green-Flame Blade is a cantrip from the evocation school. It takes 1 action to cast, reaches self (5-foot radius), lasts instantaneous, and uses S, M components."
+    "description": "Green-Flame Blade is a cantrip from the evocation school. It takes 1 action to cast, reaches self (5-foot radius), lasts instantaneous, and uses S, M components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-guidance",
@@ -209,7 +303,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:guidance",
-    "description": "Guidance is a cantrip from the divination school. It takes 1 action to cast, reaches touch, lasts concentration up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Guidance is a cantrip from the divination school. It takes 1 action to cast, reaches touch, lasts concentration up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "0-gust",
@@ -223,7 +322,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gust",
-    "description": "Gust is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Gust is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-hand-of-radiance-ua",
@@ -237,7 +343,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hand-of-radiance",
-    "description": "Hand of Radiance (UA) is a cantrip from the evocation school. It takes 1 action to cast, reaches 5 feet, lasts instantaneous, and uses V, S components."
+    "description": "Hand of Radiance (UA) is a cantrip from the evocation school. It takes 1 action to cast, reaches 5 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "0-infestation",
@@ -251,7 +360,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:infestation",
-    "description": "Infestation is a cantrip from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Infestation is a cantrip from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-light",
@@ -265,7 +382,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:light",
-    "description": "Light is a cantrip from the evocation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, M components."
+    "description": "Light is a cantrip from the evocation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-lightning-lure",
@@ -279,7 +405,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:lightning-lure",
-    "description": "Lightning Lure is a cantrip from the evocation school. It takes 1 action to cast, reaches self (15-foot radius), lasts instantaneous, and uses V components."
+    "description": "Lightning Lure is a cantrip from the evocation school. It takes 1 action to cast, reaches self (15-foot radius), lasts instantaneous, and uses V components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-mage-hand",
@@ -293,7 +427,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mage-hand",
-    "description": "Mage Hand is a cantrip from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts 1 minute, and uses V, S components."
+    "description": "Mage Hand is a cantrip from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts 1 minute, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-magic-stone",
@@ -307,7 +450,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:magic-stone",
-    "description": "Magic Stone is a cantrip from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts 1 minute, and uses V, S components."
+    "description": "Magic Stone is a cantrip from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts 1 minute, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Warlock"
+    ]
   },
   {
     "id": "0-mending",
@@ -321,7 +469,17 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mending",
-    "description": "Mending is a cantrip from the transmutation school. It takes 1 minute to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Mending is a cantrip from the transmutation school. It takes 1 minute to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-message",
@@ -335,7 +493,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:message",
-    "description": "Message is a cantrip from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts 1 round, and uses V, S, M components."
+    "description": "Message is a cantrip from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts 1 round, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-mind-sliver",
@@ -349,7 +515,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mind-sliver",
-    "description": "Mind Sliver is a cantrip from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 round, and uses V components."
+    "description": "Mind Sliver is a cantrip from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 round, and uses V components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-minor-illusion",
@@ -363,7 +536,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:minor-illusion",
-    "description": "Minor Illusion is a cantrip from the illusion school. It takes 1 action to cast, reaches 30 feet, lasts 1 minute, and uses S, M components."
+    "description": "Minor Illusion is a cantrip from the illusion school. It takes 1 action to cast, reaches 30 feet, lasts 1 minute, and uses S, M components.",
+    "classes": [
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-mold-earth",
@@ -377,7 +558,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous or 1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mold-earth",
-    "description": "Mold Earth is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous or 1 hour, and uses S components."
+    "description": "Mold Earth is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous or 1 hour, and uses S components.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-on-off-ua",
@@ -391,7 +579,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:on-off",
-    "description": "On/Off (UA) is a cantrip from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "On/Off (UA) is a cantrip from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-poison-spray",
@@ -405,7 +600,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:poison-spray",
-    "description": "Poison Spray is a cantrip from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts instantaneous, and uses V, S components."
+    "description": "Poison Spray is a cantrip from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-prestidigitation",
@@ -419,7 +623,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:prestidigitation",
-    "description": "Prestidigitation is a cantrip from the transmutation school. It takes 1 action to cast, reaches 10 feet, lasts up to 1 hour, and uses V, S components."
+    "description": "Prestidigitation is a cantrip from the transmutation school. It takes 1 action to cast, reaches 10 feet, lasts up to 1 hour, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-primal-savagery",
@@ -433,7 +646,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:primal-savagery",
-    "description": "Primal Savagery is a cantrip from the transmutation school. It takes 1 action to cast, reaches self, lasts instantaneous, and uses S components."
+    "description": "Primal Savagery is a cantrip from the transmutation school. It takes 1 action to cast, reaches self, lasts instantaneous, and uses S components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "0-produce-flame",
@@ -447,7 +663,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:produce-flame",
-    "description": "Produce Flame is a cantrip from the conjuration school. It takes 1 action to cast, reaches self, lasts 10 minutes, and uses V, S components."
+    "description": "Produce Flame is a cantrip from the conjuration school. It takes 1 action to cast, reaches self, lasts 10 minutes, and uses V, S components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "0-ray-of-frost",
@@ -461,7 +680,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ray-of-frost",
-    "description": "Ray of Frost is a cantrip from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Ray of Frost is a cantrip from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-resistance",
@@ -475,7 +701,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:resistance",
-    "description": "Resistance is a cantrip from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Resistance is a cantrip from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "0-sacred-flame",
@@ -489,7 +720,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sacred-flame",
-    "description": "Sacred Flame is a cantrip from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Sacred Flame is a cantrip from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "0-sapping-sting",
@@ -503,7 +737,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sapping-sting",
-    "description": "Sapping Sting is a cantrip from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Sapping Sting is a cantrip from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "0-shape-water",
@@ -517,7 +756,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous or 1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shape-water",
-    "description": "Shape Water is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous or 1 hour, and uses S components."
+    "description": "Shape Water is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous or 1 hour, and uses S components.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-shillelagh",
@@ -531,7 +777,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shillelagh",
-    "description": "Shillelagh is a cantrip from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts 1 minute, and uses V, S, M components."
+    "description": "Shillelagh is a cantrip from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts 1 minute, and uses V, S, M components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "0-shocking-grasp",
@@ -545,7 +794,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shocking-grasp",
-    "description": "Shocking Grasp is a cantrip from the evocation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components."
+    "description": "Shocking Grasp is a cantrip from the evocation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "0-spare-the-dying",
@@ -559,7 +815,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spare-the-dying",
-    "description": "Spare the Dying is a cantrip from the necromancy school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components."
+    "description": "Spare the Dying is a cantrip from the necromancy school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Cleric"
+    ]
   },
   {
     "id": "0-sword-burst",
@@ -573,7 +833,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sword-burst",
-    "description": "Sword Burst is a cantrip from the conjuration school. It takes 1 action to cast, reaches self (5-foot radius), lasts instantaneous, and uses V components."
+    "description": "Sword Burst is a cantrip from the conjuration school. It takes 1 action to cast, reaches self (5-foot radius), lasts instantaneous, and uses V components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-thaumaturgy",
@@ -587,7 +855,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:thaumaturgy",
-    "description": "Thaumaturgy is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts up to 1 minute, and uses V components."
+    "description": "Thaumaturgy is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts up to 1 minute, and uses V components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "0-thorn-whip",
@@ -601,7 +872,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:thorn-whip",
-    "description": "Thorn Whip is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Thorn Whip is a cantrip from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Druid"
+    ]
   },
   {
     "id": "0-thunderclap",
@@ -615,7 +890,17 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:thunderclap",
-    "description": "Thunderclap is a cantrip from the evocation school. It takes 1 action to cast, reaches self (5-foot radius), lasts instantaneous, and uses S components."
+    "description": "Thunderclap is a cantrip from the evocation school. It takes 1 action to cast, reaches self (5-foot radius), lasts instantaneous, and uses S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-toll-the-dead",
@@ -629,7 +914,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:toll-the-dead",
-    "description": "Toll the Dead is a cantrip from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Toll the Dead is a cantrip from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-true-strike",
@@ -643,7 +935,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration up to 1 round",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:true-strike",
-    "description": "True Strike is a cantrip from the divination school. It takes 1 action to cast, reaches 30 feet, lasts concentration up to 1 round, and uses S components. It requires concentration, so it competes with other sustained magic."
+    "description": "True Strike is a cantrip from the divination school. It takes 1 action to cast, reaches 30 feet, lasts concentration up to 1 round, and uses S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "0-vicious-mockery",
@@ -657,7 +957,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:vicious-mockery",
-    "description": "Vicious Mockery is a cantrip from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Vicious Mockery is a cantrip from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard"
+    ]
   },
   {
     "id": "0-virtue-ua",
@@ -671,7 +974,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:virtue",
-    "description": "Virtue (UA) is a cantrip from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 round, and uses V, S components."
+    "description": "Virtue (UA) is a cantrip from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "0-word-of-radiance",
@@ -685,7 +991,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:word-of-radiance",
-    "description": "Word of Radiance is a cantrip from the evocation school. It takes 1 action to cast, reaches 5 feet, lasts instantaneous, and uses V, M components."
+    "description": "Word of Radiance is a cantrip from the evocation school. It takes 1 action to cast, reaches 5 feet, lasts instantaneous, and uses V, M components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "1-absorb-elements",
@@ -699,7 +1008,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:absorb-elements",
-    "description": "Absorb Elements is a 1st level spell from the abjuration school. It takes 1 reaction to cast, reaches self, lasts 1 round, and uses S components."
+    "description": "Absorb Elements is a 1st level spell from the abjuration school. It takes 1 reaction to cast, reaches self, lasts 1 round, and uses S components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-acid-stream-ua",
@@ -713,7 +1030,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:acid-stream",
-    "description": "Acid Stream (UA) is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Acid Stream (UA) is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-alarm",
@@ -727,7 +1049,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 Hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:alarm",
-    "description": "Alarm is a 1st level spell from the abjuration school. It takes 1 minute (ritual) to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Alarm is a 1st level spell from the abjuration school. It takes 1 minute (ritual) to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "1-animal-friendship",
@@ -741,7 +1069,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:animal-friendship",
-    "description": "Animal Friendship is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Animal Friendship is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "1-arcane-weapon-ua",
@@ -755,7 +1088,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:arcane-weapon",
-    "description": "Arcane Weapon (UA) is a 1st level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Arcane Weapon (UA) is a 1st level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer"
+    ]
   },
   {
     "id": "1-armor-of-agathys",
@@ -769,7 +1105,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:armor-of-agathys",
-    "description": "Armor of Agathys is a 1st level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components."
+    "description": "Armor of Agathys is a 1st level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Warlock"
+    ]
   },
   {
     "id": "1-arms-of-hadar",
@@ -783,7 +1122,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:arms-of-hadar",
-    "description": "Arms of Hadar is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches self (10-foot radius), lasts instantaneous, and uses V, S components."
+    "description": "Arms of Hadar is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches self (10-foot radius), lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Warlock"
+    ]
   },
   {
     "id": "1-bane",
@@ -797,7 +1139,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:bane",
-    "description": "Bane is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Bane is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric"
+    ]
   },
   {
     "id": "1-beast-bond",
@@ -811,7 +1157,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:beast-bond",
-    "description": "Beast Bond is a 1st level spell from the divination school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Beast Bond is a 1st level spell from the divination school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "1-bless",
@@ -825,7 +1175,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:bless",
-    "description": "Bless is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Bless is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "1-burning-hands",
@@ -839,7 +1193,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:burning-hands",
-    "description": "Burning Hands is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses V, S components."
+    "description": "Burning Hands is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-catapult",
@@ -853,7 +1212,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:catapult",
-    "description": "Catapult is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses S components."
+    "description": "Catapult is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses S components.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-cause-fear",
@@ -867,7 +1231,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:cause-fear",
-    "description": "Cause Fear is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Cause Fear is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-ceremony",
@@ -881,7 +1249,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ceremony",
-    "description": "Ceremony is a 1st level spell from the abjuration school. It takes 1 action (ritual) to cast, reaches touch, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Ceremony is a 1st level spell from the abjuration school. It takes 1 action (ritual) to cast, reaches touch, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "1-chaos-bolt",
@@ -895,7 +1267,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:chaos-bolt",
-    "description": "Chaos Bolt is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Chaos Bolt is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Sorcerer"
+    ]
   },
   {
     "id": "1-charm-person",
@@ -909,7 +1284,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:charm-person",
-    "description": "Charm Person is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 1 hour, and uses V, S components."
+    "description": "Charm Person is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 1 hour, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-chromatic-orb",
@@ -923,7 +1306,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:chromatic-orb",
-    "description": "Chromatic Orb is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Chromatic Orb is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-color-spray",
@@ -937,7 +1325,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:color-spray",
-    "description": "Color Spray is a 1st level spell from the illusion school. It takes 1 action to cast, reaches self (15-foot cone), lasts 1 round, and uses V, S, M components."
+    "description": "Color Spray is a 1st level spell from the illusion school. It takes 1 action to cast, reaches self (15-foot cone), lasts 1 round, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-command",
@@ -951,7 +1345,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:command",
-    "description": "Command is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 round, and uses V components."
+    "description": "Command is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 round, and uses V components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "1-compelled-duel",
@@ -965,7 +1364,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:compelled-duel",
-    "description": "Compelled Duel is a 1st level spell from the enchantment school. It takes 1 bonus action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Compelled Duel is a 1st level spell from the enchantment school. It takes 1 bonus action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "1-comprehend-languages",
@@ -979,7 +1381,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:comprehend-languages",
-    "description": "Comprehend Languages is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Comprehend Languages is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-create-or-destroy-water",
@@ -993,7 +1401,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:create-or-destroy-water",
-    "description": "Create or Destroy Water is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Create or Destroy Water is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "1-cure-wounds",
@@ -1007,7 +1419,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:cure-wounds",
-    "description": "Cure Wounds is a 1st level spell from the evocation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components."
+    "description": "Cure Wounds is a 1st level spell from the evocation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "1-detect-evil-and-good",
@@ -1021,7 +1441,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:detect-evil-and-good",
-    "description": "Detect Evil and Good is a 1st level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Detect Evil and Good is a 1st level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "1-detect-magic",
@@ -1035,7 +1459,17 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:detect-magic",
-    "description": "Detect Magic is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode."
+    "description": "Detect Magic is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-detect-poison-and-disease",
@@ -1049,7 +1483,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:detect-poison-and-disease",
-    "description": "Detect Poison and Disease is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode."
+    "description": "Detect Poison and Disease is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "1-disguise-self",
@@ -1063,7 +1503,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:disguise-self",
-    "description": "Disguise Self is a 1st level spell from the illusion school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S components."
+    "description": "Disguise Self is a 1st level spell from the illusion school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-dissonant-whispers",
@@ -1077,7 +1524,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dissonant-whispers",
-    "description": "Dissonant Whispers is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Dissonant Whispers is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard"
+    ]
   },
   {
     "id": "1-distort-value",
@@ -1091,7 +1541,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:distort-value",
-    "description": "Distort Value is a 1st level spell from the illusion school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V components."
+    "description": "Distort Value is a 1st level spell from the illusion school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-divine-favor",
@@ -1105,7 +1562,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:divine-favor",
-    "description": "Divine Favor is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Divine Favor is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "1-earth-tremor",
@@ -1119,7 +1579,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:earth-tremor",
-    "description": "Earth Tremor is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (10-foot radius), lasts instantaneous, and uses V, S components."
+    "description": "Earth Tremor is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (10-foot radius), lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-ensnaring-strike",
@@ -1133,7 +1600,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ensnaring-strike",
-    "description": "Ensnaring Strike is a 1st level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Ensnaring Strike is a 1st level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "1-entangle",
@@ -1147,7 +1617,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:entangle",
-    "description": "Entangle is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Entangle is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "1-expeditious-retreat",
@@ -1161,7 +1635,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:expeditious-retreat",
-    "description": "Expeditious Retreat is a 1st level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Expeditious Retreat is a 1st level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-faerie-fire",
@@ -1175,7 +1655,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:faerie-fire",
-    "description": "Faerie Fire is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Faerie Fire is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Druid"
+    ]
   },
   {
     "id": "1-false-life",
@@ -1189,7 +1674,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:false-life",
-    "description": "False Life is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components."
+    "description": "False Life is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-feather-fall",
@@ -1203,7 +1693,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:feather-fall",
-    "description": "Feather Fall is a 1st level spell from the transmutation school. It takes 1 reaction to cast, reaches 60 feet, lasts 1 minute, and uses V, M components."
+    "description": "Feather Fall is a 1st level spell from the transmutation school. It takes 1 reaction to cast, reaches 60 feet, lasts 1 minute, and uses V, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-find-familiar",
@@ -1217,7 +1713,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:find-familiar",
-    "description": "Find Familiar is a 1st level spell from the conjuration school. It takes 1 hour (ritual) to cast, reaches 10 feet, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Find Familiar is a 1st level spell from the conjuration school. It takes 1 hour (ritual) to cast, reaches 10 feet, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "1-fog-cloud",
@@ -1231,7 +1730,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fog-cloud",
-    "description": "Fog Cloud is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Fog Cloud is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-frost-fingers",
@@ -1245,7 +1750,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:frost-fingers",
-    "description": "Frost Fingers is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses V, S components."
+    "description": "Frost Fingers is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "1-gift-of-alacrity",
@@ -1259,7 +1768,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gift-of-alacrity",
-    "description": "Gift of Alacrity is a 1st level spell from the divination school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V, S components."
+    "description": "Gift of Alacrity is a 1st level spell from the divination school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V, S components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "1-goodberry",
@@ -1273,7 +1785,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:goodberry",
-    "description": "Goodberry is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Goodberry is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "1-grease",
@@ -1287,7 +1803,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:grease",
-    "description": "Grease is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses V, S, M components."
+    "description": "Grease is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-guiding-bolt",
@@ -1301,7 +1822,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:guiding-bolt",
-    "description": "Guiding Bolt is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts 1 round, and uses V, S components."
+    "description": "Guiding Bolt is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "1-guiding-hand-ua",
@@ -1315,7 +1839,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:guiding-hand-ua",
-    "description": "Guiding Hand (UA) is a 1st level spell from the divination school. It takes 1 minute (ritual) to cast, reaches 5 feet, lasts concentration, up to 8 hours, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode."
+    "description": "Guiding Hand (UA) is a 1st level spell from the divination school. It takes 1 minute (ritual) to cast, reaches 5 feet, lasts concentration, up to 8 hours, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "1-hail-of-thorns",
@@ -1329,7 +1859,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hail-of-thorns",
-    "description": "Hail of Thorns is a 1st level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Hail of Thorns is a 1st level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "1-healing-elixir-ua",
@@ -1343,7 +1876,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:healing-elixir-ua",
-    "description": "Healing Elixir (UA) is a 1st level spell from the conjuration school. It takes 1 minute to cast, reaches self, lasts 24 hours, and uses V, S, M components."
+    "description": "Healing Elixir (UA) is a 1st level spell from the conjuration school. It takes 1 minute to cast, reaches self, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-healing-word",
@@ -1357,7 +1894,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:healing-word",
-    "description": "Healing Word is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Healing Word is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "1-hellish-rebuke",
@@ -1371,7 +1913,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hellish-rebuke",
-    "description": "Hellish Rebuke is a 1st level spell from the evocation school. It takes 1 reaction to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Hellish Rebuke is a 1st level spell from the evocation school. It takes 1 reaction to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Warlock"
+    ]
   },
   {
     "id": "1-heroism",
@@ -1385,7 +1930,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:heroism",
-    "description": "Heroism is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Heroism is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Paladin"
+    ]
   },
   {
     "id": "1-hex",
@@ -1399,7 +1948,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hex",
-    "description": "Hex is a 1st level spell from the enchantment school. It takes 1 bonus action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Hex is a 1st level spell from the enchantment school. It takes 1 bonus action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock"
+    ]
   },
   {
     "id": "1-hunter-s-mark",
@@ -1413,7 +1965,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hunters-mark",
-    "description": "Hunter's Mark is a 1st level spell from the divination school. It takes 1 bonus action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Hunter's Mark is a 1st level spell from the divination school. It takes 1 bonus action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "1-ice-knife",
@@ -1427,7 +1982,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ice-knife",
-    "description": "Ice Knife is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses S, M components."
+    "description": "Ice Knife is a 1st level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses S, M components.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-id-insinuation-ua",
@@ -1441,7 +2001,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:id-insinuation",
-    "description": "Id Insinuation (UA) is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Id Insinuation (UA) is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-identify",
@@ -1455,7 +2021,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:identify",
-    "description": "Identify is a 1st level spell from the divination school. It takes 1 minute (ritual) to cast, reaches touch, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Identify is a 1st level spell from the divination school. It takes 1 minute (ritual) to cast, reaches touch, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "1-illusory-script",
@@ -1469,7 +2040,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 days",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:illusory-script",
-    "description": "Illusory Script is a 1st level spell from the illusion school. It takes 1 minute (ritual) to cast, reaches touch, lasts 10 days, and uses S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Illusory Script is a 1st level spell from the illusion school. It takes 1 minute (ritual) to cast, reaches touch, lasts 10 days, and uses S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-infallible-relay-ua",
@@ -1483,7 +2060,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:infallible-relay",
-    "description": "Infallible Relay (UA) is a 1st level spell from the divination school. It takes 1 minute to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Infallible Relay (UA) is a 1st level spell from the divination school. It takes 1 minute to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-inflict-wounds",
@@ -1497,7 +2079,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:inflict-wounds",
-    "description": "Inflict Wounds is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components."
+    "description": "Inflict Wounds is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "1-jim-s-magic-missile",
@@ -1511,7 +2096,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:jims-magic-missile",
-    "description": "Jim's Magic Missile is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Jim's Magic Missile is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "1-jump",
@@ -1525,7 +2114,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:jump",
-    "description": "Jump is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 minute, and uses V, S, M components."
+    "description": "Jump is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 minute, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-longstrider",
@@ -1539,7 +2135,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:longstrider",
-    "description": "Longstrider is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components."
+    "description": "Longstrider is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Druid",
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "1-mage-armor",
@@ -1553,7 +2156,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mage-armor",
-    "description": "Mage Armor is a 1st level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S, M components."
+    "description": "Mage Armor is a 1st level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-magic-missile",
@@ -1567,7 +2175,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:magic-missile",
-    "description": "Magic Missile is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Magic Missile is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-magnify-gravity",
@@ -1581,7 +2194,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:magnify-gravity",
-    "description": "Magnify Gravity is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts 1 round, and uses V, S components."
+    "description": "Magnify Gravity is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "1-protection-from-evil-and-good",
@@ -1595,7 +2211,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:protection-from-evil-and-good",
-    "description": "Protection from Evil and Good is a 1st level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Protection from Evil and Good is a 1st level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Paladin",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-puppet-ua",
@@ -1609,7 +2233,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:puppet",
-    "description": "Puppet (UA) is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V components."
+    "description": "Puppet (UA) is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-purify-food-and-drink",
@@ -1623,7 +2253,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:purify-food-and-drink",
-    "description": "Purify Food and Drink is a 1st level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 10 feet, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Purify Food and Drink is a 1st level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 10 feet, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid",
+      "Paladin"
+    ]
   },
   {
     "id": "1-ray-of-sickness",
@@ -1637,7 +2273,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ray-of-sickness",
-    "description": "Ray of Sickness is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Ray of Sickness is a 1st level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-remote-access-ua",
@@ -1651,7 +2291,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:remote-access",
-    "description": "Remote Access (UA) is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts 10 minutes, and uses V, S components."
+    "description": "Remote Access (UA) is a 1st level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts 10 minutes, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-sanctuary",
@@ -1665,7 +2310,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sanctuary",
-    "description": "Sanctuary is a 1st level spell from the abjuration school. It takes 1 bonus action to cast, reaches 30 feet, lasts 1 minute, and uses V, S, M components."
+    "description": "Sanctuary is a 1st level spell from the abjuration school. It takes 1 bonus action to cast, reaches 30 feet, lasts 1 minute, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Cleric"
+    ]
   },
   {
     "id": "1-searing-smite",
@@ -1679,7 +2328,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:searing-smite",
-    "description": "Searing Smite is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Searing Smite is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "1-sense-emotion-ua",
@@ -1693,7 +2346,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sense-emotion",
-    "description": "Sense Emotion (UA) is a 1st level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Sense Emotion (UA) is a 1st level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-shield",
@@ -1707,7 +2365,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shield",
-    "description": "Shield is a 1st level spell from the abjuration school. It takes 1 reaction to cast, reaches self, lasts 1 round, and uses V, S components."
+    "description": "Shield is a 1st level spell from the abjuration school. It takes 1 reaction to cast, reaches self, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-shield-of-faith",
@@ -1721,7 +2384,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shield-of-faith",
-    "description": "Shield of Faith is a 1st level spell from the abjuration school. It takes 1 bonus action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Shield of Faith is a 1st level spell from the abjuration school. It takes 1 bonus action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "1-silent-image",
@@ -1735,7 +2402,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:silent-image",
-    "description": "Silent Image is a 1st level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Silent Image is a 1st level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-silvery-barbs",
@@ -1749,7 +2422,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:silvery-barbs",
-    "description": "Silvery Barbs is a 1st level spell from the enchantment school. It takes 1 reaction to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Silvery Barbs is a 1st level spell from the enchantment school. It takes 1 reaction to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-sleep",
@@ -1763,7 +2442,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sleep",
-    "description": "Sleep is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts 1 minute, and uses V, S, M components."
+    "description": "Sleep is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts 1 minute, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-snare",
@@ -1777,7 +2462,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:snare",
-    "description": "Snare is a 1st level spell from the abjuration school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses S, M components."
+    "description": "Snare is a 1st level spell from the abjuration school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses S, M components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "1-speak-with-animals",
@@ -1791,7 +2483,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:speak-with-animals",
-    "description": "Speak with Animals is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts 10 minutes, and uses V, S components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Speak with Animals is a 1st level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts 10 minutes, and uses V, S components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "1-sudden-awakening-ua",
@@ -1805,7 +2502,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sudden-awakening",
-    "description": "Sudden Awakening (UA) is a 1st level spell from the enchantment school. It takes 1 bonus action to cast, reaches 10 feet, lasts instantaneous, and uses V components."
+    "description": "Sudden Awakening (UA) is a 1st level spell from the enchantment school. It takes 1 bonus action to cast, reaches 10 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Ranger",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-tasha-s-caustic-brew",
@@ -1819,7 +2523,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tashas-caustic-brew",
-    "description": "Tasha's Caustic Brew is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Tasha's Caustic Brew is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-tasha-s-hideous-laughter",
@@ -1833,7 +2543,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tashas-hideous-laughter",
-    "description": "Tasha's Hideous Laughter is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Tasha's Hideous Laughter is a 1st level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "1-tenser-s-floating-disk",
@@ -1847,7 +2562,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tensers-floating-disk",
-    "description": "Tenser's Floating Disk is a 1st level spell from the conjuration school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Tenser's Floating Disk is a 1st level spell from the conjuration school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "1-thunderous-smite",
@@ -1861,7 +2579,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:thunderous-smite",
-    "description": "Thunderous Smite is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Thunderous Smite is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "1-thunderwave",
@@ -1875,7 +2596,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:thunderwave",
-    "description": "Thunderwave is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cube), lasts instantaneous, and uses V, S components."
+    "description": "Thunderwave is a 1st level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cube), lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "1-unearthly-chorus-ua",
@@ -1889,7 +2617,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:unearthly-chorus",
-    "description": "Unearthly Chorus (UA) is a 1st level spell from the illusion school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Unearthly Chorus (UA) is a 1st level spell from the illusion school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard"
+    ]
   },
   {
     "id": "1-unseen-servant",
@@ -1903,7 +2634,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:unseen-servant",
-    "description": "Unseen Servant is a 1st level spell from the conjuration school. It takes 1 action (ritual) to cast, reaches 60 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Unseen Servant is a 1st level spell from the conjuration school. It takes 1 action (ritual) to cast, reaches 60 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-wild-cunning-ua",
@@ -1917,7 +2653,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wild-cunning",
-    "description": "Wild Cunning (UA) is a 1st level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 120 feet, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Wild Cunning (UA) is a 1st level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 120 feet, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "1-witch-bolt",
@@ -1931,7 +2671,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:witch-bolt",
-    "description": "Witch Bolt is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Witch Bolt is a 1st level spell from the evocation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "1-wrathful-smite",
@@ -1945,7 +2691,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wrathful-smite",
-    "description": "Wrathful Smite is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wrathful Smite is a 1st level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "1-zephyr-strike",
@@ -1959,7 +2708,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:zephyr-strike",
-    "description": "Zephyr Strike is a 1st level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Zephyr Strike is a 1st level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "2-aganazzar-s-scorcher",
@@ -1973,7 +2725,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:aganazzars-scorcher",
-    "description": "Aganazzar's Scorcher is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Aganazzar's Scorcher is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-aid",
@@ -1987,7 +2744,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:aid",
-    "description": "Aid is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components."
+    "description": "Aid is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "2-air-bubble",
@@ -2001,7 +2765,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:air-bubble",
-    "description": "Air Bubble is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts 24 hours, and uses S components."
+    "description": "Air Bubble is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts 24 hours, and uses S components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-alter-self",
@@ -2015,7 +2786,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:alter-self",
-    "description": "Alter Self is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Alter Self is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-animal-messenger",
@@ -2029,7 +2805,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:animal-messenger",
-    "description": "Animal Messenger is a 2nd level spell from the enchantment school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Animal Messenger is a 2nd level spell from the enchantment school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-arcane-hacking-ua",
@@ -2043,7 +2824,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:arcane-hacking",
-    "description": "Arcane Hacking (UA) is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Arcane Hacking (UA) is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-arcane-lock",
@@ -2057,7 +2843,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:arcane-lock",
-    "description": "Arcane Lock is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts until dispelled, and uses V, S, M components."
+    "description": "Arcane Lock is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "2-augury",
@@ -2071,7 +2862,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:augury",
-    "description": "Augury is a 2nd level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Augury is a 2nd level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "2-barkskin",
@@ -2085,7 +2881,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:barkskin",
-    "description": "Barkskin is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Barkskin is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-beast-sense",
@@ -2099,7 +2899,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:beast-sense",
-    "description": "Beast Sense is a 2nd level spell from the divination school. It takes 1 action (ritual) to cast, reaches touch, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode."
+    "description": "Beast Sense is a 2nd level spell from the divination school. It takes 1 action (ritual) to cast, reaches touch, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-blindness-deafness",
@@ -2113,7 +2917,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blindness-deafness",
-    "description": "Blindness/Deafness is a 2nd level spell from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts 1 minute, and uses V components."
+    "description": "Blindness/Deafness is a 2nd level spell from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts 1 minute, and uses V components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-blur",
@@ -2127,7 +2937,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blur",
-    "description": "Blur is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Blur is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-borrowed-knowledge",
@@ -2141,7 +2957,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:borrowed-knowledge",
-    "description": "Borrowed Knowledge is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components."
+    "description": "Borrowed Knowledge is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-branding-smite",
@@ -2155,7 +2977,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:branding-smite",
-    "description": "Branding Smite is a 2nd level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Branding Smite is a 2nd level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "2-calm-emotions",
@@ -2169,7 +2994,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:calm-emotions",
-    "description": "Calm Emotions is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Calm Emotions is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric"
+    ]
   },
   {
     "id": "2-cloud-of-daggers",
@@ -2183,7 +3012,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:cloud-of-daggers",
-    "description": "Cloud of Daggers is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Cloud of Daggers is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-continual-flame",
@@ -2197,7 +3032,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:continual-flame",
-    "description": "Continual Flame is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches touch, lasts until dispelled, and uses V, S, M components."
+    "description": "Continual Flame is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches touch, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "2-cordon-of-arrows",
@@ -2211,7 +3053,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:cordon-of-arrows",
-    "description": "Cordon of Arrows is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 5 feet, lasts 8 hours, and uses V, S, M components."
+    "description": "Cordon of Arrows is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 5 feet, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "2-crown-of-madness",
@@ -2225,7 +3070,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:crown-of-madness",
-    "description": "Crown of Madness is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Crown of Madness is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-darkness",
@@ -2239,7 +3091,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:darkness",
-    "description": "Darkness is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Darkness is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-darkvision",
@@ -2253,7 +3111,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:darkvision",
-    "description": "Darkvision is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S, M components."
+    "description": "Darkvision is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-detect-thoughts",
@@ -2267,7 +3132,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:detect-thoughts",
-    "description": "Detect Thoughts is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Detect Thoughts is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-digital-phantom-ua",
@@ -2281,7 +3151,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:digital-phantom",
-    "description": "Digital Phantom (UA) is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Digital Phantom (UA) is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-dragon-s-breath",
@@ -2295,7 +3171,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dragons-breath",
-    "description": "Dragon's Breath is a 2nd level spell from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dragon's Breath is a 2nd level spell from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-dust-devil",
@@ -2309,7 +3189,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dust-devil",
-    "description": "Dust Devil is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dust Devil is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-earthbind",
@@ -2323,7 +3208,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:earthbind",
-    "description": "Earthbind is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Earthbind is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-enhance-ability",
@@ -2337,7 +3228,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:enhance-ability",
-    "description": "Enhance Ability is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Enhance Ability is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-enlarge-reduce",
@@ -2351,7 +3251,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:enlarge-reduce",
-    "description": "Enlarge/Reduce is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Enlarge/Reduce is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-enthrall",
@@ -2365,7 +3272,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:enthrall",
-    "description": "Enthrall is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses V, S components."
+    "description": "Enthrall is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Warlock"
+    ]
   },
   {
     "id": "2-find-steed",
@@ -2379,7 +3290,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:find-steed",
-    "description": "Find Steed is a 2nd level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Find Steed is a 2nd level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "2-find-traps",
@@ -2393,7 +3307,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:find-traps",
-    "description": "Find Traps is a 2nd level spell from the divination school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Find Traps is a 2nd level spell from the divination school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-find-vehicle-ua",
@@ -2407,7 +3326,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:find-vehicle",
-    "description": "Find Vehicle (UA) is a 2nd level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts 8 hours, and uses V, S components."
+    "description": "Find Vehicle (UA) is a 2nd level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts 8 hours, and uses V, S components.",
+    "classes": [
+      "Paladin",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-flame-blade",
@@ -2421,7 +3346,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:flame-blade",
-    "description": "Flame Blade is a 2nd level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Flame Blade is a 2nd level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer"
+    ]
   },
   {
     "id": "2-flaming-sphere",
@@ -2435,7 +3364,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:flaming-sphere",
-    "description": "Flaming Sphere is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Flaming Sphere is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-flock-of-familiars",
@@ -2449,7 +3383,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:flock-of-familiars",
-    "description": "Flock of Familiars is a 2nd level spell from the conjuration school. It takes 1 minute to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Flock of Familiars is a 2nd level spell from the conjuration school. It takes 1 minute to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-fortune-s-favor",
@@ -2463,7 +3401,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fortunes-favor",
-    "description": "Fortune's Favor is a 2nd level spell from the divination school. It takes 1 minute to cast, reaches 60 feet, lasts 1 hour, and uses V, S, M components."
+    "description": "Fortune's Favor is a 2nd level spell from the divination school. It takes 1 minute to cast, reaches 60 feet, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "2-gentle-repose",
@@ -2477,7 +3418,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 days",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gentle-repose",
-    "description": "Gentle Repose is a 2nd level spell from the necromancy school. It takes 1 action (ritual) to cast, reaches touch, lasts 10 days, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Gentle Repose is a 2nd level spell from the necromancy school. It takes 1 action (ritual) to cast, reaches touch, lasts 10 days, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric",
+      "Paladin",
+      "Wizard"
+    ]
   },
   {
     "id": "2-gift-of-gab",
@@ -2491,7 +3437,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gift-of-gab",
-    "description": "Gift of Gab is a 2nd level spell from the enchantment school. It takes reaction to cast, reaches self, lasts instantaneous, and uses V, S, M components."
+    "description": "Gift of Gab is a 2nd level spell from the enchantment school. It takes reaction to cast, reaches self, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "2-gust-of-wind",
@@ -2505,7 +3456,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gust-of-wind",
-    "description": "Gust of Wind is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Gust of Wind is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-healing-spirit",
@@ -2519,7 +3477,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:healing-spirit",
-    "description": "Healing Spirit is a 2nd level spell from the conjuration school. It takes 1 bonus action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Healing Spirit is a 2nd level spell from the conjuration school. It takes 1 bonus action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-heat-metal",
@@ -2533,7 +3495,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:heat-metal",
-    "description": "Heat Metal is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Heat Metal is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Druid"
+    ]
   },
   {
     "id": "2-hold-person",
@@ -2547,7 +3514,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hold-person",
-    "description": "Hold Person is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Hold Person is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-icingdeath-s-frost-ua",
@@ -2561,7 +3537,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:icingdeath-s-frost",
-    "description": "Icingdeath's Frost (UA) is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses S, M components."
+    "description": "Icingdeath's Frost (UA) is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-immovable-object",
@@ -2575,7 +3556,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:immovable-object",
-    "description": "Immovable Object is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components."
+    "description": "Immovable Object is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "2-invisibility",
@@ -2589,7 +3573,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:invisibility",
-    "description": "Invisibility is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Invisibility is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-jim-s-glowing-coin",
@@ -2603,7 +3595,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:jims-glowing-coin",
-    "description": "Jim's Glowing Coin is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses S, M components."
+    "description": "Jim's Glowing Coin is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses S, M components.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "2-kinetic-jaunt",
@@ -2617,7 +3613,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:kinetic-jaunt",
-    "description": "Kinetic Jaunt is a 2nd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Kinetic Jaunt is a 2nd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-knock",
@@ -2631,7 +3633,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:knock",
-    "description": "Knock is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Knock is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-lesser-restoration",
@@ -2645,7 +3652,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:lesser-restoration",
-    "description": "Lesser Restoration is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components."
+    "description": "Lesser Restoration is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "2-levitate",
@@ -2659,7 +3674,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:levitate",
-    "description": "Levitate is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Levitate is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-locate-animals-or-plants",
@@ -2673,7 +3693,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:locate-animals-or-plants",
-    "description": "Locate Animals or Plants is a 2nd level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Locate Animals or Plants is a 2nd level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-locate-object",
@@ -2687,7 +3712,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:locate-object",
-    "description": "Locate Object is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Locate Object is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "2-magic-mouth",
@@ -2701,7 +3734,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:magic-mouth",
-    "description": "Magic Mouth is a 2nd level spell from the illusion school. It takes 1 minute (ritual) to cast, reaches 30 feet, lasts until dispelled, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Magic Mouth is a 2nd level spell from the illusion school. It takes 1 minute (ritual) to cast, reaches 30 feet, lasts until dispelled, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "2-magic-weapon",
@@ -2715,7 +3754,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:magic-weapon",
-    "description": "Magic Weapon is a 2nd level spell from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Magic Weapon is a 2nd level spell from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Paladin",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-maximillian-s-earthen-grasp",
@@ -2729,7 +3775,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:maximillians-earthen-grasp",
-    "description": "Maximillian's Earthen Grasp is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Maximillian's Earthen Grasp is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-melf-s-acid-arrow",
@@ -2743,7 +3793,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:melfs-acid-arrow",
-    "description": "Melf's Acid Arrow is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Melf's Acid Arrow is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "2-mental-barrier-ua",
@@ -2757,7 +3811,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mental-barrier",
-    "description": "Mental Barrier (UA) is a 2nd level spell from the abjuration school. It takes 1 reaction to cast, reaches self, lasts 1 round, and uses V components."
+    "description": "Mental Barrier (UA) is a 2nd level spell from the abjuration school. It takes 1 reaction to cast, reaches self, lasts 1 round, and uses V components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-mind-spike",
@@ -2771,7 +3831,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mind-spike",
-    "description": "Mind Spike is a 2nd level spell from the divination school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Mind Spike is a 2nd level spell from the divination school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-mind-thrust-ua",
@@ -2785,7 +3850,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mind-thrust",
-    "description": "Mind Thrust (UA) is a 2nd level spell from the enchantment school. It takes 1 bonus action to cast, reaches 60 feet, lasts 1 round, and uses V, S components."
+    "description": "Mind Thrust (UA) is a 2nd level spell from the enchantment school. It takes 1 bonus action to cast, reaches 60 feet, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-mirror-image",
@@ -2799,7 +3870,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mirror-image",
-    "description": "Mirror Image is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches self, lasts 1 minute, and uses V, S components."
+    "description": "Mirror Image is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches self, lasts 1 minute, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-misty-step",
@@ -2813,7 +3891,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:misty-step",
-    "description": "Misty Step is a 2nd level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts instantaneous, and uses V components."
+    "description": "Misty Step is a 2nd level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-moonbeam",
@@ -2827,7 +3910,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:moonbeam",
-    "description": "Moonbeam is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Moonbeam is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "2-nathair-s-mischief",
@@ -2841,7 +3927,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:nathairs-mischief",
-    "description": "Nathair's Mischief is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches 60ft, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Nathair's Mischief is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches 60ft, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-nathair-s-mischief-ua",
@@ -2855,7 +3947,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:nathairs-mischief-ua",
-    "description": "Nathair's Mischief (UA) is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Nathair's Mischief (UA) is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-nystul-s-magic-aura",
@@ -2869,7 +3967,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:nystuls-magic-aura",
-    "description": "Nystul's Magic Aura is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches touch, lasts 24 hours, and uses V, S, M components."
+    "description": "Nystul's Magic Aura is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches touch, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "2-pass-without-trace",
@@ -2883,7 +3985,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:pass-without-trace",
-    "description": "Pass Without Trace is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Pass Without Trace is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-phantasmal-force",
@@ -2897,7 +4003,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:phantasmal-force",
-    "description": "Phantasmal Force is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Phantasmal Force is a 2nd level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-prayer-of-healing",
@@ -2911,7 +4023,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:prayer-of-healing",
-    "description": "Prayer of Healing is a 2nd level spell from the evocation school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V components."
+    "description": "Prayer of Healing is a 2nd level spell from the evocation school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "2-protection-from-poison",
@@ -2925,7 +4041,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:protection-from-poison",
-    "description": "Protection from Poison is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S components."
+    "description": "Protection from Poison is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "2-pyrotechnics",
@@ -2939,7 +4062,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:pyrotechnics",
-    "description": "Pyrotechnics is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Pyrotechnics is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-ray-of-enfeeblement",
@@ -2953,7 +4082,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ray-of-enfeeblement",
-    "description": "Ray of Enfeeblement is a 2nd level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Ray of Enfeeblement is a 2nd level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-rime-s-binding-ice",
@@ -2967,7 +4100,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:rimes-binding-ice",
-    "description": "Rime's Binding Ice is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot cone), lasts instantaneous, and uses S, M components."
+    "description": "Rime's Binding Ice is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot cone), lasts instantaneous, and uses S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-rope-trick",
@@ -2981,7 +4119,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:rope-trick",
-    "description": "Rope Trick is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components."
+    "description": "Rope Trick is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-scorching-ray",
@@ -2995,7 +4137,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:scorching-ray",
-    "description": "Scorching Ray is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Scorching Ray is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-see-invisibility",
@@ -3009,7 +4156,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:see-invisibility",
-    "description": "See Invisibility is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components."
+    "description": "See Invisibility is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-shadow-blade",
@@ -3023,7 +4176,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shadow-blade",
-    "description": "Shadow Blade is a 2nd level spell from the illusion school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Shadow Blade is a 2nd level spell from the illusion school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-shatter",
@@ -3037,7 +4196,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shatter",
-    "description": "Shatter is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Shatter is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-silence",
@@ -3051,7 +4217,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:silence",
-    "description": "Silence is a 2nd level spell from the illusion school. It takes 1 action (ritual) to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode."
+    "description": "Silence is a 2nd level spell from the illusion school. It takes 1 action (ritual) to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Ranger"
+    ]
   },
   {
     "id": "2-skywrite",
@@ -3065,7 +4236,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 day",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:skywrite",
-    "description": "Skywrite is a 2nd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches sight, lasts concentration, up to 1 day, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode."
+    "description": "Skywrite is a 2nd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches sight, lasts concentration, up to 1 day, and uses V, S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "2-snilloc-s-snowball-swarm",
@@ -3079,7 +4256,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:snillocs-snowball-swarm",
-    "description": "Snilloc's Snowball Swarm is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Snilloc's Snowball Swarm is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-spider-climb",
@@ -3093,7 +4275,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spider-climb",
-    "description": "Spider Climb is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Spider Climb is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-spike-growth",
@@ -3107,7 +4295,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spike-growth",
-    "description": "Spike Growth is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Spike Growth is a 2nd level spell from the transmutation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-spiritual-weapon",
@@ -3121,7 +4313,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spiritual-weapon",
-    "description": "Spiritual Weapon is a 2nd level spell from the evocation school. It takes 1 bonus action to cast, reaches 60 feet, lasts 1 minute, and uses V, S components."
+    "description": "Spiritual Weapon is a 2nd level spell from the evocation school. It takes 1 bonus action to cast, reaches 60 feet, lasts 1 minute, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "2-spray-of-cards",
@@ -3135,7 +4330,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spray-of-cards",
-    "description": "Spray Of Cards is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses V, S, M components."
+    "description": "Spray Of Cards is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches self (15-foot cone), lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-spray-of-cards-ua",
@@ -3149,7 +4350,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spray-of-cards-ua",
-    "description": "Spray of Cards (UA) is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 15-foot cone, lasts instantaneous, and uses V, S, M components."
+    "description": "Spray of Cards (UA) is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 15-foot cone, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-suggestion",
@@ -3163,7 +4370,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 8 hours",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:suggestion",
-    "description": "Suggestion is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 8 hours, and uses V, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Suggestion is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 8 hours, and uses V, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-summon-beast",
@@ -3177,7 +4391,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-beast",
-    "description": "Summon Beast is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Beast is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "2-tasha-s-mind-whip",
@@ -3191,7 +4409,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tashas-mind-whip",
-    "description": "Tasha's Mind Whip is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts 1 round, and uses V components."
+    "description": "Tasha's Mind Whip is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts 1 round, and uses V components.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-thought-shield-ua",
@@ -3205,7 +4428,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:thought-shield",
-    "description": "Thought Shield (UA) is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S components."
+    "description": "Thought Shield (UA) is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-vortex-warp",
@@ -3219,7 +4448,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:vortex-warp",
-    "description": "Vortex Warp is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S components."
+    "description": "Vortex Warp is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-warding-bond",
@@ -3233,7 +4467,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:warding-bond",
-    "description": "Warding Bond is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components."
+    "description": "Warding Bond is a 2nd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "2-warding-wind",
@@ -3247,7 +4485,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:warding-wind",
-    "description": "Warding Wind is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Warding Wind is a 2nd level spell from the evocation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-warp-sense",
@@ -3261,7 +4506,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:warp-sense",
-    "description": "Warp Sense is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Warp Sense is a 2nd level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "2-web",
@@ -3275,7 +4525,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:web",
-    "description": "Web is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Web is a 2nd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-wither-and-bloom",
@@ -3289,7 +4544,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wither-and-bloom",
-    "description": "Wither and Bloom is a 2nd level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Wither and Bloom is a 2nd level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "2-wristpocket",
@@ -3303,7 +4563,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wristpocket",
-    "description": "Wristpocket is a 2nd level spell from the conjuration school. It takes 1 action (ritual) to cast, reaches self, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode."
+    "description": "Wristpocket is a 2nd level spell from the conjuration school. It takes 1 action (ritual) to cast, reaches self, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "2-zone-of-truth",
@@ -3317,7 +4580,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:zone-of-truth",
-    "description": "Zone of Truth is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 10 minutes, and uses V, S components."
+    "description": "Zone of Truth is a 2nd level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 10 minutes, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "3-animate-dead",
@@ -3331,7 +4599,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:animate-dead",
-    "description": "Animate Dead is a 3rd level spell from the necromancy school. It takes 1 minute to cast, reaches 10 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Animate Dead is a 3rd level spell from the necromancy school. It takes 1 minute to cast, reaches 10 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Wizard"
+    ]
   },
   {
     "id": "3-antagonize",
@@ -3345,7 +4617,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:antagonize",
-    "description": "Antagonize is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Antagonize is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-antagonize-ua",
@@ -3359,7 +4638,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:antagonize-ua",
-    "description": "Antagonize (UA) is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Antagonize (UA) is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-ashardalon-s-stride",
@@ -3373,7 +4659,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V,S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ashardalons-stride",
-    "description": "Ashardalon's Stride is a 3rd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V,S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Ashardalon's Stride is a 3rd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V,S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-aura-of-vitality",
@@ -3387,7 +4679,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:aura-of-vitality",
-    "description": "Aura of Vitality is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Aura of Vitality is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Paladin"
+    ]
   },
   {
     "id": "3-beacon-of-hope",
@@ -3401,7 +4698,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:beacon-of-hope",
-    "description": "Beacon of Hope is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Beacon of Hope is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "3-bestow-curse",
@@ -3415,7 +4715,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:bestow-curse",
-    "description": "Bestow Curse is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Bestow Curse is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Wizard"
+    ]
   },
   {
     "id": "3-blinding-smite",
@@ -3429,7 +4734,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blinding-smite",
-    "description": "Blinding Smite is a 3rd level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Blinding Smite is a 3rd level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "3-blink",
@@ -3443,7 +4751,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blink",
-    "description": "Blink is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts 1 minute, and uses V, S components."
+    "description": "Blink is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts 1 minute, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-call-lightning",
@@ -3457,7 +4770,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:call-lightning",
-    "description": "Call Lightning is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Call Lightning is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "3-catnap",
@@ -3471,7 +4787,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:catnap",
-    "description": "Catnap is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 10 minutes, and uses S, M components."
+    "description": "Catnap is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 10 minutes, and uses S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-clairvoyance",
@@ -3485,7 +4808,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:clairvoyance",
-    "description": "Clairvoyance is a 3rd level spell from the divination school. It takes 10 minutes to cast, reaches 1 mile, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Clairvoyance is a 3rd level spell from the divination school. It takes 10 minutes to cast, reaches 1 mile, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-conjure-animals",
@@ -3499,7 +4828,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-animals",
-    "description": "Conjure Animals is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Animals is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "3-conjure-barrage",
@@ -3513,7 +4846,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-barrage",
-    "description": "Conjure Barrage is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches self (60-foot cone), lasts instantaneous, and uses V, S, M components."
+    "description": "Conjure Barrage is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches self (60-foot cone), lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "3-conjure-lesser-demon-ua",
@@ -3527,7 +4863,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-lesser-demon",
-    "description": "Conjure Lesser Demon (UA) is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Lesser Demon (UA) is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-counterspell",
@@ -3541,7 +4881,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:counterspell",
-    "description": "Counterspell is a 3rd level spell from the abjuration school. It takes 1 reaction to cast, reaches 60 feet, lasts instantaneous, and uses S components."
+    "description": "Counterspell is a 3rd level spell from the abjuration school. It takes 1 reaction to cast, reaches 60 feet, lasts instantaneous, and uses S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-create-food-and-water",
@@ -3555,7 +4901,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:create-food-and-water",
-    "description": "Create Food and Water is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Create Food and Water is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "3-crusader-s-mantle",
@@ -3569,7 +4920,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:crusaders-mantle",
-    "description": "Crusader's Mantle is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Crusader's Mantle is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "3-daylight",
@@ -3583,7 +4937,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:daylight",
-    "description": "Daylight is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts 1 hour, and uses V, S components."
+    "description": "Daylight is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts 1 hour, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger",
+      "Sorcerer"
+    ]
   },
   {
     "id": "3-dispel-magic",
@@ -3597,7 +4958,18 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dispel-magic",
-    "description": "Dispel Magic is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Dispel Magic is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Paladin",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-elemental-weapon",
@@ -3611,7 +4983,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:elemental-weapon",
-    "description": "Elemental Weapon is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Elemental Weapon is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "3-enemies-abound",
@@ -3625,7 +5003,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:enemies-abound",
-    "description": "Enemies Abound is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Enemies Abound is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-erupting-earth",
@@ -3639,7 +5024,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:erupting-earth",
-    "description": "Erupting Earth is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Erupting Earth is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-fast-friends",
@@ -3653,7 +5043,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fast-friends",
-    "description": "Fast Friends is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Fast Friends is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "3-fear",
@@ -3667,7 +5063,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fear",
-    "description": "Fear is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches self (30-foot cone), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Fear is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches self (30-foot cone), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-feign-death",
@@ -3681,7 +5084,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:feign-death",
-    "description": "Feign Death is a 3rd level spell from the necromancy school. It takes 1 action (ritual) to cast, reaches touch, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Feign Death is a 3rd level spell from the necromancy school. It takes 1 action (ritual) to cast, reaches touch, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "3-fireball",
@@ -3695,7 +5104,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fireball",
-    "description": "Fireball is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Fireball is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-flame-arrows",
@@ -3709,7 +5123,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:flame-arrows",
-    "description": "Flame Arrows is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Flame Arrows is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-flame-stride-ua",
@@ -3723,7 +5144,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:flame-stride",
-    "description": "Flame Stride (UA) is a 3rd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Flame Stride (UA) is a 3rd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-fly",
@@ -3737,7 +5164,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fly",
-    "description": "Fly is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Fly is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-galder-s-tower",
@@ -3751,7 +5184,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:galders-tower",
-    "description": "Galder's Tower is a 3rd level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Galder's Tower is a 3rd level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "3-gaseous-form",
@@ -3765,7 +5201,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gaseous-form",
-    "description": "Gaseous Form is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Gaseous Form is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-glyph-of-warding",
@@ -3779,7 +5220,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled or triggered",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:glyph-of-warding",
-    "description": "Glyph of Warding is a 3rd level spell from the abjuration school. It takes 1 hour to cast, reaches touch, lasts until dispelled or triggered, and uses V, S, M components."
+    "description": "Glyph of Warding is a 3rd level spell from the abjuration school. It takes 1 hour to cast, reaches touch, lasts until dispelled or triggered, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "3-haste",
@@ -3793,7 +5241,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:haste",
-    "description": "Haste is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Haste is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-haywire-ua",
@@ -3807,7 +5260,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:haywire",
-    "description": "Haywire (UA) is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Haywire (UA) is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-house-of-cards-ua",
@@ -3821,7 +5280,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:house-of-cards-ua",
-    "description": "House of Cards (UA) is a 3rd level spell from the conjuration school. It takes 1 minute to cast, reaches touch, lasts 24 hours, and uses V, S, M components."
+    "description": "House of Cards (UA) is a 3rd level spell from the conjuration school. It takes 1 minute to cast, reaches touch, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-hunger-of-hadar",
@@ -3835,7 +5300,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hunger-of-hadar",
-    "description": "Hunger Of Hadar is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Hunger Of Hadar is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock"
+    ]
   },
   {
     "id": "3-hypnotic-pattern",
@@ -3849,7 +5317,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hypnotic-pattern",
-    "description": "Hypnotic Pattern is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Hypnotic Pattern is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-incite-greed",
@@ -3863,7 +5338,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:incite-greed",
-    "description": "Incite Greed is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Incite Greed is a 3rd level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-intellect-fortress",
@@ -3877,7 +5359,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:intellect-fortress",
-    "description": "Intellect Fortress is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Intellect Fortress is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-invisibility-to-cameras-ua",
@@ -3891,7 +5381,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:invisibility-to-cameras",
-    "description": "Invisibility To Cameras (UA) is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches 10 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Invisibility To Cameras (UA) is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches 10 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-leomund-s-tiny-hut",
@@ -3905,7 +5401,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:leomunds-tiny-hut",
-    "description": "Leomund's Tiny Hut is a 3rd level spell from the evocation school. It takes 1 minute (ritual) to cast, reaches self (10-foot radius hemisphere), lasts 8 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Leomund's Tiny Hut is a 3rd level spell from the evocation school. It takes 1 minute (ritual) to cast, reaches self (10-foot radius hemisphere), lasts 8 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "3-life-transference",
@@ -3919,7 +5420,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:life-transference",
-    "description": "Life Transference is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Life Transference is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Wizard"
+    ]
   },
   {
     "id": "3-lightning-arrow",
@@ -3933,7 +5438,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:lightning-arrow",
-    "description": "Lightning Arrow is a 3rd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Lightning Arrow is a 3rd level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "3-lightning-bolt",
@@ -3947,7 +5455,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:lightning-bolt",
-    "description": "Lightning Bolt is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (100-foot line), lasts instantaneous, and uses V, S, M components."
+    "description": "Lightning Bolt is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (100-foot line), lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-magic-circle",
@@ -3961,7 +5474,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:magic-circle",
-    "description": "Magic Circle is a 3rd level spell from the abjuration school. It takes 1 minute to cast, reaches 10 feet, lasts 1 hour, and uses V, S, M components."
+    "description": "Magic Circle is a 3rd level spell from the abjuration school. It takes 1 minute to cast, reaches 10 feet, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Fighter - Eldritch Knight",
+      "Paladin",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-major-image",
@@ -3975,7 +5495,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:major-image",
-    "description": "Major Image is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Major Image is a 3rd level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-mass-healing-word",
@@ -3989,7 +5516,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mass-healing-word",
-    "description": "Mass Healing Word is a 3rd level spell from the evocation school. It takes 1 bonus action to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Mass Healing Word is a 3rd level spell from the evocation school. It takes 1 bonus action to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Cleric"
+    ]
   },
   {
     "id": "3-meld-into-stone",
@@ -4003,7 +5534,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:meld-into-stone",
-    "description": "Meld into Stone is a 3rd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches touch, lasts 8 hours, and uses V, S components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Meld into Stone is a 3rd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches touch, lasts 8 hours, and uses V, S components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "3-melf-s-minute-meteors",
@@ -4017,7 +5553,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:melfs-minute-meteors",
-    "description": "Melf's Minute Meteors is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (120 feet), lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Melf's Minute Meteors is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (120 feet), lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-motivational-speech",
@@ -4031,7 +5572,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:motivational-speech",
-    "description": "Motivational Speech is a 3rd level spell from the enchantment school. It takes 1 minute to cast, reaches 60 feet, lasts 1 hour, and uses V components."
+    "description": "Motivational Speech is a 3rd level spell from the enchantment school. It takes 1 minute to cast, reaches 60 feet, lasts 1 hour, and uses V components.",
+    "classes": [
+      "Bard",
+      "Cleric"
+    ]
   },
   {
     "id": "3-nondetection",
@@ -4045,7 +5590,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:nondetection",
-    "description": "Nondetection is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S, M components."
+    "description": "Nondetection is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Fighter - Eldritch Knight",
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "3-phantom-steed",
@@ -4059,7 +5610,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:phantom-steed",
-    "description": "Phantom Steed is a 3rd level spell from the illusion school. It takes 1 minute (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Phantom Steed is a 3rd level spell from the illusion school. It takes 1 minute (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "3-plant-growth",
@@ -4073,7 +5628,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:plant-growth",
-    "description": "Plant Growth is a 3rd level spell from the transmutation school. It takes 1 action or 8 hours to cast, reaches 150 feet, lasts instantaneous, and uses V, S components."
+    "description": "Plant Growth is a 3rd level spell from the transmutation school. It takes 1 action or 8 hours to cast, reaches 150 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "3-protection-from-ballistics-ua",
@@ -4087,7 +5647,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:protection-from-ballistics",
-    "description": "Protection from Ballistics (UA) is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Protection from Ballistics (UA) is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-protection-from-energy",
@@ -4101,7 +5667,16 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:protection-from-energy",
-    "description": "Protection from Energy is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Protection from Energy is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-psionic-blast-ua",
@@ -4115,7 +5690,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:psionic-blast",
-    "description": "Psionic Blast (UA) is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot cone), lasts instantaneous, and uses V components."
+    "description": "Psionic Blast (UA) is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot cone), lasts instantaneous, and uses V components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-pulse-wave",
@@ -4129,7 +5710,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:pulse-wave",
-    "description": "Pulse Wave is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot cone), lasts instantaneous, and uses V, S components."
+    "description": "Pulse Wave is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot cone), lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "3-remove-curse",
@@ -4143,7 +5728,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:remove-curse",
-    "description": "Remove Curse is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components."
+    "description": "Remove Curse is a 3rd level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Fighter - Eldritch Knight",
+      "Paladin",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-revivify",
@@ -4157,7 +5749,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:revivify",
-    "description": "Revivify is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Revivify is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger"
+    ]
   },
   {
     "id": "3-sending",
@@ -4171,7 +5770,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sending",
-    "description": "Sending is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches unlimited, lasts 1 round, and uses V, S, M components."
+    "description": "Sending is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches unlimited, lasts 1 round, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "3-sleet-storm",
@@ -4185,7 +5790,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sleet-storm",
-    "description": "Sleet Storm is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Sleet Storm is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-slow",
@@ -4199,7 +5809,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:slow",
-    "description": "Slow is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Slow is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-speak-with-dead",
@@ -4213,7 +5828,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:speak-with-dead",
-    "description": "Speak with Dead is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches 10 feet, lasts 10 minutes, and uses V, S, M components."
+    "description": "Speak with Dead is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches 10 feet, lasts 10 minutes, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Wizard"
+    ]
   },
   {
     "id": "3-speak-with-plants",
@@ -4227,7 +5847,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:speak-with-plants",
-    "description": "Speak with Plants is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches self (30-foot radius), lasts 10 minutes, and uses V, S components."
+    "description": "Speak with Plants is a 3rd level spell from the transmutation school. It takes 1 action to cast, reaches self (30-foot radius), lasts 10 minutes, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "3-spirit-guardians",
@@ -4241,7 +5866,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spirit-guardians",
-    "description": "Spirit Guardians is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches self (15-foot radius), lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Spirit Guardians is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches self (15-foot radius), lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "3-spirit-shroud",
@@ -4255,7 +5883,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spirit-shroud",
-    "description": "Spirit Shroud is a 3rd level spell from the necromancy school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Spirit Shroud is a 3rd level spell from the necromancy school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-stinking-cloud",
@@ -4269,7 +5903,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:stinking-cloud",
-    "description": "Stinking Cloud is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Stinking Cloud is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-summon-fey",
@@ -4283,7 +5922,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-fey",
-    "description": "Summon Fey is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Fey is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-summon-lesser-demons",
@@ -4297,7 +5942,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-lesser-demons",
-    "description": "Summon Lesser Demons is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Lesser Demons is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-summon-shadowspawn",
@@ -4311,7 +5960,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-shadowspawn",
-    "description": "Summon Shadowspawn is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Shadowspawn is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-summon-undead",
@@ -4325,7 +5978,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-undead",
-    "description": "Summon Undead is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Undead is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-summon-warrior-spirit-ua",
@@ -4339,7 +5996,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-warrior-spirit",
-    "description": "Summon Warrior Spirit (UA) is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Warrior Spirit (UA) is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-thunder-step",
@@ -4353,7 +6015,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:thunder-step",
-    "description": "Thunder Step is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V components."
+    "description": "Thunder Step is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-tidal-wave",
@@ -4367,7 +6034,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tidal-wave",
-    "description": "Tidal Wave is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Tidal Wave is a 3rd level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-tiny-servant",
@@ -4381,7 +6053,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tiny-servant",
-    "description": "Tiny Servant is a 3rd level spell from the transmutation school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V, S components."
+    "description": "Tiny Servant is a 3rd level spell from the transmutation school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-tongues",
@@ -4395,7 +6071,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tongues",
-    "description": "Tongues is a 3rd level spell from the divination school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, M components."
+    "description": "Tongues is a 3rd level spell from the divination school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-vampiric-touch",
@@ -4409,7 +6092,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:vampiric-touch",
-    "description": "Vampiric Touch is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Vampiric Touch is a 3rd level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "3-wall-of-sand",
@@ -4423,7 +6111,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-sand",
-    "description": "Wall of Sand is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Sand is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "3-wall-of-water",
@@ -4437,7 +6129,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-water",
-    "description": "Wall of Water is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Water is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-water-breathing",
@@ -4451,7 +6149,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:water-breathing",
-    "description": "Water Breathing is a 3rd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Water Breathing is a 3rd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 24 hours, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "3-water-walk",
@@ -4465,7 +6170,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:water-walk",
-    "description": "Water Walk is a 3rd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Water Walk is a 3rd level spell from the transmutation school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid",
+      "Ranger",
+      "Sorcerer"
+    ]
   },
   {
     "id": "3-wind-wall",
@@ -4479,7 +6191,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wind-wall",
-    "description": "Wind Wall is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wind Wall is a 3rd level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "4-arcane-eye",
@@ -4493,7 +6209,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:arcane-eye",
-    "description": "Arcane Eye is a 4th level spell from the divination school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Arcane Eye is a 4th level spell from the divination school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-aura-of-life",
@@ -4507,7 +6227,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:aura-of-life",
-    "description": "Aura of Life is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Aura of Life is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "4-aura-of-purity",
@@ -4521,7 +6245,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:aura-of-purity",
-    "description": "Aura of Purity is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Aura of Purity is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "4-banishment",
@@ -4535,7 +6263,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:banishment",
-    "description": "Banishment is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Banishment is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Fighter - Eldritch Knight",
+      "Paladin",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-blight",
@@ -4549,7 +6285,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blight",
-    "description": "Blight is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Blight is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-charm-monster",
@@ -4563,7 +6305,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:charm-monster",
-    "description": "Charm Monster is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 1 hour, and uses V, S components."
+    "description": "Charm Monster is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts 1 hour, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-compulsion",
@@ -4577,7 +6327,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:compulsion",
-    "description": "Compulsion is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Compulsion is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard"
+    ]
   },
   {
     "id": "4-confusion",
@@ -4591,7 +6344,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:confusion",
-    "description": "Confusion is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Confusion is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-conjure-barlgura-ua",
@@ -4605,7 +6365,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-barlgura",
-    "description": "Conjure Barlgura (UA) is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts up to 10 minutes, and uses V, S components."
+    "description": "Conjure Barlgura (UA) is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts up to 10 minutes, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-conjure-knowbot-ua",
@@ -4619,7 +6383,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-knowbot",
-    "description": "Conjure Knowbot (UA) is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches touch, lasts 10 minutes, and uses V, S components."
+    "description": "Conjure Knowbot (UA) is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches touch, lasts 10 minutes, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-conjure-minor-elementals",
@@ -4633,7 +6402,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-minor-elementals",
-    "description": "Conjure Minor Elementals is a 4th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Minor Elementals is a 4th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "4-conjure-shadow-demon-ua",
@@ -4647,7 +6420,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-shadow-demon",
-    "description": "Conjure Shadow Demon (UA) is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Shadow Demon (UA) is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-conjure-woodland-beings",
@@ -4661,7 +6438,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-woodland-beings",
-    "description": "Conjure Woodland Beings is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Woodland Beings is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "4-control-water",
@@ -4675,7 +6456,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:control-water",
-    "description": "Control Water is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Control Water is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "4-death-ward",
@@ -4689,7 +6475,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:death-ward",
-    "description": "Death Ward is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S components."
+    "description": "Death Ward is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 8 hours, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "4-dimension-door",
@@ -4703,7 +6493,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dimension-door",
-    "description": "Dimension Door is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 500 feet, lasts instantaneous, and uses V components."
+    "description": "Dimension Door is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 500 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-divination",
@@ -4717,7 +6513,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:divination",
-    "description": "Divination is a 4th level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Divination is a 4th level spell from the divination school. It takes 1 action (ritual) to cast, reaches self, lasts instantaneous, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "4-dominate-beast",
@@ -4731,7 +6532,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dominate-beast",
-    "description": "Dominate Beast is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dominate Beast is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Sorcerer"
+    ]
   },
   {
     "id": "4-ego-whip-ua",
@@ -4745,7 +6551,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ego-whip",
-    "description": "Ego Whip (UA) is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Ego Whip (UA) is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-elemental-bane",
@@ -4759,7 +6572,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:elemental-bane",
-    "description": "Elemental Bane is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Elemental Bane is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-evard-s-black-tentacles",
@@ -4773,7 +6592,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:evards-black-tentacles",
-    "description": "Evard's Black Tentacles is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Evard's Black Tentacles is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "4-fabricate",
@@ -4787,7 +6609,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fabricate",
-    "description": "Fabricate is a 4th level spell from the transmutation school. It takes 10 minutes to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Fabricate is a 4th level spell from the transmutation school. It takes 10 minutes to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-find-greater-steed",
@@ -4801,7 +6627,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:find-greater-steed",
-    "description": "Find Greater Steed is a 4th level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V, S components."
+    "description": "Find Greater Steed is a 4th level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "4-fire-shield",
@@ -4815,7 +6644,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fire-shield",
-    "description": "Fire Shield is a 4th level spell from the evocation school. It takes 1 action to cast, reaches self, lasts 10 minutes, and uses V, S, M components."
+    "description": "Fire Shield is a 4th level spell from the evocation school. It takes 1 action to cast, reaches self, lasts 10 minutes, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-freedom-of-movement",
@@ -4829,7 +6664,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:freedom-of-movement",
-    "description": "Freedom of Movement is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components."
+    "description": "Freedom of Movement is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "4-galder-s-speedy-courier",
@@ -4843,7 +6685,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:galders-speedy-courier",
-    "description": "Galder's Speedy Courier is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts 10 minutes, and uses V, S, M components."
+    "description": "Galder's Speedy Courier is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts 10 minutes, and uses V, S, M components.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-gate-seal",
@@ -4857,7 +6703,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gate-seal",
-    "description": "Gate Seal is a 4th level spell from the abjuration school. It takes 1 minute to cast, reaches 60 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Gate Seal is a 4th level spell from the abjuration school. It takes 1 minute to cast, reaches 60 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-giant-insect",
@@ -4871,7 +6723,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:giant-insect",
-    "description": "Giant Insect is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Giant Insect is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "4-grasping-vine",
@@ -4885,7 +6740,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:grasping-vine",
-    "description": "Grasping Vine is a 4th level spell from the conjuration school. It takes 1 bonus action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Grasping Vine is a 4th level spell from the conjuration school. It takes 1 bonus action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "4-gravity-sinkhole",
@@ -4899,7 +6758,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gravity-sinkhole",
-    "description": "Gravity Sinkhole is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Gravity Sinkhole is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "4-greater-invisibility",
@@ -4913,7 +6776,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:greater-invisibility",
-    "description": "Greater Invisibility is a 4th level spell from the illusion school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Greater Invisibility is a 4th level spell from the illusion school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-guardian-of-faith",
@@ -4927,7 +6796,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:guardian-of-faith",
-    "description": "Guardian of Faith is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V components."
+    "description": "Guardian of Faith is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "4-guardian-of-nature",
@@ -4941,7 +6813,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:guardian-of-nature",
-    "description": "Guardian of Nature is a 4th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Guardian of Nature is a 4th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "4-hallucinatory-terrain",
@@ -4955,7 +6831,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hallucinatory-terrain",
-    "description": "Hallucinatory Terrain is a 4th level spell from the illusion school. It takes 10 minutes to cast, reaches 300 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Hallucinatory Terrain is a 4th level spell from the illusion school. It takes 10 minutes to cast, reaches 300 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Rogue - Arcane Trickster",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-ice-storm",
@@ -4969,7 +6852,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ice-storm",
-    "description": "Ice Storm is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 300 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Ice Storm is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 300 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-leomund-s-secret-chest",
@@ -4983,7 +6872,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:leomunds-secret-chest",
-    "description": "Leomund's Secret Chest is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Leomund's Secret Chest is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-locate-creature",
@@ -4997,7 +6890,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:locate-creature",
-    "description": "Locate Creature is a 4th level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Locate Creature is a 4th level spell from the divination school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "4-mordenkainen-s-faithful-hound",
@@ -5011,7 +6912,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mordenkainens-faithful-hound",
-    "description": "Mordenkainen's Faithful Hound is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components."
+    "description": "Mordenkainen's Faithful Hound is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-mordenkainen-s-private-sanctum",
@@ -5025,7 +6930,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mordenkainens-private-sanctum",
-    "description": "Mordenkainen's Private Sanctum is a 4th level spell from the abjuration school. It takes 10 minutes to cast, reaches 120 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Mordenkainen's Private Sanctum is a 4th level spell from the abjuration school. It takes 10 minutes to cast, reaches 120 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "4-otiluke-s-resilient-sphere",
@@ -5039,7 +6949,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:otilukes-resilient-sphere",
-    "description": "Otiluke's Resilient Sphere is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Otiluke's Resilient Sphere is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Fighter - Eldritch Knight",
+      "Wizard"
+    ]
   },
   {
     "id": "4-phantasmal-killer",
@@ -5053,7 +6968,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:phantasmal-killer",
-    "description": "Phantasmal Killer is a 4th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Phantasmal Killer is a 4th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Wizard"
+    ]
   },
   {
     "id": "4-polymorph",
@@ -5067,7 +6987,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:polymorph",
-    "description": "Polymorph is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Polymorph is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-raulothim-s-psychic-lance",
@@ -5081,7 +7007,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:raulothims-psychic-lance",
-    "description": "Raulothim's Psychic Lance is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V components."
+    "description": "Raulothim's Psychic Lance is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-raulothim-s-psychic-lance-ua",
@@ -5095,7 +7028,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:raulothims-psychic-lance-ua",
-    "description": "Raulothim's Psychic Lance (UA) is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V components."
+    "description": "Raulothim's Psychic Lance (UA) is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-shadow-of-moil",
@@ -5109,7 +7049,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shadow-of-moil",
-    "description": "Shadow Of Moil is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Shadow Of Moil is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock"
+    ]
   },
   {
     "id": "4-sickening-radiance",
@@ -5123,7 +7066,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sickening-radiance",
-    "description": "Sickening Radiance is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Sickening Radiance is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-spirit-of-death",
@@ -5137,7 +7086,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spirit-of-death",
-    "description": "Spirit Of Death is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Spirit Of Death is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-spirit-of-death-ua",
@@ -5151,7 +7105,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:spirit-of-death-ua",
-    "description": "Spirit of Death (UA) is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Spirit of Death (UA) is a 4th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-staggering-smite",
@@ -5165,7 +7124,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:staggering-smite",
-    "description": "Staggering Smite is a 4th level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Staggering Smite is a 4th level spell from the evocation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "4-stone-shape",
@@ -5179,7 +7141,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:stone-shape",
-    "description": "Stone Shape is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Stone Shape is a 4th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "4-stoneskin",
@@ -5193,7 +7161,15 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:stoneskin",
-    "description": "Stoneskin is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Stoneskin is a 4th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-storm-sphere",
@@ -5207,7 +7183,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:storm-sphere",
-    "description": "Storm Sphere is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Storm Sphere is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-summon-aberration",
@@ -5221,7 +7202,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-aberration",
-    "description": "Summon Aberration is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Aberration is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-summon-construct",
@@ -5235,7 +7220,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-construct",
-    "description": "Summon Construct is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Construct is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-summon-elemental",
@@ -5249,7 +7238,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-elemental",
-    "description": "Summon Elemental is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Elemental is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "4-summon-greater-demon",
@@ -5263,7 +7257,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-greater-demon",
-    "description": "Summon Greater Demon is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Greater Demon is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-synchronicity-ua",
@@ -5277,7 +7275,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:synchronicity",
-    "description": "Synchronicity (UA) is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Synchronicity (UA) is a 4th level spell from the enchantment school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Rogue - Arcane Trickster",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-system-backdoor-ua",
@@ -5291,7 +7295,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:system-backdoor",
-    "description": "System Backdoor (UA) is a 4th level spell from the transmutation school. It takes 1 minute to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "System Backdoor (UA) is a 4th level spell from the transmutation school. It takes 1 minute to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "4-vitriolic-sphere",
@@ -5305,7 +7314,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:vitriolic-sphere",
-    "description": "Vitriolic Sphere is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Vitriolic Sphere is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-wall-of-fire",
@@ -5319,7 +7333,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-fire",
-    "description": "Wall of Fire is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Fire is a 4th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Fighter - Eldritch Knight",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "4-watery-sphere",
@@ -5333,7 +7353,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:watery-sphere",
-    "description": "Watery Sphere is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Watery Sphere is a 4th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-animate-objects",
@@ -5347,7 +7372,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:animate-objects",
-    "description": "Animate Objects is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Animate Objects is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-antilife-shell",
@@ -5361,7 +7392,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:antilife-shell",
-    "description": "Antilife Shell is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches self (10-foot radius), lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Antilife Shell is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches self (10-foot radius), lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "5-awaken",
@@ -5375,7 +7409,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:awaken",
-    "description": "Awaken is a 5th level spell from the transmutation school. It takes 8 hours to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Awaken is a 5th level spell from the transmutation school. It takes 8 hours to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Druid"
+    ]
   },
   {
     "id": "5-banishing-smite",
@@ -5389,7 +7427,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:banishing-smite",
-    "description": "Banishing Smite is a 5th level spell from the abjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Banishing Smite is a 5th level spell from the abjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "5-bigby-s-hand",
@@ -5403,7 +7444,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:bigbys-hand",
-    "description": "Bigby's Hand is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Bigby's Hand is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-circle-of-power",
@@ -5417,7 +7463,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:circle-of-power",
-    "description": "Circle of Power is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Circle of Power is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches self (30-foot radius), lasts concentration, up to 10 minutes, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "5-cloudkill",
@@ -5431,7 +7480,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:cloudkill",
-    "description": "Cloudkill is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Cloudkill is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-commune",
@@ -5445,7 +7498,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:commune",
-    "description": "Commune is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts 1 minute, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Commune is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts 1 minute, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "5-commune-with-city-ua",
@@ -5459,7 +7515,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:commune-with-city",
-    "description": "Commune with City (UA) is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Commune with City (UA) is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-commune-with-nature",
@@ -5473,7 +7534,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:commune-with-nature",
-    "description": "Commune with Nature is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Commune with Nature is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts instantaneous, and uses V, S components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "5-cone-of-cold",
@@ -5487,7 +7552,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:cone-of-cold",
-    "description": "Cone of Cold is a 5th level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot cone), lasts instantaneous, and uses V, S, M components."
+    "description": "Cone of Cold is a 5th level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot cone), lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-conjure-elemental",
@@ -5501,7 +7571,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-elemental",
-    "description": "Conjure Elemental is a 5th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Elemental is a 5th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "5-conjure-volley",
@@ -5515,7 +7589,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-volley",
-    "description": "Conjure Volley is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Conjure Volley is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "5-conjure-vrock-ua",
@@ -5529,7 +7606,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-vrock",
-    "description": "Conjure Vrock (UA) is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Vrock (UA) is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-contact-other-plane",
@@ -5543,7 +7624,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:contact-other-plane",
-    "description": "Contact Other Plane is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts 1 minute, and uses V components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Contact Other Plane is a 5th level spell from the divination school. It takes 1 minute (ritual) to cast, reaches self, lasts 1 minute, and uses V components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-contagion",
@@ -5557,7 +7642,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "7 days",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:contagion",
-    "description": "Contagion is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts 7 days, and uses V, S components."
+    "description": "Contagion is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches touch, lasts 7 days, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "5-control-winds",
@@ -5571,7 +7660,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:control-winds",
-    "description": "Control Winds is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Control Winds is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-create-spelljamming-helm",
@@ -5585,7 +7679,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V,S,M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:create-spelljamming-helm",
-    "description": "Create Spelljamming Helm is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V,S,M components."
+    "description": "Create Spelljamming Helm is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V,S,M components.",
+    "classes": [
+      "Artificer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-creation",
@@ -5599,7 +7697,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Special",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:creation",
-    "description": "Creation is a 5th level spell from the illusion school. It takes 1 minute to cast, reaches 30 feet, lasts special, and uses V, S, M components."
+    "description": "Creation is a 5th level spell from the illusion school. It takes 1 minute to cast, reaches 30 feet, lasts special, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-danse-macabre",
@@ -5613,7 +7716,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:danse-macabre",
-    "description": "Danse Macabre is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Danse Macabre is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-dawn",
@@ -5627,7 +7734,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dawn",
-    "description": "Dawn is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dawn is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Wizard"
+    ]
   },
   {
     "id": "5-destructive-wave",
@@ -5641,7 +7752,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:destructive-wave",
-    "description": "Destructive Wave is a 5th level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot radius), lasts instantaneous, and uses V components."
+    "description": "Destructive Wave is a 5th level spell from the evocation school. It takes 1 action to cast, reaches self (30-foot radius), lasts instantaneous, and uses V components.",
+    "classes": [
+      "Paladin"
+    ]
   },
   {
     "id": "5-dispel-evil-and-good",
@@ -5655,7 +7769,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dispel-evil-and-good",
-    "description": "Dispel Evil and Good is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dispel Evil and Good is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "5-dominate-person",
@@ -5669,7 +7787,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dominate-person",
-    "description": "Dominate Person is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dominate Person is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-dream",
@@ -5683,7 +7806,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dream",
-    "description": "Dream is a 5th level spell from the illusion school. It takes 1 minute to cast, reaches special, lasts 8 hours, and uses V, S, M components."
+    "description": "Dream is a 5th level spell from the illusion school. It takes 1 minute to cast, reaches special, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-enervation",
@@ -5697,7 +7825,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:enervation",
-    "description": "Enervation is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Enervation is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-far-step",
@@ -5711,7 +7844,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:far-step",
-    "description": "Far Step is a 5th level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Far Step is a 5th level spell from the conjuration school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-flame-strike",
@@ -5725,7 +7863,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:flame-strike",
-    "description": "Flame Strike is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Flame Strike is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "5-geas",
@@ -5739,7 +7880,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "30 days",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:geas",
-    "description": "Geas is a 5th level spell from the enchantment school. It takes 1 minute to cast, reaches 60 feet, lasts 30 days, and uses V components."
+    "description": "Geas is a 5th level spell from the enchantment school. It takes 1 minute to cast, reaches 60 feet, lasts 30 days, and uses V components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Paladin",
+      "Wizard"
+    ]
   },
   {
     "id": "5-greater-restoration",
@@ -5753,7 +7901,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:greater-restoration",
-    "description": "Greater Restoration is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Greater Restoration is a 5th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "5-hallow",
@@ -5767,7 +7922,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hallow",
-    "description": "Hallow is a 5th level spell from the evocation school. It takes 24 hours to cast, reaches touch, lasts until dispelled, and uses V, S, M components."
+    "description": "Hallow is a 5th level spell from the evocation school. It takes 24 hours to cast, reaches touch, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "5-hold-monster",
@@ -5781,7 +7939,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:hold-monster",
-    "description": "Hold Monster is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Hold Monster is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-holy-weapon",
@@ -5795,7 +7959,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:holy-weapon",
-    "description": "Holy Weapon is a 5th level spell from the evocation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Holy Weapon is a 5th level spell from the evocation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "5-immolation",
@@ -5809,7 +7977,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:immolation",
-    "description": "Immolation is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Immolation is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-infernal-calling",
@@ -5823,7 +7995,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:infernal-calling",
-    "description": "Infernal Calling is a 5th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Infernal Calling is a 5th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-insect-plague",
@@ -5837,7 +8013,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:insect-plague",
-    "description": "Insect Plague is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Insect Plague is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Sorcerer"
+    ]
   },
   {
     "id": "5-legend-lore",
@@ -5851,7 +8032,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:legend-lore",
-    "description": "Legend Lore is a 5th level spell from the divination school. It takes 10 minutes to cast, reaches self, lasts instantaneous, and uses V, S, M components."
+    "description": "Legend Lore is a 5th level spell from the divination school. It takes 10 minutes to cast, reaches self, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Wizard"
+    ]
   },
   {
     "id": "5-maelstrom",
@@ -5865,7 +8051,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:maelstrom",
-    "description": "Maelstrom is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Maelstrom is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "5-mass-cure-wounds",
@@ -5879,7 +8068,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mass-cure-wounds",
-    "description": "Mass Cure Wounds is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Mass Cure Wounds is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "5-mislead",
@@ -5893,7 +8087,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mislead",
-    "description": "Mislead is a 5th level spell from the illusion school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Mislead is a 5th level spell from the illusion school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-modify-memory",
@@ -5907,7 +8106,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:modify-memory",
-    "description": "Modify Memory is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Modify Memory is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "5-negative-energy-flood",
@@ -5921,7 +8124,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:negative-energy-flood",
-    "description": "Negative Energy Flood is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, M components."
+    "description": "Negative Energy Flood is a 5th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, M components.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-passwall",
@@ -5935,7 +8142,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:passwall",
-    "description": "Passwall is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components."
+    "description": "Passwall is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "5-planar-binding",
@@ -5949,7 +8159,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:planar-binding",
-    "description": "Planar Binding is a 5th level spell from the abjuration school. It takes 1 hour to cast, reaches 60 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Planar Binding is a 5th level spell from the abjuration school. It takes 1 hour to cast, reaches 60 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-raise-dead",
@@ -5963,7 +8180,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:raise-dead",
-    "description": "Raise Dead is a 5th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Raise Dead is a 5th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "5-rary-s-telepathic-bond",
@@ -5977,7 +8199,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:rarys-telepathic-bond",
-    "description": "Rary's Telepathic Bond is a 5th level spell from the divination school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Rary's Telepathic Bond is a 5th level spell from the divination school. It takes 1 action (ritual) to cast, reaches 30 feet, lasts 1 hour, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "5-reincarnate",
@@ -5991,7 +8217,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:reincarnate",
-    "description": "Reincarnate is a 5th level spell from the transmutation school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Reincarnate is a 5th level spell from the transmutation school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "5-scrying",
@@ -6005,7 +8234,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:scrying",
-    "description": "Scrying is a 5th level spell from the divination school. It takes 10 minutes to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Scrying is a 5th level spell from the divination school. It takes 10 minutes to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-seeming",
@@ -6019,7 +8255,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:seeming",
-    "description": "Seeming is a 5th level spell from the illusion school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V, S components."
+    "description": "Seeming is a 5th level spell from the illusion school. It takes 1 action to cast, reaches 30 feet, lasts 8 hours, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-shutdown-ua",
@@ -6033,7 +8274,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shutdown",
-    "description": "Shutdown (UA) is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Shutdown (UA) is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-skill-empowerment",
@@ -6047,7 +8293,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:skill-empowerment",
-    "description": "Skill Empowerment is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Skill Empowerment is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-steel-wind-strike",
@@ -6061,7 +8313,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:steel-wind-strike",
-    "description": "Steel Wind Strike is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses S, M components."
+    "description": "Steel Wind Strike is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses S, M components.",
+    "classes": [
+      "Ranger",
+      "Wizard"
+    ]
   },
   {
     "id": "5-summon-celestial",
@@ -6075,7 +8331,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-celestial",
-    "description": "Summon Celestial is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Celestial is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ]
   },
   {
     "id": "5-summon-draconic-spirit",
@@ -6089,7 +8349,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-draconic-spirit",
-    "description": "Summon Draconic Spirit is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Draconic Spirit is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-summon-draconic-spirit-ua",
@@ -6103,7 +8368,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-draconic-spirit-ua",
-    "description": "Summon Draconic Spirit (UA) is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Draconic Spirit (UA) is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-swift-quiver",
@@ -6117,7 +8387,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:swift-quiver",
-    "description": "Swift Quiver is a 5th level spell from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Swift Quiver is a 5th level spell from the transmutation school. It takes 1 bonus action to cast, reaches touch, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Ranger"
+    ]
   },
   {
     "id": "5-synaptic-static",
@@ -6131,7 +8404,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:synaptic-static",
-    "description": "Synaptic Static is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Synaptic Static is a 5th level spell from the enchantment school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-telekinesis",
@@ -6145,7 +8424,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:telekinesis",
-    "description": "Telekinesis is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Telekinesis is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-teleportation-circle",
@@ -6159,7 +8442,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:teleportation-circle",
-    "description": "Teleportation Circle is a 5th level spell from the conjuration school. It takes 1 minute to cast, reaches 10 feet, lasts 1 round, and uses V, M components."
+    "description": "Teleportation Circle is a 5th level spell from the conjuration school. It takes 1 minute to cast, reaches 10 feet, lasts 1 round, and uses V, M components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-temporal-shunt",
@@ -6173,7 +8462,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:temporal-shunt",
-    "description": "Temporal Shunt is a 5th level spell from the transmutation school. It takes 1 reaction to cast, reaches 120 feet, lasts 1 round, and uses V, S components."
+    "description": "Temporal Shunt is a 5th level spell from the transmutation school. It takes 1 reaction to cast, reaches 120 feet, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "5-transmute-rock",
@@ -6187,7 +8479,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:transmute-rock",
-    "description": "Transmute Rock is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Transmute Rock is a 5th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "5-tree-stride",
@@ -6201,7 +8498,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tree-stride",
-    "description": "Tree Stride is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Tree Stride is a 5th level spell from the conjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "5-wall-of-force",
@@ -6215,7 +8516,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-force",
-    "description": "Wall of Force is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Force is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "5-wall-of-light",
@@ -6229,7 +8533,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-light",
-    "description": "Wall of Light is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Light is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "5-wall-of-stone",
@@ -6243,7 +8552,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-stone",
-    "description": "Wall of Stone is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Stone is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Artificer",
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "5-wrath-of-nature",
@@ -6257,7 +8572,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wrath-of-nature",
-    "description": "Wrath Of Nature is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wrath Of Nature is a 5th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ]
   },
   {
     "id": "6-arcane-gate",
@@ -6271,7 +8590,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:arcane-gate",
-    "description": "Arcane Gate is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 500 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Arcane Gate is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 500 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-blade-barrier",
@@ -6285,7 +8609,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blade-barrier",
-    "description": "Blade Barrier is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Blade Barrier is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "6-bones-of-the-earth",
@@ -6299,7 +8626,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:bones-of-the-earth",
-    "description": "Bones of the Earth is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components."
+    "description": "Bones of the Earth is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "6-chain-lightning",
@@ -6313,7 +8643,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:chain-lightning",
-    "description": "Chain Lightning is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Chain Lightning is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-circle-of-death",
@@ -6327,7 +8661,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:circle-of-death",
-    "description": "Circle of Death is a 6th level spell from the necromancy school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Circle of Death is a 6th level spell from the necromancy school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-conjure-fey",
@@ -6341,7 +8680,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-fey",
-    "description": "Conjure Fey is a 6th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Fey is a 6th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Warlock"
+    ]
   },
   {
     "id": "6-contingency",
@@ -6355,7 +8698,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 days",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:contingency",
-    "description": "Contingency is a 6th level spell from the evocation school. It takes 10 minutes to cast, reaches self, lasts 10 days, and uses V, S, M components."
+    "description": "Contingency is a 6th level spell from the evocation school. It takes 10 minutes to cast, reaches self, lasts 10 days, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "6-create-homunculus",
@@ -6369,7 +8715,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:create-homunculus",
-    "description": "Create Homunculus is a 6th level spell from the transmutation school. It takes 1 hour to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Create Homunculus is a 6th level spell from the transmutation school. It takes 1 hour to cast, reaches 120 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "6-create-undead",
@@ -6383,7 +8732,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:create-undead",
-    "description": "Create Undead is a 6th level spell from the necromancy school. It takes 1 minute to cast, reaches 10 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Create Undead is a 6th level spell from the necromancy school. It takes 1 minute to cast, reaches 10 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-disintegrate",
@@ -6397,7 +8751,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:disintegrate",
-    "description": "Disintegrate is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Disintegrate is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-drawmij-s-instant-summons",
@@ -6411,7 +8769,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:drawmijs-instant-summons",
-    "description": "Drawmij's Instant Summons is a 6th level spell from the conjuration school. It takes 1 minute (ritual) to cast, reaches touch, lasts until dispelled, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Drawmij's Instant Summons is a 6th level spell from the conjuration school. It takes 1 minute (ritual) to cast, reaches touch, lasts until dispelled, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "6-druid-grove",
@@ -6425,7 +8786,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:druid-grove",
-    "description": "Druid Grove is a 6th level spell from the abjuration school. It takes 10 minutes to cast, reaches touch, lasts 24 hours, and uses V, S, M components."
+    "description": "Druid Grove is a 6th level spell from the abjuration school. It takes 10 minutes to cast, reaches touch, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "6-eyebite",
@@ -6439,7 +8803,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:eyebite",
-    "description": "Eyebite is a 6th level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Eyebite is a 6th level spell from the necromancy school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-find-the-path",
@@ -6453,7 +8823,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 day",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:find-the-path",
-    "description": "Find the Path is a 6th level spell from the divination school. It takes 1 minute to cast, reaches self, lasts concentration, up to 1 day, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Find the Path is a 6th level spell from the divination school. It takes 1 minute to cast, reaches self, lasts concentration, up to 1 day, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "6-fizban-s-platinum-shield",
@@ -6467,7 +8842,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fizbans-platinum-shield",
-    "description": "Fizban's Platinum Shield is a 6th level spell from the abjuration school. It takes 1 bonus action to cast, reaches 60ft, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Fizban's Platinum Shield is a 6th level spell from the abjuration school. It takes 1 bonus action to cast, reaches 60ft, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-fizban-s-platinum-shield-ua",
@@ -6481,7 +8860,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fizban-s-platinum-shield-ua",
-    "description": "Fizban's Platinum Shield (UA) is a 6th level spell from the abjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Fizban's Platinum Shield (UA) is a 6th level spell from the abjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-flesh-to-stone",
@@ -6495,7 +8878,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:flesh-to-stone",
-    "description": "Flesh to Stone is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Flesh to Stone is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-forbiddance",
@@ -6509,7 +8898,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 day",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:forbiddance",
-    "description": "Forbiddance is a 6th level spell from the abjuration school. It takes 10 minutes (ritual) to cast, reaches touch, lasts 1 day, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode."
+    "description": "Forbiddance is a 6th level spell from the abjuration school. It takes 10 minutes (ritual) to cast, reaches touch, lasts 1 day, and uses V, S, M components. It can be used as a ritual when your table permits that casting mode.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "6-globe-of-invulnerability",
@@ -6523,7 +8915,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:globe-of-invulnerability",
-    "description": "Globe of Invulnerability is a 6th level spell from the abjuration school. It takes 1 action to cast, reaches self (10-foot radius), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Globe of Invulnerability is a 6th level spell from the abjuration school. It takes 1 action to cast, reaches self (10-foot radius), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-gravity-fissure",
@@ -6537,7 +8933,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gravity-fissure",
-    "description": "Gravity Fissure is a 6th level spell from the evocation school. It takes 1 action to cast, reaches self (100-foot line), lasts instantaneous, and uses V, S, M components."
+    "description": "Gravity Fissure is a 6th level spell from the evocation school. It takes 1 action to cast, reaches self (100-foot line), lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "6-guards-and-wards",
@@ -6551,7 +8950,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:guards-and-wards",
-    "description": "Guards and Wards is a 6th level spell from the abjuration school. It takes 10 minutes to cast, reaches touch, lasts 24 hours, and uses V, S, M components."
+    "description": "Guards and Wards is a 6th level spell from the abjuration school. It takes 10 minutes to cast, reaches touch, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "6-harm",
@@ -6565,7 +8968,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:harm",
-    "description": "Harm is a 6th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Harm is a 6th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "6-heal",
@@ -6579,7 +8985,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:heal",
-    "description": "Heal is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Heal is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "6-heroes-feast",
@@ -6593,7 +9003,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:heroes-feast",
-    "description": "Heroes' Feast is a 6th level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Heroes' Feast is a 6th level spell from the conjuration school. It takes 10 minutes to cast, reaches 30 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "6-investiture-of-flame",
@@ -6607,7 +9022,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:investiture-of-flame",
-    "description": "Investiture of Flame is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Investiture of Flame is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-investiture-of-ice",
@@ -6621,7 +9042,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:investiture-of-ice",
-    "description": "Investiture of Ice is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Investiture of Ice is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-investiture-of-stone",
@@ -6635,7 +9062,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:investiture-of-stone",
-    "description": "Investiture of Stone is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Investiture of Stone is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-investiture-of-wind",
@@ -6649,7 +9082,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:investiture-of-wind",
-    "description": "Investiture of Wind is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Investiture of Wind is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-magic-jar",
@@ -6663,7 +9102,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:magic-jar",
-    "description": "Magic Jar is a 6th level spell from the necromancy school. It takes 1 minute to cast, reaches self, lasts until dispelled, and uses V, S, M components."
+    "description": "Magic Jar is a 6th level spell from the necromancy school. It takes 1 minute to cast, reaches self, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "6-mass-suggestion",
@@ -6677,7 +9119,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mass-suggestion",
-    "description": "Mass Suggestion is a 6th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 24 hours, and uses V, M components."
+    "description": "Mass Suggestion is a 6th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 24 hours, and uses V, M components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-mental-prison",
@@ -6691,7 +9139,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mental-prison",
-    "description": "Mental Prison is a 6th level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Mental Prison is a 6th level spell from the illusion school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-move-earth",
@@ -6705,7 +9158,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 2 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:move-earth",
-    "description": "Move Earth is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 2 hours, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Move Earth is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 2 hours, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-otherworldly-form-ua",
@@ -6719,7 +9177,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:otherworldly-form",
-    "description": "Otherworldly Form (UA) is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Otherworldly Form (UA) is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-otiluke-s-freezing-sphere",
@@ -6733,7 +9197,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:otilukes-freezing-sphere",
-    "description": "Otiluke's Freezing Sphere is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 300 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Otiluke's Freezing Sphere is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 300 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-otto-s-irresistible-dance",
@@ -6747,7 +9215,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ottos-irresistible-dance",
-    "description": "Otto's Irresistible Dance is a 6th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic."
+    "description": "Otto's Irresistible Dance is a 6th level spell from the enchantment school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 minute, and uses V components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "6-planar-ally",
@@ -6761,7 +9233,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:planar-ally",
-    "description": "Planar Ally is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Planar Ally is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "6-primordial-ward",
@@ -6775,7 +9250,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:primordial-ward",
-    "description": "Primordial Ward is a 6th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Primordial Ward is a 6th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "6-programmed-illusion",
@@ -6789,7 +9267,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:programmed-illusion",
-    "description": "Programmed Illusion is a 6th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts until dispelled, and uses V, S, M components."
+    "description": "Programmed Illusion is a 6th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "6-psychic-crush-ua",
@@ -6803,7 +9285,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:psychic-crush",
-    "description": "Psychic Crush (UA) is a 6th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses V, S components."
+    "description": "Psychic Crush (UA) is a 6th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts 1 minute, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-scatter",
@@ -6817,7 +9304,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:scatter",
-    "description": "Scatter is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V components."
+    "description": "Scatter is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 30 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-soul-cage",
@@ -6831,7 +9323,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:soul-cage",
-    "description": "Soul Cage is a 6th level spell from the necromancy school. It takes special to cast, reaches 60 feet, lasts 8 hours, and uses V, S, M components."
+    "description": "Soul Cage is a 6th level spell from the necromancy school. It takes special to cast, reaches 60 feet, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-summon-fiend",
@@ -6845,7 +9341,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:summon-fiend",
-    "description": "Summon Fiend is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Summon Fiend is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-sunbeam",
@@ -6859,7 +9359,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sunbeam",
-    "description": "Sunbeam is a 6th level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Sunbeam is a 6th level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot line), lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "6-tasha-s-otherworldly-guise",
@@ -6873,7 +9379,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tashas-otherworldly-guise",
-    "description": "Tasha's Otherworldly Guise is a 6th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Tasha's Otherworldly Guise is a 6th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-tenser-s-transformation",
@@ -6887,7 +9398,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tensers-transformation",
-    "description": "Tenser's Transformation is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Tenser's Transformation is a 6th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "6-transport-via-plants",
@@ -6901,7 +9415,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 round",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:transport-via-plants",
-    "description": "Transport via Plants is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts 1 round, and uses V, S components."
+    "description": "Transport via Plants is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts 1 round, and uses V, S components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "6-true-seeing",
@@ -6915,7 +9432,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:true-seeing",
-    "description": "True Seeing is a 6th level spell from the divination school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components."
+    "description": "True Seeing is a 6th level spell from the divination school. It takes 1 action to cast, reaches touch, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "6-wall-of-ice",
@@ -6929,7 +9453,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-ice",
-    "description": "Wall of Ice is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Ice is a 6th level spell from the evocation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "6-wall-of-thorns",
@@ -6943,7 +9470,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wall-of-thorns",
-    "description": "Wall of Thorns is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Wall of Thorns is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "6-wind-walk",
@@ -6957,7 +9487,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wind-walk",
-    "description": "Wind Walk is a 6th level spell from the transmutation school. It takes 1 minute to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components."
+    "description": "Wind Walk is a 6th level spell from the transmutation school. It takes 1 minute to cast, reaches 30 feet, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "6-word-of-recall",
@@ -6971,7 +9504,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:word-of-recall",
-    "description": "Word of Recall is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 5 feet, lasts instantaneous, and uses V components."
+    "description": "Word of Recall is a 6th level spell from the conjuration school. It takes 1 action to cast, reaches 5 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "7-conjure-celestial",
@@ -6985,7 +9521,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-celestial",
-    "description": "Conjure Celestial is a 7th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Celestial is a 7th level spell from the conjuration school. It takes 1 minute to cast, reaches 90 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "7-conjure-hezrou-ua",
@@ -6999,7 +9538,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:conjure-hezrou",
-    "description": "Conjure Hezrou (UA) is a 7th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Conjure Hezrou (UA) is a 7th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "7-create-magen",
@@ -7013,7 +9556,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:create-magen",
-    "description": "Create Magen is a 7th level spell from the transmutation school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Create Magen is a 7th level spell from the transmutation school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "7-crown-of-stars",
@@ -7027,7 +9573,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:crown-of-stars",
-    "description": "Crown of Stars is a 7th level spell from the evocation school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S components."
+    "description": "Crown of Stars is a 7th level spell from the evocation school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "7-delayed-blast-fireball",
@@ -7041,7 +9592,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:delayed-blast-fireball",
-    "description": "Delayed Blast Fireball is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Delayed Blast Fireball is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "7-divine-word",
@@ -7055,7 +9610,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:divine-word",
-    "description": "Divine Word is a 7th level spell from the evocation school. It takes 1 bonus action to cast, reaches 30 feet, lasts instantaneous, and uses V components."
+    "description": "Divine Word is a 7th level spell from the evocation school. It takes 1 bonus action to cast, reaches 30 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "7-draconic-transformation",
@@ -7069,7 +9627,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:draconic-transformation",
-    "description": "Draconic Transformation is a 7th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Draconic Transformation is a 7th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "7-draconic-transformation-ua",
@@ -7083,7 +9646,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:draconic-transformation-ua",
-    "description": "Draconic Transformation (UA) is a 7th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Draconic Transformation (UA) is a 7th level spell from the transmutation school. It takes 1 bonus action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "7-dream-of-the-blue-veil",
@@ -7097,7 +9665,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "6 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dream-of-the-blue-veil",
-    "description": "Dream of the Blue Veil is a 7th level spell from the conjuration school. It takes 10 minutes to cast, reaches 20 feet, lasts 6 hours, and uses V, S, M components."
+    "description": "Dream of the Blue Veil is a 7th level spell from the conjuration school. It takes 10 minutes to cast, reaches 20 feet, lasts 6 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "7-etherealness",
@@ -7111,7 +9685,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Up to 8 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:etherealness",
-    "description": "Etherealness is a 7th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts up to 8 hours, and uses V, S components."
+    "description": "Etherealness is a 7th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts up to 8 hours, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "7-finger-of-death",
@@ -7125,7 +9706,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:finger-of-death",
-    "description": "Finger of Death is a 7th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Finger of Death is a 7th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "7-fire-storm",
@@ -7139,7 +9725,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:fire-storm",
-    "description": "Fire Storm is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S components."
+    "description": "Fire Storm is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Sorcerer"
+    ]
   },
   {
     "id": "7-forcecage",
@@ -7153,7 +9744,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:forcecage",
-    "description": "Forcecage is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 100 feet, lasts 1 hour, and uses V, S, M components."
+    "description": "Forcecage is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 100 feet, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "7-mirage-arcane",
@@ -7167,7 +9763,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 days",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mirage-arcane",
-    "description": "Mirage Arcane is a 7th level spell from the illusion school. It takes 10 minutes to cast, reaches sight, lasts 10 days, and uses V, S components."
+    "description": "Mirage Arcane is a 7th level spell from the illusion school. It takes 10 minutes to cast, reaches sight, lasts 10 days, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "7-mordenkainen-s-magnificent-mansion",
@@ -7181,7 +9782,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mordenkainens-magnificent-mansion",
-    "description": "Mordenkainen's Magnificent Mansion is a 7th level spell from the conjuration school. It takes 1 minute to cast, reaches 300 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Mordenkainen's Magnificent Mansion is a 7th level spell from the conjuration school. It takes 1 minute to cast, reaches 300 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "7-mordenkainen-s-sword",
@@ -7195,7 +9800,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mordenkainens-sword",
-    "description": "Mordenkainen's Sword is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Mordenkainen's Sword is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "7-plane-shift",
@@ -7209,7 +9818,14 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:plane-shift",
-    "description": "Plane Shift is a 7th level spell from the conjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Plane Shift is a 7th level spell from the conjuration school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "7-power-word-pain",
@@ -7223,7 +9839,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:power-word-pain",
-    "description": "Power Word: Pain is a 7th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Power Word: Pain is a 7th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "7-prismatic-spray",
@@ -7237,7 +9858,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:prismatic-spray",
-    "description": "Prismatic Spray is a 7th level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot cone), lasts instantaneous, and uses V, S components."
+    "description": "Prismatic Spray is a 7th level spell from the evocation school. It takes 1 action to cast, reaches self (60-foot cone), lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "7-project-image",
@@ -7251,7 +9877,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 day",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:project-image",
-    "description": "Project Image is a 7th level spell from the illusion school. It takes 1 action to cast, reaches 500 miles, lasts concentration, up to 1 day, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Project Image is a 7th level spell from the illusion school. It takes 1 action to cast, reaches 500 miles, lasts concentration, up to 1 day, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "7-regenerate",
@@ -7265,7 +9895,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:regenerate",
-    "description": "Regenerate is a 7th level spell from the transmutation school. It takes 1 minute to cast, reaches touch, lasts 1 hour, and uses V, S, M components."
+    "description": "Regenerate is a 7th level spell from the transmutation school. It takes 1 minute to cast, reaches touch, lasts 1 hour, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "7-resurrection",
@@ -7279,7 +9914,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:resurrection",
-    "description": "Resurrection is a 7th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Resurrection is a 7th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric"
+    ]
   },
   {
     "id": "7-reverse-gravity",
@@ -7293,7 +9932,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:reverse-gravity",
-    "description": "Reverse Gravity is a 7th level spell from the transmutation school. It takes 1 action to cast, reaches 100 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Reverse Gravity is a 7th level spell from the transmutation school. It takes 1 action to cast, reaches 100 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "7-sequester",
@@ -7307,7 +9951,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sequester",
-    "description": "Sequester is a 7th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts until dispelled, and uses V, S, M components."
+    "description": "Sequester is a 7th level spell from the transmutation school. It takes 1 action to cast, reaches touch, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "7-simulacrum",
@@ -7321,7 +9968,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:simulacrum",
-    "description": "Simulacrum is a 7th level spell from the illusion school. It takes 12 hours to cast, reaches touch, lasts until dispelled, and uses V, S, M components."
+    "description": "Simulacrum is a 7th level spell from the illusion school. It takes 12 hours to cast, reaches touch, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "7-symbol",
@@ -7335,7 +9985,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled or triggered",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:symbol",
-    "description": "Symbol is a 7th level spell from the abjuration school. It takes 1 minute to cast, reaches touch, lasts until dispelled or triggered, and uses V, S, M components."
+    "description": "Symbol is a 7th level spell from the abjuration school. It takes 1 minute to cast, reaches touch, lasts until dispelled or triggered, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "7-teleport",
@@ -7349,7 +10005,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:teleport",
-    "description": "Teleport is a 7th level spell from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts instantaneous, and uses V components."
+    "description": "Teleport is a 7th level spell from the conjuration school. It takes 1 action to cast, reaches 10 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "7-temple-of-the-gods",
@@ -7363,7 +10024,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:temple-of-the-gods",
-    "description": "Temple of the Gods is a 7th level spell from the conjuration school. It takes 1 hour to cast, reaches 120 feet, lasts 24 hours, and uses V, S, M components."
+    "description": "Temple of the Gods is a 7th level spell from the conjuration school. It takes 1 hour to cast, reaches 120 feet, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "7-tether-essence",
@@ -7377,7 +10041,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tether-essence",
-    "description": "Tether Essence is a 7th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Tether Essence is a 7th level spell from the necromancy school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "7-whirlwind",
@@ -7391,7 +10058,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:whirlwind",
-    "description": "Whirlwind is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 1 minute, and uses V, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Whirlwind is a 7th level spell from the evocation school. It takes 1 action to cast, reaches 300 feet, lasts concentration, up to 1 minute, and uses V, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "8-abi-dalzim-s-horrid-wilting",
@@ -7405,7 +10076,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:abi-dalzims-horrid-wilting",
-    "description": "Abi-Dalzim's Horrid Wilting is a 8th level spell from the necromancy school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Abi-Dalzim's Horrid Wilting is a 8th level spell from the necromancy school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "8-animal-shapes",
@@ -7419,7 +10094,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 24 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:animal-shapes",
-    "description": "Animal Shapes is a 8th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 24 hours, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Animal Shapes is a 8th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 24 hours, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "8-antimagic-field",
@@ -7433,7 +10111,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:antimagic-field",
-    "description": "Antimagic Field is a 8th level spell from the abjuration school. It takes 1 action to cast, reaches self (10-foot radius sphere), lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Antimagic Field is a 8th level spell from the abjuration school. It takes 1 action to cast, reaches self (10-foot radius sphere), lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Wizard"
+    ]
   },
   {
     "id": "8-antipathy-sympathy",
@@ -7447,7 +10129,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 Days",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:antipathy-sympathy",
-    "description": "Antipathy/Sympathy is a 8th level spell from the enchantment school. It takes 1 hour to cast, reaches 60 feet, lasts 10 days, and uses V, S, M components."
+    "description": "Antipathy/Sympathy is a 8th level spell from the enchantment school. It takes 1 hour to cast, reaches 60 feet, lasts 10 days, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "8-clone",
@@ -7461,7 +10148,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:clone",
-    "description": "Clone is a 8th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "Clone is a 8th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "8-control-weather",
@@ -7475,7 +10165,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, Up to 8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:control-weather",
-    "description": "Control Weather is a 8th level spell from the transmutation school. It takes 10 minutes to cast, reaches self (5 mile radius), lasts concentration, up to 8 hours, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Control Weather is a 8th level spell from the transmutation school. It takes 10 minutes to cast, reaches self (5 mile radius), lasts concentration, up to 8 hours, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "8-dark-star",
@@ -7489,7 +10184,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dark-star",
-    "description": "Dark Star is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dark Star is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "8-demiplane",
@@ -7503,7 +10201,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:demiplane",
-    "description": "Demiplane is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts 1 hour, and uses S components."
+    "description": "Demiplane is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts 1 hour, and uses S components.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "8-dominate-monster",
@@ -7517,7 +10220,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:dominate-monster",
-    "description": "Dominate Monster is a 8th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Dominate Monster is a 8th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 hour, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "8-earthquake",
@@ -7531,7 +10240,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:earthquake",
-    "description": "Earthquake is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 500 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Earthquake is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 500 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Sorcerer"
+    ]
   },
   {
     "id": "8-feeblemind",
@@ -7545,7 +10259,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:feeblemind",
-    "description": "Feeblemind is a 8th level spell from the enchantment school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Feeblemind is a 8th level spell from the enchantment school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "8-glibness",
@@ -7559,7 +10279,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "1 hour",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:glibness",
-    "description": "Glibness is a 8th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V components."
+    "description": "Glibness is a 8th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts 1 hour, and uses V components.",
+    "classes": [
+      "Bard",
+      "Warlock"
+    ]
   },
   {
     "id": "8-holy-aura",
@@ -7573,7 +10297,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:holy-aura",
-    "description": "Holy Aura is a 8th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Holy Aura is a 8th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "8-illusory-dragon",
@@ -7587,7 +10314,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:illusory-dragon",
-    "description": "Illusory Dragon is a 8th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Illusory Dragon is a 8th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "8-incendiary-cloud",
@@ -7601,7 +10331,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:incendiary-cloud",
-    "description": "Incendiary Cloud is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Incendiary Cloud is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "8-maddening-darkness",
@@ -7615,7 +10350,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:maddening-darkness",
-    "description": "Maddening Darkness is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 10 minutes, and uses V, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Maddening Darkness is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts concentration, up to 10 minutes, and uses V, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "8-maze",
@@ -7629,7 +10368,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:maze",
-    "description": "Maze is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Maze is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 10 minutes, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "8-mighty-fortress",
@@ -7643,7 +10385,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mighty-fortress",
-    "description": "Mighty Fortress is a 8th level spell from the conjuration school. It takes 1 minute to cast, reaches 1 mile, lasts instantaneous, and uses V, S, M components."
+    "description": "Mighty Fortress is a 8th level spell from the conjuration school. It takes 1 minute to cast, reaches 1 mile, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "8-mind-blank",
@@ -7657,7 +10402,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mind-blank",
-    "description": "Mind Blank is a 8th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 24 hours, and uses V, S components."
+    "description": "Mind Blank is a 8th level spell from the abjuration school. It takes 1 action to cast, reaches touch, lasts 24 hours, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "8-power-word-stun",
@@ -7671,7 +10420,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:power-word-stun",
-    "description": "Power Word: Stun is a 8th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Power Word: Stun is a 8th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "8-reality-break",
@@ -7685,7 +10440,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:reality-break",
-    "description": "Reality Break is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Reality Break is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "8-sunburst",
@@ -7699,7 +10457,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:sunburst",
-    "description": "Sunburst is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Sunburst is a 8th level spell from the evocation school. It takes 1 action to cast, reaches 150 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "8-telepathy",
@@ -7713,7 +10477,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "24 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:telepathy",
-    "description": "Telepathy is a 8th level spell from the evocation school. It takes 1 action to cast, reaches unlimited, lasts 24 hours, and uses V, S, M components."
+    "description": "Telepathy is a 8th level spell from the evocation school. It takes 1 action to cast, reaches unlimited, lasts 24 hours, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "8-tsunami",
@@ -7727,7 +10494,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 6 rounds",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:tsunami",
-    "description": "Tsunami is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches sight, lasts concentration, up to 6 rounds, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Tsunami is a 8th level spell from the conjuration school. It takes 1 action to cast, reaches sight, lasts concentration, up to 6 rounds, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "9-astral-projection",
@@ -7741,7 +10511,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Special",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:astral-projection",
-    "description": "Astral Projection is a 9th level spell from the evocation school. It takes 1 hour to cast, reaches 10 feet, lasts special, and uses V, S, M components."
+    "description": "Astral Projection is a 9th level spell from the evocation school. It takes 1 hour to cast, reaches 10 feet, lasts special, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-blade-of-disaster",
@@ -7755,7 +10530,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:blade-of-disaster",
-    "description": "Blade of Disaster is a 9th level spell from the conjuration school. It takes 1 bonus action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Blade of Disaster is a 9th level spell from the conjuration school. It takes 1 bonus action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-foresight",
@@ -7769,7 +10549,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "8 hours",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:foresight",
-    "description": "Foresight is a 9th level spell from the divination school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V, S, M components."
+    "description": "Foresight is a 9th level spell from the divination school. It takes 1 minute to cast, reaches touch, lasts 8 hours, and uses V, S, M components.",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-gate",
@@ -7783,7 +10569,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:gate",
-    "description": "Gate is a 9th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Gate is a 9th level spell from the conjuration school. It takes 1 action to cast, reaches 60 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Cleric",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-imprisonment",
@@ -7797,7 +10589,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Until dispelled",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:imprisonment",
-    "description": "Imprisonment is a 9th level spell from the abjuration school. It takes 1 minute to cast, reaches 30 feet, lasts until dispelled, and uses V, S, M components."
+    "description": "Imprisonment is a 9th level spell from the abjuration school. It takes 1 minute to cast, reaches 30 feet, lasts until dispelled, and uses V, S, M components.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-invulnerability",
@@ -7811,7 +10607,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 10 minutes",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:invulnerability",
-    "description": "Invulnerability is a 9th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Invulnerability is a 9th level spell from the abjuration school. It takes 1 action to cast, reaches self, lasts concentration, up to 10 minutes, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "9-mass-heal",
@@ -7825,7 +10624,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mass-heal",
-    "description": "Mass Heal is a 9th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components."
+    "description": "Mass Heal is a 9th level spell from the evocation school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Cleric"
+    ]
   },
   {
     "id": "9-mass-polymorph",
@@ -7839,7 +10641,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:mass-polymorph",
-    "description": "Mass Polymorph is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Mass Polymorph is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "9-meteor-swarm",
@@ -7853,7 +10660,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:meteor-swarm",
-    "description": "Meteor Swarm is a 9th level spell from the evocation school. It takes 1 action to cast, reaches 1 mile, lasts instantaneous, and uses V, S components."
+    "description": "Meteor Swarm is a 9th level spell from the evocation school. It takes 1 action to cast, reaches 1 mile, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "9-power-word-heal",
@@ -7867,7 +10678,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:power-word-heal",
-    "description": "Power Word: Heal is a 9th level spell from the evocation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components."
+    "description": "Power Word: Heal is a 9th level spell from the evocation school. It takes 1 action to cast, reaches touch, lasts instantaneous, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Cleric"
+    ]
   },
   {
     "id": "9-power-word-kill",
@@ -7881,7 +10696,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:power-word-kill",
-    "description": "Power Word: Kill is a 9th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components."
+    "description": "Power Word: Kill is a 9th level spell from the enchantment school. It takes 1 action to cast, reaches 60 feet, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-prismatic-wall",
@@ -7895,7 +10716,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "10 minutes",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:prismatic-wall",
-    "description": "Prismatic Wall is a 9th level spell from the abjuration school. It takes 1 action to cast, reaches 60 feet, lasts 10 minutes, and uses V, S components."
+    "description": "Prismatic Wall is a 9th level spell from the abjuration school. It takes 1 action to cast, reaches 60 feet, lasts 10 minutes, and uses V, S components.",
+    "classes": [
+      "Bard",
+      "Wizard"
+    ]
   },
   {
     "id": "9-psychic-scream",
@@ -7909,7 +10734,13 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:psychic-scream",
-    "description": "Psychic Scream is a 9th level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses S components."
+    "description": "Psychic Scream is a 9th level spell from the enchantment school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses S components.",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-ravenous-void",
@@ -7923,7 +10754,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:ravenous-void",
-    "description": "Ravenous Void is a 9th level spell from the evocation school. It takes 1 action to cast, reaches 1,000 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Ravenous Void is a 9th level spell from the evocation school. It takes 1 action to cast, reaches 1,000 feet, lasts concentration, up to 1 minute, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "9-shapechange",
@@ -7937,7 +10771,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:shapechange",
-    "description": "Shapechange is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "Shapechange is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid",
+      "Wizard"
+    ]
   },
   {
     "id": "9-storm-of-vengeance",
@@ -7951,7 +10789,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:storm-of-vengeance",
-    "description": "Storm of Vengeance is a 9th level spell from the conjuration school. It takes 1 action to cast, reaches sight, lasts concentration up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Storm of Vengeance is a 9th level spell from the conjuration school. It takes 1 action to cast, reaches sight, lasts concentration up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Druid"
+    ]
   },
   {
     "id": "9-time-ravage",
@@ -7965,7 +10806,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:time-ravage",
-    "description": "Time Ravage is a 9th level spell from the necromancy school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components."
+    "description": "Time Ravage is a 9th level spell from the necromancy school. It takes 1 action to cast, reaches 90 feet, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Wizard"
+    ]
   },
   {
     "id": "9-time-stop",
@@ -7979,7 +10823,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:time-stop",
-    "description": "Time Stop is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts instantaneous, and uses V components."
+    "description": "Time Stop is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches self, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   },
   {
     "id": "9-true-polymorph",
@@ -7993,7 +10841,12 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 hour",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:true-polymorph",
-    "description": "True Polymorph is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic."
+    "description": "True Polymorph is a 9th level spell from the transmutation school. It takes 1 action to cast, reaches 30 feet, lasts concentration, up to 1 hour, and uses V, S, M components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Bard",
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-true-resurrection",
@@ -8007,7 +10860,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V, S, M",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:true-resurrection",
-    "description": "True Resurrection is a 9th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components."
+    "description": "True Resurrection is a 9th level spell from the necromancy school. It takes 1 hour to cast, reaches touch, lasts instantaneous, and uses V, S, M components.",
+    "classes": [
+      "Cleric",
+      "Druid"
+    ]
   },
   {
     "id": "9-weird",
@@ -8021,7 +10878,11 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Concentration, up to 1 minute",
     "components": "V, S",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:weird",
-    "description": "Weird is a 9th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic."
+    "description": "Weird is a 9th level spell from the illusion school. It takes 1 action to cast, reaches 120 feet, lasts concentration, up to 1 minute, and uses V, S components. It requires concentration, so it competes with other sustained magic.",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ]
   },
   {
     "id": "9-wish",
@@ -8035,6 +10896,10 @@ globalThis.DNDUCKS_SPELLS = [
     "duration": "Instantaneous",
     "components": "V",
     "sourceUrl": "https://dnd5e.wikidot.com/spell:wish",
-    "description": "Wish is a 9th level spell from the conjuration school. It takes 1 action to cast, reaches self, lasts instantaneous, and uses V components."
+    "description": "Wish is a 9th level spell from the conjuration school. It takes 1 action to cast, reaches self, lasts instantaneous, and uses V components.",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ]
   }
 ];

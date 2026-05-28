@@ -7016,11 +7016,16 @@ function spellLevelLabel(level) {
   return SPELL_LEVEL_LABELS[Number(level)] || `${level}th Level`;
 }
 
+function spellClasses(spell) {
+  return Array.isArray(spell.classes) ? spell.classes.filter(Boolean) : [];
+}
+
 function spellSearchText(spell) {
   return textForSearch([
     spell.name,
     spell.levelName,
     spell.school,
+    ...spellClasses(spell),
     spell.castingTime,
     spell.range,
     spell.duration,
@@ -7032,6 +7037,9 @@ function spellSearchText(spell) {
 function spellCardMarkup(spell) {
   const searchable = spellSearchText(spell);
   const concentration = /concentration/i.test(spell.duration || "");
+  const classes = spellClasses(spell);
+  const classPreview = classes.slice(0, 3);
+  const hiddenClassCount = Math.max(0, classes.length - classPreview.length);
   return `
     <button class="content-card spell-card" type="button" data-spell-id="${escapeHtml(spell.id)}" data-searchable="${escapeHtml(searchable)}">
       <span class="spell-card-topline">
@@ -7039,6 +7047,11 @@ function spellCardMarkup(spell) {
         <span>${escapeHtml(spell.school)}</span>
       </span>
       <strong>${escapeHtml(spell.name)}</strong>
+      ${classes.length ? `
+        <span class="spell-class-tags" aria-label="Spell classes">
+          ${classPreview.map((className) => `<span>${escapeHtml(className)}</span>`).join("")}
+          ${hiddenClassCount ? `<span>+${hiddenClassCount}</span>` : ""}
+        </span>` : ""}
       <span class="spell-card-summary">${escapeHtml(spell.description)}</span>
       <span class="spell-card-meta">
         <span>${escapeHtml(spell.castingTime)}</span>
@@ -7052,12 +7065,14 @@ function spellCardMarkup(spell) {
 function filteredSpells() {
   const query = document.getElementById("spell-search")?.value.trim().toLowerCase() || "";
   const school = document.getElementById("spell-school-filter")?.value || "";
+  const spellClass = document.getElementById("spell-class-filter")?.value || "";
   const level = document.getElementById("spell-level-filter")?.value || "";
   return spellCollection().filter((spell) => {
     const schoolMatches = !school || spell.school === school;
+    const classMatches = !spellClass || spellClasses(spell).includes(spellClass);
     const levelMatches = level === "" || String(spell.level) === level;
     const queryMatches = !query || spellSearchText(spell).includes(query);
-    return schoolMatches && levelMatches && queryMatches;
+    return schoolMatches && classMatches && levelMatches && queryMatches;
   });
 }
 
@@ -7085,10 +7100,15 @@ function renderSpellTabs() {
 
 function populateSpellFilters() {
   const schoolFilter = document.getElementById("spell-school-filter");
+  const classFilter = document.getElementById("spell-class-filter");
   const levelFilter = document.getElementById("spell-level-filter");
   const schools = [...new Set(spellCollection().map((spell) => spell.school).filter(Boolean))].sort();
+  const classes = [...new Set(spellCollection().flatMap(spellClasses))].sort();
   if (schoolFilter && schoolFilter.options.length <= 1) {
     schoolFilter.insertAdjacentHTML("beforeend", schools.map((school) => `<option value="${escapeHtml(school)}">${escapeHtml(school)}</option>`).join(""));
+  }
+  if (classFilter && classFilter.options.length <= 1) {
+    classFilter.insertAdjacentHTML("beforeend", classes.map((className) => `<option value="${escapeHtml(className)}">${escapeHtml(className)}</option>`).join(""));
   }
   if (levelFilter && levelFilter.options.length <= 1) {
     levelFilter.insertAdjacentHTML("beforeend", SPELL_LEVEL_LABELS.map((label, level) => `<option value="${level}">${escapeHtml(label)}</option>`).join(""));
@@ -7104,9 +7124,11 @@ function renderSpells() {
   const spells = filteredSpells();
   const level = document.getElementById("spell-level-filter")?.value || "";
   const school = document.getElementById("spell-school-filter")?.value || "";
+  const spellClass = document.getElementById("spell-class-filter")?.value || "";
   if (title) {
     const titleParts = [
       level === "" ? "All spells" : spellLevelLabel(level),
+      spellClass || "",
       school ? `${school} magic` : "",
     ].filter(Boolean);
     title.textContent = titleParts.join(" - ");
@@ -7126,6 +7148,7 @@ function spellDetailRows(spell) {
   return [
     ["Level", spell.levelName || spellLevelLabel(spell.level)],
     ["School", spell.school],
+    ["Classes", spellClasses(spell).join(", ")],
     ["Casting time", spell.castingTime],
     ["Range", spell.range],
     ["Duration", spell.duration],
@@ -7170,7 +7193,7 @@ function initSpellsPage() {
   renderSpellTabs();
   renderSpells();
 
-  ["spell-search", "spell-school-filter", "spell-level-filter"].forEach((id) => {
+  ["spell-search", "spell-school-filter", "spell-class-filter", "spell-level-filter"].forEach((id) => {
     document.getElementById(id)?.addEventListener("input", renderSpells);
     document.getElementById(id)?.addEventListener("change", renderSpells);
   });
@@ -7178,9 +7201,11 @@ function initSpellsPage() {
   document.getElementById("spell-clear-filters")?.addEventListener("click", () => {
     const search = document.getElementById("spell-search");
     const school = document.getElementById("spell-school-filter");
+    const spellClass = document.getElementById("spell-class-filter");
     const level = document.getElementById("spell-level-filter");
     if (search) search.value = "";
     if (school) school.value = "";
+    if (spellClass) spellClass.value = "";
     if (level) level.value = "";
     renderSpells();
   });

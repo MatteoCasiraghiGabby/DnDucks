@@ -36,9 +36,9 @@
     <main class="page-layout section-shell spells-page">
       <section class="page-hero spells-hero">
         <p class="eyebrow">Spell compendium</p>
-        <h1>Search the full spell list by level, school, and casting profile.</h1>
+        <h1>Search the full spell list by class, level, school, and casting profile.</h1>
         <p>
-          Browse cantrips through 9th-level spells as compact widgets. Open a spell to view its casting details,
+          Browse cantrips through 9th-level spells as compact widgets. Filter by caster class, then open a spell to view its casting details,
           components, summary, and source reference in an overlay.
         </p>
       </section>
@@ -46,12 +46,18 @@
       <section class="panel spell-controls" aria-label="Spell filters">
         <label class="search-control spell-search-control" for="spell-search">
           <span aria-hidden="true">Search</span>
-          <input id="spell-search" type="search" placeholder="Search spells, schools, ranges, components..." />
+          <input id="spell-search" type="search" placeholder="Name, class, school, range..." />
         </label>
         <label>
           School
           <select id="spell-school-filter">
             <option value="">All schools</option>
+          </select>
+        </label>
+        <label>
+          Class
+          <select id="spell-class-filter">
+            <option value="">All classes</option>
           </select>
         </label>
         <label>
@@ -79,6 +85,7 @@
       <p class="spell-source-note">
         Spell names and table metadata are derived from
         <a href="https://dnd5e.wikidot.com/spells" target="_blank" rel="noreferrer">DND 5th Edition community wiki</a>.
+        Class metadata is derived from its linked class spell-list pages.
         Summaries are generated from metadata for quick table reference.
       </p>
     </main>

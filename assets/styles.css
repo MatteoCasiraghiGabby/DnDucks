@@ -1458,7 +1458,7 @@ code { color: var(--ember-2); }
 }
 .spell-controls {
   display: grid;
-  grid-template-columns: minmax(260px, 1.35fr) minmax(160px, 0.65fr) minmax(150px, 0.55fr) auto;
+  grid-template-columns: minmax(260px, 1.35fr) minmax(150px, 0.58fr) minmax(180px, 0.72fr) minmax(150px, 0.55fr) auto;
   gap: 14px;
   align-items: end;
 }
@@ -1517,6 +1517,19 @@ code { color: var(--ember-2); }
   color: var(--text);
   font-size: 1.12rem;
   line-height: 1.15;
+}
+.spell-class-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.spell-class-tags span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--forest);
+  background: rgba(63, 115, 88, 0.13);
+  font-size: 0.72rem;
+  font-weight: 900;
 }
 .spell-card-summary {
   display: -webkit-box;
