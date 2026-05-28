@@ -288,12 +288,55 @@ test("old auto-completed campaigns still require the explicit first note", () =>
   assert.equal(app.campaignReady(migrated), false);
 });
 
+test("completed campaigns can reopen player setup to add more characters", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+  }));
+  app.savePlayerToCampaign("local", player);
+  app.completeCampaignSetup("local", {
+    title: "The Verdant Road",
+    startDate: "2026-05-15",
+    description: "The party meets at the city gate.",
+  });
+
+  const main = { innerHTML: "" };
+  const form = createCharacterFormStub();
+  form.addEventListener = () => {};
+  form.reset = () => {};
+  const addedPlayers = { innerHTML: "" };
+  const button = { addEventListener: () => {} };
+  const elementMap = new Map([
+    ["player-character-form", form],
+    ["added-players-summary", addedPlayers],
+    ["add-another-player", button],
+    ["go-on-campaign", button],
+  ]);
+  app.document.querySelector = (selector) => selector === "main" ? main : null;
+  app.document.querySelectorAll = () => [];
+  app.document.getElementById = (id) => elementMap.get(id) || {
+    textContent: "",
+    classList: { add() {}, remove() {} },
+    addEventListener() {},
+  };
+
+  app.renderCampaignSetupPage("local");
+
+  assert.match(main.innerHTML, /Modify campaign/);
+  assert.match(main.innerHTML, /ADD PLAYER/);
+  assert.match(main.innerHTML, /BACK TO CAMPAIGN/);
+  assert.match(addedPlayers.innerHTML, /Bramble/);
+  assert.notEqual(app.window.location.href, app.dashboardHref());
+});
+
 test("campaign setup links use hash routes that static servers can serve", () => {
   const app = createFrontendSandbox();
 
   assert.equal(app.campaignSetupHref("local"), "index.html#/campaigns/local/setup");
   assert.equal(app.campaignStartNoteHref("local"), "index.html#/campaigns/local/start-note");
   assert.equal(app.dashboardHref(), "index.html#dashboard");
+  assert.match(app.playerCharacterFormMarkup({ saveLabel: "ADD PLAYER", continueLabel: "BACK TO CAMPAIGN" }), /ADD PLAYER[\s\S]*BACK TO CAMPAIGN/);
   app.window.location.hash = "#/campaigns/local/setup";
   assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "setup"]);
   app.window.location.hash = "#/campaigns/local/start-note";
@@ -302,10 +345,12 @@ test("campaign setup links use hash routes that static servers can serve", () =>
   const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
   assert.match(html, /href="index\.html#\/campaigns\/local\/setup"/);
+  assert.match(html, /campaign-add-player-button/);
   assert.match(html, /id="campaigns"/);
   assert.doesNotMatch(html, /href="\/campaigns\/local\/setup"/);
   assert.match(script, /id="back-to-dashboard-button"/);
   assert.match(script, /addEventListener\("click", goToDashboard\)/);
+  assert.match(script, /button\.hidden = !campaignReady\(campaign\)/);
   assert.match(script, /Open sheet/);
   assert.doesNotMatch(script, /data-player-card-href/);
 });

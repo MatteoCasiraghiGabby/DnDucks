@@ -4448,6 +4448,10 @@ function updateSummaryCards() {
       button.textContent = "Start Campaign";
     }
   });
+  document.querySelectorAll(".campaign-add-player-button").forEach((button) => {
+    button.href = campaignSetupHref(campaign.id);
+    button.hidden = !campaignReady(campaign);
+  });
   const widgetTitle = document.getElementById("campaign-widget-title");
   if (widgetTitle) widgetTitle.textContent = campaign.name;
   const featureRune = document.getElementById("campaign-feature-rune");
@@ -6084,7 +6088,9 @@ function attackInputMarkup(index) {
     </div>`;
 }
 
-function playerCharacterFormMarkup() {
+function playerCharacterFormMarkup(options = {}) {
+  const saveLabel = options.saveLabel || "ADD ANOTHER PLAYER";
+  const continueLabel = options.continueLabel || "GO ON";
   return `
     <form class="panel player-character-form" id="player-character-form" novalidate>
       ${datalistMarkup("player-class-options", PLAYER_CLASSES.map((item) => item.name))}
@@ -6183,8 +6189,8 @@ function playerCharacterFormMarkup() {
 
       <div class="form-message full-width" id="player-form-message" aria-live="polite"></div>
       <div class="setup-actions full-width">
-        <button class="btn btn-secondary" type="button" id="add-another-player">ADD ANOTHER PLAYER</button>
-        <button class="btn btn-primary" type="button" id="go-on-campaign">GO ON</button>
+        <button class="btn btn-secondary" type="button" id="add-another-player">${escapeHtml(saveLabel)}</button>
+        <button class="btn btn-primary" type="button" id="go-on-campaign">${escapeHtml(continueLabel)}</button>
       </div>
     </form>`;
 }
@@ -6704,28 +6710,44 @@ function renderCampaignSetupPage(campaignId) {
     renderNotFoundPage("The requested campaign does not exist in local storage.");
     return;
   }
-  if (campaignReady(campaign)) {
-    goToDashboard();
-    return;
-  }
-  if (campaign.setupCompleted && campaign.players.length) {
+  const ready = campaignReady(campaign);
+  if (!ready && campaign.setupCompleted && campaign.players.length) {
     window.location.href = campaignStartNoteHref(campaign.id);
     return;
   }
+  const setupCopy = ready
+    ? {
+      eyebrow: "Modify campaign",
+      lead: "Add another player character to this campaign, then return to the dashboard.",
+      formEyebrow: "Party editor",
+      formTitle: "Add a player character",
+      summaryEyebrow: "Current party",
+      saveLabel: "ADD PLAYER",
+      continueLabel: "BACK TO CAMPAIGN",
+    }
+    : {
+      eyebrow: "Start campaign",
+      lead: "Create the party one character sheet at a time before entering the live campaign dashboard.",
+      formEyebrow: "Party builder",
+      formTitle: "Add a player character",
+      summaryEyebrow: "Already added",
+      saveLabel: "ADD ANOTHER PLAYER",
+      continueLabel: "GO ON",
+    };
   document.querySelector("main").innerHTML = `
     <section class="page-layout section-shell setup-page">
       <div class="page-hero">
-        <p class="eyebrow">Start campaign</p>
+        <p class="eyebrow">${escapeHtml(setupCopy.eyebrow)}</p>
         <h1>${escapeHtml(campaign.name)}</h1>
-        <p>Create the party one character sheet at a time before entering the live campaign dashboard.</p>
+        <p>${escapeHtml(setupCopy.lead)}</p>
       </div>
       <div class="setup-grid">
         <section class="setup-form-panel">
-          <div class="section-heading"><div><p class="eyebrow">Party builder</p><h2>Add a player character</h2></div></div>
-          ${playerCharacterFormMarkup()}
+          <div class="section-heading"><div><p class="eyebrow">${escapeHtml(setupCopy.formEyebrow)}</p><h2>${escapeHtml(setupCopy.formTitle)}</h2></div></div>
+          ${playerCharacterFormMarkup({ saveLabel: setupCopy.saveLabel, continueLabel: setupCopy.continueLabel })}
         </section>
         <aside class="setup-summary-panel">
-          <div class="section-heading"><div><p class="eyebrow">Already added</p><h2>Party so far</h2></div></div>
+          <div class="section-heading"><div><p class="eyebrow">${escapeHtml(setupCopy.summaryEyebrow)}</p><h2>Party so far</h2></div></div>
           <div class="collection-grid setup-player-list" id="added-players-summary" aria-live="polite"></div>
         </aside>
       </div>
@@ -6742,6 +6764,10 @@ function renderCampaignSetupPage(campaignId) {
   document.getElementById("go-on-campaign").addEventListener("click", async () => {
     const result = await saveCurrentPlayerFromSetup(form, { requireData: false });
     if (result.errors) return;
+    if (ready) {
+      goToDashboard();
+      return;
+    }
     const nextCampaign = result.campaign || getCampaign(campaign.id);
     if (!nextCampaign.players.length) {
       const message = document.getElementById("player-form-message");
