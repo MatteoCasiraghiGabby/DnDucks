@@ -15,6 +15,8 @@ const STORAGE_KEYS = {
 
 const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events", "comics"]);
 const CANONICAL_LOCAL_ORIGIN = "http://127.0.0.1:3000";
+const LOCAL_BACKEND_PORT = "3000";
+const CANONICAL_LOCAL_HEALTH_PATH = "/index.html";
 const LOCAL_STORAGE_IMPORT_PARAM = "dnducksImport";
 const LOCAL_STORAGE_IMPORT_TOKEN = "windowName";
 const LOCAL_IMAGE_MAX_DIMENSION = 960;
@@ -47,7 +49,7 @@ function resolveApiUrl(url) {
   const requestPath = String(url || "");
   if (!requestPath.startsWith("/api/")) return requestPath;
 
-  const configuredBase = String(window.DNDUCKS_API_BASE_URL || document.querySelector?.('meta[name="dnducks-api-base"]')?.content || "").trim();
+  const configuredBase = configuredBackendBaseUrl();
   if (configuredBase) return `${configuredBase.replace(/\/+$/, "")}${requestPath}`;
 
   if (window.location.protocol === "file:") return `http://127.0.0.1:3000${requestPath}`;
@@ -55,9 +57,39 @@ function resolveApiUrl(url) {
   const localHosts = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
   const proxyCapablePorts = new Set(["", "3000", "5173"]);
   if (localHosts.has(window.location.hostname) && !proxyCapablePorts.has(window.location.port)) {
-    return `${window.location.protocol}//${window.location.hostname}:3000${requestPath}`;
+    return `${localBackendOrigin()}${requestPath}`;
   }
 
+  return requestPath;
+}
+
+function configuredBackendBaseUrl() {
+  return String(window.DNDUCKS_API_BASE_URL || document.querySelector?.('meta[name="dnducks-api-base"]')?.content || "").trim().replace(/\/+$/, "");
+}
+
+function localBackendOrigin() {
+  const configuredBase = configuredBackendBaseUrl();
+  if (configuredBase) return configuredBase;
+  if (window.location.protocol === "file:") return CANONICAL_LOCAL_ORIGIN;
+  if (!isLocalAppHost(window.location.hostname)) return "";
+  const hostname = window.location.hostname.includes(":") && !window.location.hostname.startsWith("[")
+    ? `[${window.location.hostname}]`
+    : window.location.hostname;
+  return `${window.location.protocol}//${hostname}:${LOCAL_BACKEND_PORT}`;
+}
+
+function resolveBackendUrl(url) {
+  const requestPath = String(url || "");
+  if (!requestPath) return "";
+  if (/^(?:data:|blob:|https?:|mailto:|tel:|#)/i.test(requestPath)) return requestPath;
+  if (requestPath.startsWith("/api/")) return resolveApiUrl(requestPath);
+  if (requestPath.startsWith("/uploads/")) {
+    if (window.location.protocol === "http:" && isLocalAppHost(window.location.hostname) && window.location.port === LOCAL_BACKEND_PORT && !configuredBackendBaseUrl()) {
+      return requestPath;
+    }
+    const backendOrigin = localBackendOrigin();
+    return backendOrigin ? `${backendOrigin}${requestPath}` : requestPath;
+  }
   return requestPath;
 }
 
@@ -91,6 +123,21 @@ function shouldUseCanonicalLocalOrigin() {
   return window.location.hostname !== "127.0.0.1" || window.location.port !== "3000";
 }
 
+async function canonicalLocalOriginReachable() {
+  if (window.location.protocol === "http:" && isLocalAppHost(window.location.hostname) && window.location.port === LOCAL_BACKEND_PORT) {
+    return true;
+  }
+  try {
+    await fetch(`${CANONICAL_LOCAL_ORIGIN}${CANONICAL_LOCAL_HEALTH_PATH}`, {
+      cache: "no-store",
+      mode: "no-cors",
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
 function localStorageSnapshot() {
   return Object.fromEntries(Object.values(STORAGE_KEYS).map((storageKey) => [
     storageKey,
@@ -98,8 +145,9 @@ function localStorageSnapshot() {
   ]).filter(([, value]) => value !== null));
 }
 
-function redirectToCanonicalLocalOrigin() {
+async function redirectToCanonicalLocalOrigin() {
   if (!shouldUseCanonicalLocalOrigin()) return false;
+  if (!await canonicalLocalOriginReachable()) return false;
   window.name = JSON.stringify({
     source: "dnducks-local-storage",
     origin: window.location.origin || window.location.href,
@@ -2131,7 +2179,7 @@ function firstDisplayText(values, fallback) {
 function widgetImageMarkup(entry, label) {
   const title = displayText(label, "Widget");
   const alt = escapeHtml(entry.image?.title || `${title} image`);
-  const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
+  const imageUrl = resolveBackendUrl(entry.imageUrl || entry.imageDataUrl || entry.image?.url);
   const imageActionLabel = imageUrl ? `Change image for ${title}` : `Add image for ${title}`;
   const actionAttributes = entry.id
     ? `button type="button" data-image-upload-id="${escapeHtml(entry.id)}" aria-label="${escapeHtml(imageActionLabel)}" title="${escapeHtml(imageActionLabel)}"`
@@ -2156,7 +2204,7 @@ function widgetImageMarkup(entry, label) {
 function widgetImageDisplayMarkup(entry, label) {
   const title = displayText(label, "Widget");
   const alt = escapeHtml(entry.image?.title || `${title} image`);
-  const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
+  const imageUrl = resolveBackendUrl(entry.imageUrl || entry.imageDataUrl || entry.image?.url);
 
   if (imageUrl) {
     return `
@@ -2533,7 +2581,7 @@ function setMediaSelectImage(picker, image, statusText = "") {
     status.classList.remove("error");
   }
   if (preview) {
-    preview.src = normalized.url;
+    preview.src = resolveBackendUrl(normalized.url);
     preview.hidden = false;
   }
   if (clear) clear.hidden = false;
@@ -3263,9 +3311,10 @@ function initCommandInterface() {
 
 function imagePreviewMarkup(image, label = "") {
   const title = image.title || image.originalFilename || label || "Uploaded image";
+  const imageUrl = resolveBackendUrl(image.url);
   return `
     <figure class="image-preview">
-      <img src="${escapeHtml(image.url)}" alt="${escapeHtml(title)}" loading="lazy" />
+      <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" loading="lazy" />
       <figcaption>${escapeHtml(title)}</figcaption>
     </figure>`;
 }
@@ -3281,7 +3330,7 @@ function mediaImageCardMarkup(image, options = {}) {
       ${widgetTagsMarkup([formatUploadedAt(image.uploadedAt)])}
       <div class="entry-actions">
         ${selectable ? `<button class="btn btn-primary" type="button" data-select-media-image="${escapeHtml(image.id)}">Select</button>` : ""}
-        <a class="btn btn-secondary" href="${escapeHtml(image.url)}" target="_blank" rel="noopener">Preview</a>
+        <a class="btn btn-secondary" href="${escapeHtml(resolveBackendUrl(image.url))}" target="_blank" rel="noopener">Preview</a>
         ${selectable ? "" : `<button class="btn btn-secondary" type="button" data-edit-image="${escapeHtml(image.id)}">Edit</button>`}
         <button class="btn btn-danger" type="button" data-delete-image="${escapeHtml(image.id)}">Delete</button>
       </div>
@@ -3574,7 +3623,7 @@ function syncFormImagePreview(form, entry = {}) {
   }
   if (preview) {
     if (imageUrl) {
-      preview.src = imageUrl;
+      preview.src = resolveBackendUrl(imageUrl);
       preview.hidden = false;
     } else {
       preview.removeAttribute("src");
@@ -3782,7 +3831,7 @@ function openWidgetDetail(key, entryId) {
   const entry = getStoredCollection(key).find((item) => item.id === entryId);
   if (!entry) return;
   const title = widgetDetailTitle(key, entry);
-  const imageUrl = entry.imageUrl || entry.imageDataUrl || entry.image?.url;
+  const imageUrl = resolveBackendUrl(entry.imageUrl || entry.imageDataUrl || entry.image?.url);
   const modal = document.createElement("div");
   modal.className = "modal-backdrop widget-detail-modal";
   modal.innerHTML = `
@@ -4423,9 +4472,10 @@ async function loadMaterials() {
 
     list.innerHTML = materials.map((material) => {
       const searchable = textForSearch([material.title, material.originalFilename, material.category, material.description, material.tags?.join(" "), "material file map handout"]);
+      const downloadUrl = resolveBackendUrl(material.downloadUrl);
       const preview = isPreviewableImage(material)
-        ? `<a class="material-preview" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(material.downloadUrl)}" alt="Preview of ${escapeHtml(material.title || material.originalFilename)}" loading="lazy" /></a>`
-        : `<a class="material-preview material-preview-file" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener"><span>${escapeHtml((material.originalFilename || "file").split(".").pop().toUpperCase())}</span></a>`;
+        ? `<a class="material-preview" href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(downloadUrl)}" alt="Preview of ${escapeHtml(material.title || material.originalFilename)}" loading="lazy" /></a>`
+        : `<a class="material-preview material-preview-file" href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener"><span>${escapeHtml((material.originalFilename || "file").split(".").pop().toUpperCase())}</span></a>`;
       return `
         <article class="content-card entry-card material-card" data-widget-origin="user" data-searchable="${escapeHtml(searchable)}" data-status="active">
           ${preview}
@@ -4434,7 +4484,7 @@ async function loadMaterials() {
           ${widgetDescriptionMarkup(material.description)}
           ${widgetTagsMarkup([formatBytes(material.fileSize), formatUploadedAt(material.uploadedAt), ...(material.tags || [])])}
           <div class="entry-actions">
-            <a class="btn btn-secondary" href="${escapeHtml(material.downloadUrl)}" target="_blank" rel="noopener">Open / Download</a>
+            <a class="btn btn-secondary" href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener">Open / Download</a>
             <button class="btn btn-danger" type="button" data-delete-material="${escapeHtml(material.id)}">Delete file</button>
           </div>
         </article>`;
@@ -4625,7 +4675,7 @@ function comicPageImageUrl(page) {
 
 function comicPageCardMarkup(page) {
   const title = page.title || "Untitled comic page";
-  const imageUrl = comicPageImageUrl(page);
+  const imageUrl = resolveBackendUrl(comicPageImageUrl(page));
   return `
     <article class="content-card entry-card comic-card" data-comic-page="${escapeHtml(page.id)}">
       <a class="comic-page-thumb" href="${escapeHtml(imageUrl)}" target="_blank" rel="noopener">
@@ -5072,10 +5122,11 @@ function mapUploadFormMarkup() {
 
 function mapCardMarkup(map) {
   const title = map.title || map.originalFilename || "Untitled map";
+  const imageUrl = resolveBackendUrl(map.imageUrl);
   return `
     <article class="content-card entry-card map-card" data-map-card="${escapeHtml(map.id)}">
       <a class="map-card-preview" href="${escapeHtml(mapDetailHref(map.id))}">
-        <img src="${escapeHtml(map.imageUrl)}" alt="${escapeHtml(title)}" loading="lazy" />
+        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" loading="lazy" />
       </a>
       <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(map.status || "ready")}</span><span>${escapeHtml(formatBytes(map.fileSize))}</span></div>
       <h3>${escapeHtml(title)}</h3>
@@ -5238,6 +5289,7 @@ function mapPinMarkup(city, options = {}) {
 
 function interactiveMapViewerMarkup(map, cities = [], options = {}) {
   const title = map.title || map.originalFilename || "Map";
+  const imageUrl = resolveBackendUrl(map.imageUrl);
   return `
     <div class="interactive-map-shell" data-map-viewer>
       <div class="interactive-map-toolbar">
@@ -5247,7 +5299,7 @@ function interactiveMapViewerMarkup(map, cities = [], options = {}) {
       </div>
       <div class="interactive-map-viewport">
         <div class="interactive-map-canvas" style="--map-scale: 1;" data-map-canvas>
-          <img data-map-image src="${escapeHtml(map.imageUrl)}" alt="${escapeHtml(title)}" />
+          <img data-map-image src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" />
           ${cities.map((city) => mapPinMarkup(city, options)).join("")}
           <button class="map-click-marker" type="button" data-map-click-marker hidden></button>
         </div>
@@ -5446,10 +5498,11 @@ function initMapDetailPage(map, cities) {
 }
 
 function mapPreviewMarkup(map, cities, selectedCity) {
+  const imageUrl = resolveBackendUrl(map.imageUrl);
   return `
     <div class="map-preview">
       <div class="interactive-map-canvas" style="--map-scale: 1;">
-        <img src="${escapeHtml(map.imageUrl)}" alt="${escapeHtml(map.title || "Map preview")}" />
+        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(map.title || "Map preview")}" />
         ${cities.map((city) => mapPinMarkup(city, { selectedCityId: selectedCity.id })).join("")}
       </div>
     </div>`;
@@ -7372,7 +7425,8 @@ function initCalendarPage() {
   renderWeatherProbabilityEditor(settings.currentMonthIndex);
 }
 
-if (!redirectToCanonicalLocalOrigin()) {
+async function bootApp() {
+  if (await redirectToCanonicalLocalOrigin()) return;
   importCanonicalLocalStoragePayload();
   initMobileNavigation();
   initWeaponPropertyInfo();
@@ -7393,6 +7447,8 @@ if (!redirectToCanonicalLocalOrigin()) {
     else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page, .comic-page")) window.location.reload();
   });
 }
+
+window.DNDUCKS_BOOT_PROMISE = window.DNDUCKS_SKIP_AUTO_BOOT ? Promise.resolve(false) : bootApp();
 
 /*
 Backend roadmap summary:

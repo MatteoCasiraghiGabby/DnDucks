@@ -65,6 +65,7 @@ function createFrontendSandbox(options = {}) {
       addEventListener: () => {},
       name: options.name || "",
       DNDUCKS_DISABLE_CANONICAL_REDIRECT: options.disableCanonicalRedirect !== false,
+      DNDUCKS_SKIP_AUTO_BOOT: options.skipAutoBoot !== false,
     },
     history: {
       replaceState: (_state, _title, url) => {
@@ -76,7 +77,7 @@ function createFrontendSandbox(options = {}) {
       },
     },
     Event: class Event { constructor(type) { this.type = type; } },
-    fetch: async () => { throw new Error("fetch should not be called in campaign flow unit tests"); },
+    fetch: options.fetch || (async () => { throw new Error("fetch should not be called in campaign flow unit tests"); }),
     alert: () => {},
     confirm: () => true,
   };
@@ -1243,41 +1244,65 @@ test("user widgets expose modify actions and card clicks open detail overlay", (
   assert.match(styles, /\.widget-detail-close \{[\s\S]*position: fixed;[\s\S]*z-index: 1100;[\s\S]*width: 42px;/);
 });
 
-test("non-canonical local origins redirect with local storage for import", () => {
+test("local app origins stay put when the canonical backend is unreachable", async () => {
+  const app = createFrontendSandbox({
+    hostname: "127.0.0.1",
+    port: "5500",
+    pathname: "/index.html",
+    hash: "#items",
+    skipAutoBoot: false,
+    initialStorage: {
+      "dnducks.items": JSON.stringify([{ id: "item-live", name: "Live Server Blade" }]),
+    },
+  });
+
+  await app.window.DNDUCKS_BOOT_PROMISE;
+  assert.equal(app.window.location.pathname, "/index.html");
+  assert.equal(app.window.location.port, "5500");
+  assert.equal(app.window.name, "");
+});
+
+test("reachable canonical local origin redirects with local storage import", async () => {
   const app = createFrontendSandbox({
     hostname: "127.0.0.1",
     port: "5500",
     pathname: "/index.html",
     hash: "#items",
     disableCanonicalRedirect: false,
+    fetch: async () => ({}),
+    skipAutoBoot: false,
     initialStorage: {
       "dnducks.items": JSON.stringify([{ id: "item-live", name: "Live Server Blade" }]),
     },
   });
 
+  await app.window.DNDUCKS_BOOT_PROMISE;
   assert.match(app.window.location.href, /^http:\/\/127\.0\.0\.1:3000\/index\.html\?dnducksImport=windowName#items$/);
   const payload = JSON.parse(app.window.name);
   assert.equal(payload.source, "dnducks-local-storage");
   assert.match(payload.storage["dnducks.items"], /Live Server Blade/);
 });
 
-test("nested Live Server paths redirect to the canonical app entry point", () => {
+test("nested Live Server paths redirect to the canonical app entry point when reachable", async () => {
   const app = createFrontendSandbox({
     hostname: "127.0.0.1",
     port: "5500",
     pathname: "/github/git-github-masterclass-starter-project-1/index.html",
     disableCanonicalRedirect: false,
+    fetch: async () => ({}),
+    skipAutoBoot: false,
     initialStorage: {
       "dnducks.characters": JSON.stringify([{ id: "npc-orwell", name: "ORWELL" }]),
     },
   });
 
+  await app.window.DNDUCKS_BOOT_PROMISE;
   assert.match(app.window.location.href, /^http:\/\/127\.0\.0\.1:3000\/index\.html\?dnducksImport=windowName$/);
   const payload = JSON.parse(app.window.name);
   assert.match(payload.storage["dnducks.characters"], /ORWELL/);
 });
 
-test("canonical import merges split widgets from another local origin", () => {
+test("canonical import merges split widgets from another local origin", async () => {
   const payload = {
     source: "dnducks-local-storage",
     storage: {
@@ -1296,11 +1321,13 @@ test("canonical import merges split widgets from another local origin", () => {
     pathname: "/index.html",
     search: "?dnducksImport=windowName",
     name: JSON.stringify(payload),
+    skipAutoBoot: false,
     initialStorage: {
       "dnducks.items": JSON.stringify([{ id: "item-preview", name: "Preview Spear" }]),
     },
   });
 
+  await app.window.DNDUCKS_BOOT_PROMISE;
   assert.equal(app.window.name, "");
   assert.equal(app.window.location.search, "");
   assert.deepEqual(
@@ -1328,4 +1355,18 @@ test("API URL resolver targets the backend when served from a static local port"
   const app = createFrontendSandbox({ hostname: "127.0.0.1", port: "5500" });
 
   assert.equal(app.resolveApiUrl("/api/characters/analyze"), "http://127.0.0.1:3000/api/characters/analyze");
+});
+
+test("backend asset resolver keeps upload URLs on the backend origin from static ports", () => {
+  const app = createFrontendSandbox({ hostname: "127.0.0.1", port: "5500" });
+
+  assert.equal(app.resolveBackendUrl("/uploads/images/example.png"), "http://127.0.0.1:3000/uploads/images/example.png");
+  assert.equal(app.resolveBackendUrl("/uploads/maps/world.png"), "http://127.0.0.1:3000/uploads/maps/world.png");
+  assert.equal(app.resolveBackendUrl("/api/materials/abc/download"), "http://127.0.0.1:3000/api/materials/abc/download");
+});
+
+test("backend asset resolver leaves backend-served upload URLs relative on port 3000", () => {
+  const app = createFrontendSandbox({ hostname: "127.0.0.1", port: "3000" });
+
+  assert.equal(app.resolveBackendUrl("/uploads/images/example.png"), "/uploads/images/example.png");
 });

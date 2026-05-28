@@ -4,8 +4,9 @@
   "description": "Draft D&D campaign management platform for Dungeon Masters.",
   "main": "server.js",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "node server.js",
     "start": "node server.js",
+    "vite": "vite --host 0.0.0.0",
     "test": "node --test"
   },
   "engines": {

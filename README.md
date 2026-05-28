@@ -7,12 +7,12 @@ DnDucks is a draft Dungeon Master command center for campaigns, sessions, NPCs, 
 This repo now includes a small backend so the static frontend can simulate persistent campaign material uploads.
 
 ```bash
-npm start
+npm run dev
 ```
 
-Open <http://localhost:3000>. The backend serves the existing HTML/CSS/JS and exposes the materials API under `/api/materials`.
+Open <http://localhost:3000>. `npm start` runs the same server. The backend serves the existing HTML/CSS/JS and exposes the materials, media image, map, and character suggestion APIs under `/api/*`.
 
-If you serve the frontend from the Vite dev server (for example `localhost:5173`), keep the Node backend running on port `3000`. The frontend sends relative `/api/*` requests, and Vite proxies those requests to the backend.
+If you serve the frontend from Live Server or Vite, open the repository root so `index.html` is the app entry point. Keep the Node backend running on port `3000` for file-backed uploads and maps. When that backend is reachable, local static origins hand off to `http://127.0.0.1:3000` so browser-stored widgets use one localStorage origin. The frontend also resolves backend-owned URLs (`/api/*`, `/uploads/images/*`, and `/uploads/maps/*`) through the same backend origin, so widgets and uploaded media do not get saved under one local server and loaded from another.
 
 ## Local campaign material uploads
 
