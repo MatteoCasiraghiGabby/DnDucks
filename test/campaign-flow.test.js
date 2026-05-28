@@ -962,13 +962,77 @@ test("homebrew equipment details are not duplicated in character feature widgets
   const equipmentSection = app.playerSectionDefinitions(player).find((section) => section.key === "equipment");
   const sheetMarkup = app.characterSheetMarkup(player);
   const featureWidget = equipmentSection.body.split("<h4>Features and traits</h4>")[1] || "";
-  const sheetFeatures = sheetMarkup.split("<h3>Features &amp; Traits</h3>")[1] || "";
+  const sheetFeatures = sheetMarkup.split("sheet-traits-widget")[1] || "";
 
   assert.match(equipmentSection.body, /Homebrew items[\s\S]*Moon Guard/);
   assert.match(featureWidget, /Alert \(Feat\)/);
   assert.doesNotMatch(featureWidget, /Moon Guard \(Homebrew item\)|Base AC is 13/);
   assert.match(sheetFeatures, /Alert \(Feat\)/);
   assert.doesNotMatch(sheetFeatures, /Moon Guard \(Homebrew item\)|Base AC is 13/);
+});
+
+test("character sheet groups skills under their saving throw ability", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-level": "4",
+    "#player-saving-throws": ["strength"],
+    "#player-skills": ["athletics", "stealth"],
+  }));
+  const sheetMarkup = app.characterSheetMarkup(player);
+  const strengthGroup = sheetMarkup.match(/<div class="sheet-skill-group">[\s\S]*?<strong>Strength<\/strong>[\s\S]*?<\/div>\s*<\/div>/)?.[0] || "";
+  const dexterityGroup = sheetMarkup.match(/<div class="sheet-skill-group">[\s\S]*?<strong>Dexterity<\/strong>[\s\S]*?<\/div>\s*<\/div>/)?.[0] || "";
+
+  assert.match(sheetMarkup, /Saving Throws &amp; Skills/);
+  assert.match(strengthGroup, /Saving throw/);
+  assert.match(strengthGroup, /Athletics/);
+  assert.doesNotMatch(strengthGroup, /Stealth/);
+  assert.match(dexterityGroup, /Stealth/);
+});
+
+test("character sheet renders trait icons with overlay data", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-level": "4",
+    "#player-features": "Alert (Feat)\nAlways ready for danger.",
+  }));
+  const sheetMarkup = app.characterSheetMarkup(player);
+
+  assert.match(sheetMarkup, /sheet-trait-button/);
+  assert.match(sheetMarkup, /data-trait-title="Alert \(Feat\)"/);
+  assert.match(sheetMarkup, /Always ready for danger/);
+  assert.match(sheetMarkup, /id="sheet-trait-modal"/);
+  assert.match(sheetMarkup, /data-edit-sheet-field="features"/);
+});
+
+test("character sheet divides equipment into item widgets with homebrew detail links", () => {
+  const app = createFrontendSandbox();
+  app.localStorage.setItem("dnducks.items", JSON.stringify([{
+    id: "item-blood-spear",
+    name: "Blood Spear",
+    type: "Weapon",
+    description: "A spear with a frozen blood shaft.",
+    statistics: { damage: "1d6 piercing", attackBonus: "+1", damageBonus: "+2" },
+  }]));
+  const player = app.buildPlayerCharacter(mockPlayerForm({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-level": "4",
+    "#player-equipment": "Blood Spear\nDagger\nRope",
+  }));
+  const sheetMarkup = app.characterSheetMarkup(player);
+  const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
+
+  assert.match(sheetMarkup, /sheet-equipment-widget/);
+  assert.match(sheetMarkup, /sheet-equipment-card is-homebrew/);
+  assert.match(sheetMarkup, /data-homebrew-item-id="item-blood-spear"/);
+  assert.match(sheetMarkup, /data-equipment-title="Dagger"/);
+  assert.match(sheetMarkup, /Attack:/);
+  assert.match(sheetMarkup, /id="sheet-equipment-modal"/);
+  assert.match(script, /openWidgetDetail\("items", button\.dataset\.homebrewItemId\)/);
 });
 
 test("widget image picker falls back to local data urls when backend uploads are unavailable", async () => {

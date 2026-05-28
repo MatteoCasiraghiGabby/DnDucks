@@ -78,6 +78,7 @@ function canonicalLocalPath(pathname = "/") {
   const filename = decodeURIComponent(cleanPath.split("/").filter(Boolean).pop() || "index.html").toLowerCase();
   if (filename === "calendar.html") return "/calendar.html";
   if (filename === "about.html") return "/about.html";
+  if (filename === "spells.html") return "/spells.html";
   return "/index.html";
 }
 
@@ -1522,6 +1523,7 @@ function updateTopNavActivePage(page) {
     media: "index.html#/media",
     maps: "index.html#/maps",
     comics: "index.html#/comics",
+    spells: "spells.html",
     calendar: "calendar.html",
     about: "about.html",
   };
@@ -6554,8 +6556,165 @@ function sheetField(label, value) {
   return `<div class="sheet-field"><span>${escapeHtml(label)}</span><strong>${escapeHtml(display)}</strong></div>`;
 }
 
-function sheetTextBlock(label, value) {
-  return `<section class="sheet-box"><h3>${escapeHtml(label)}</h3><p>${escapeHtml(value || "—")}</p></section>`;
+function sheetEditButton(label, path) {
+  if (!path) return "";
+  return `<button class="sheet-edit-button" type="button" data-edit-sheet-field="${escapeHtml(path)}" aria-label="Edit ${escapeHtml(label)}">Edit</button>`;
+}
+
+function sheetTextBlock(label, value, editPath = "") {
+  const widgetAttribute = editPath ? ` data-sheet-widget="${escapeHtml(editPath)}"` : "";
+  return `<section class="sheet-box sheet-widget"${widgetAttribute}><h3><span>${escapeHtml(label)}</span>${sheetEditButton(label, editPath)}</h3><p>${escapeHtml(value || "—")}</p></section>`;
+}
+
+function sheetSkillGroupsMarkup(player) {
+  const proficientSaves = player.savingThrowProficiencies || [];
+  const proficientSkills = player.skillProficiencies || [];
+  return `
+    <section class="sheet-box sheet-skill-widget">
+      <h3><span>Saving Throws &amp; Skills</span><small>PB ${signedModifier(player.proficiencyBonus || proficiencyBonusForLevel(player.level))}</small></h3>
+      <div class="sheet-skill-groups">
+        ${ABILITIES.map((ability) => {
+          const abilitySkills = SKILLS.filter((skill) => skill.ability === ability.key);
+          return `
+            <div class="sheet-skill-group">
+              <div class="sheet-skill-group-header">
+                <span>${escapeHtml(ability.short)}</span>
+                <strong>${escapeHtml(ability.label)}</strong>
+              </div>
+              <div class="sheet-skill-row sheet-save-row">
+                <span>${proficientSaves.includes(ability.key) ? "●" : "○"}</span>
+                <strong>${signedModifier(savingThrowBonus(player, ability.key))}</strong>
+                <em>Saving throw</em>
+              </div>
+              ${abilitySkills.map((skill) => `
+                <div class="sheet-skill-row">
+                  <span>${proficientSkills.includes(skill.key) ? "●" : "○"}</span>
+                  <strong>${signedModifier(skillBonus(player, skill))}</strong>
+                  <em>${escapeHtml(skill.label)}</em>
+                </div>`).join("")}
+            </div>`;
+        }).join("")}
+      </div>
+    </section>`;
+}
+
+function traitIconLabel(title = "") {
+  const words = String(title || "Trait").match(/[A-Za-z0-9]+/g) || ["Trait"];
+  return words.slice(0, 2).map((word) => word[0]).join("").toUpperCase();
+}
+
+function sheetTraitButtonsMarkup(player) {
+  const blocks = featureBlocksForPlayer(player);
+  return `
+    <section class="sheet-box sheet-widget sheet-traits-widget" data-sheet-widget="features">
+      <h3><span>Traits</span>${sheetEditButton("Traits", "features")}</h3>
+      ${blocks.length ? `
+        <div class="sheet-trait-grid">
+          ${blocks.map((block, index) => `
+            <button class="sheet-trait-button" type="button" data-sheet-trait-index="${index}" data-trait-title="${escapeHtml(block.title)}" data-trait-details="${escapeHtml(block.details || block.title)}" title="${escapeHtml(block.title)}">
+              <span class="sheet-trait-icon">${escapeHtml(traitIconLabel(block.title))}</span>
+              <span>${escapeHtml(block.title)}</span>
+            </button>`).join("")}
+        </div>` : `<p>—</p>`}
+    </section>`;
+}
+
+function sheetEquipmentItemPreview(item = "", homebrewItem = null, weapon = null) {
+  if (homebrewItem?.description) return homebrewItem.description;
+  if (homebrewItem) return homebrewItem.type || "Homebrew item";
+  if (weapon) return `${weapon.mode === "finesse" ? "Finesse" : weapon.mode || "Weapon"} weapon`;
+  return item;
+}
+
+function sheetEquipmentItemDetails(item = "", player = {}) {
+  const homebrewItem = homebrewItemForEquipmentItem(item);
+  if (homebrewItem) {
+    const stats = homebrewItemStatistics(homebrewItem);
+    return [
+      homebrewItem.description,
+      stats.damage ? `Damage: ${stats.damage}` : "",
+      stats.attackBonus || stats.attack ? `Attack bonus: ${stats.attackBonus ?? stats.attack}` : "",
+      stats.damageBonus ? `Damage bonus: ${stats.damageBonus}` : "",
+      weaponPropertiesText(stats.properties) ? `Properties: ${weaponPropertiesText(stats.properties)}` : "",
+    ].filter(hasText).join("\n");
+  }
+
+  const weapon = weaponForEquipmentItem(item);
+  if (weapon) {
+    const modifier = weaponAbilityModifier(weapon, player.abilities || {});
+    return [
+      item !== weapon.name ? `Matched weapon: ${weapon.name}` : "",
+      `Attack: ${signedModifier(modifier + proficiencyBonusForLevel(player.level || 1))}`,
+      `Damage: ${weaponDamageText(weapon, modifier)}`,
+      `Mode: ${weapon.mode === "finesse" ? "Melee or Dexterity" : weapon.mode}`,
+    ].filter(hasText).join("\n");
+  }
+
+  return `Saved equipment entry: ${item}`;
+}
+
+function sheetEquipmentItemsMarkup(player, equipmentText = "") {
+  const items = equipmentItems(player.equipment);
+  const goldLine = Number(player.gold) > 0 ? `${player.gold} GP` : "";
+  if (!items.length && !goldLine) return sheetTextBlock("Equipment", equipmentText, "equipment");
+  return `
+    <section class="sheet-box sheet-widget sheet-equipment-widget" data-sheet-widget="equipment">
+      <h3><span>Equipment</span>${sheetEditButton("Equipment", "equipment")}</h3>
+      ${items.length ? `
+        <div class="sheet-equipment-grid">
+          ${items.map((item, index) => {
+            const homebrewItem = homebrewItemForEquipmentItem(item);
+            const weapon = weaponForEquipmentItem(item);
+            const title = homebrewItem?.name || item;
+            const type = homebrewItem?.type || (weapon ? "Weapon" : "Equipment");
+            const preview = sheetEquipmentItemPreview(item, homebrewItem, weapon);
+            const details = sheetEquipmentItemDetails(item, player);
+            return `
+              <button class="sheet-equipment-card ${homebrewItem ? "is-homebrew" : ""}" type="button" data-sheet-equipment-index="${index}" ${homebrewItem?.id ? `data-homebrew-item-id="${escapeHtml(homebrewItem.id)}"` : ""} data-equipment-title="${escapeHtml(title)}" data-equipment-type="${escapeHtml(type)}" data-equipment-details="${escapeHtml(details)}">
+                <span class="sheet-equipment-icon">${escapeHtml(traitIconLabel(title))}</span>
+                <strong>${escapeHtml(title)}</strong>
+                <small>${escapeHtml(type)}</small>
+                <em>${escapeHtml(preview)}</em>
+              </button>`;
+          }).join("")}
+        </div>` : ""}
+      ${goldLine ? `<div class="sheet-gold-widget"><span>Gold</span><strong>${escapeHtml(goldLine)}</strong></div>` : ""}
+    </section>`;
+}
+
+function characterSheetOverlays() {
+  return `
+    <div class="sheet-modal" id="sheet-trait-modal" hidden>
+      <button class="sheet-modal-backdrop" type="button" data-close-sheet-trait aria-label="Close trait details"></button>
+      <article class="sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="sheet-trait-title">
+        <button class="sheet-modal-close" type="button" data-close-sheet-trait aria-label="Close">&times;</button>
+        <p class="eyebrow">Trait</p>
+        <h2 id="sheet-trait-title"></h2>
+        <p id="sheet-trait-details"></p>
+      </article>
+    </div>
+    <div class="sheet-modal" id="sheet-edit-modal" hidden>
+      <button class="sheet-modal-backdrop" type="button" data-close-sheet-edit aria-label="Close editor"></button>
+      <form class="sheet-modal-dialog sheet-edit-dialog" id="sheet-edit-form" role="dialog" aria-modal="true" aria-labelledby="sheet-edit-title">
+        <button class="sheet-modal-close" type="button" data-close-sheet-edit aria-label="Close">&times;</button>
+        <p class="eyebrow">Edit sheet widget</p>
+        <h2 id="sheet-edit-title"></h2>
+        <textarea id="sheet-edit-value" rows="9"></textarea>
+        <div class="sheet-edit-actions">
+          <button class="btn btn-secondary" type="button" data-close-sheet-edit>Cancel</button>
+          <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+    <div class="sheet-modal" id="sheet-equipment-modal" hidden>
+      <button class="sheet-modal-backdrop" type="button" data-close-sheet-equipment aria-label="Close equipment details"></button>
+      <article class="sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="sheet-equipment-title">
+        <button class="sheet-modal-close" type="button" data-close-sheet-equipment aria-label="Close">&times;</button>
+        <p class="eyebrow" id="sheet-equipment-type">Equipment</p>
+        <h2 id="sheet-equipment-title"></h2>
+        <p id="sheet-equipment-details"></p>
+      </article>
+    </div>`;
 }
 
 function playerSheetAttacks(player = {}) {
@@ -6580,7 +6739,6 @@ function playerAttackRows(player) {
 }
 
 function characterSheetMarkup(player) {
-  const proficiencyBonus = player.proficiencyBonus || proficiencyBonusForLevel(player.level);
   const combat = player.combat || {};
   const equipmentText = [
     player.equipment,
@@ -6610,20 +6768,7 @@ function characterSheetMarkup(player) {
                 <small>${signedModifier(abilityModifier(abilityScore(player, ability.key)))}</small>
               </div>`).join("")}
           </div>
-          <section class="sheet-box">
-            <h3>Saving Throws <small>PB ${signedModifier(proficiencyBonus)}</small></h3>
-            <div class="sheet-check-list">
-              ${ABILITIES.map((ability) => `
-                <div><span>${(player.savingThrowProficiencies || []).includes(ability.key) ? "●" : "○"}</span><strong>${signedModifier(savingThrowBonus(player, ability.key))}</strong>${escapeHtml(ability.label)}</div>`).join("")}
-            </div>
-          </section>
-          <section class="sheet-box">
-            <h3>Skills</h3>
-            <div class="sheet-check-list">
-              ${SKILLS.map((skill) => `
-                <div><span>${(player.skillProficiencies || []).includes(skill.key) ? "●" : "○"}</span><strong>${signedModifier(skillBonus(player, skill))}</strong>${escapeHtml(skill.label)} <small>(${escapeHtml(skill.ability.slice(0, 3).toUpperCase())})</small></div>`).join("")}
-            </div>
-          </section>
+          ${sheetSkillGroupsMarkup(player)}
           ${sheetField("Passive Wisdom (Perception)", playerPassivePerception(player))}
           ${sheetTextBlock("Other Proficiencies & Languages", proficiencyText)}
         </aside>
@@ -6645,19 +6790,118 @@ function characterSheetMarkup(player) {
               <tbody>${playerAttackRows(player)}</tbody>
             </table>
           </section>
-          ${sheetTextBlock("Equipment", equipmentText)}
+          ${sheetEquipmentItemsMarkup(player, equipmentText)}
         </section>
 
         <section class="sheet-column">
-          ${sheetTextBlock("Personality Traits", player.personality?.traits)}
-          ${sheetTextBlock("Ideals", player.personality?.ideals)}
-          ${sheetTextBlock("Bonds", player.personality?.bonds)}
-          ${sheetTextBlock("Flaws", player.personality?.flaws)}
-          ${sheetTextBlock("Features & Traits", featureTextForPlayer(player))}
-          ${sheetTextBlock("Backstory / Notes", player.notes)}
+          ${sheetTextBlock("Personality Traits", player.personality?.traits, "personality.traits")}
+          ${sheetTextBlock("Ideals", player.personality?.ideals, "personality.ideals")}
+          ${sheetTextBlock("Bonds", player.personality?.bonds, "personality.bonds")}
+          ${sheetTextBlock("Flaws", player.personality?.flaws, "personality.flaws")}
+          ${sheetTraitButtonsMarkup(player)}
+          ${sheetTextBlock("Backstory / Notes", player.notes, "notes")}
         </section>
       </div>
+      ${characterSheetOverlays()}
     </article>`;
+}
+
+function playerSheetFieldValue(player, path) {
+  if (!path) return "";
+  return path.split(".").reduce((value, key) => (value && value[key] !== undefined ? value[key] : ""), player) || "";
+}
+
+function setPlayerSheetFieldValue(player, path, value) {
+  const keys = String(path || "").split(".").filter(Boolean);
+  if (!keys.length) return player;
+  const nextPlayer = { ...player };
+  let target = nextPlayer;
+  keys.slice(0, -1).forEach((key) => {
+    target[key] = { ...(target[key] || {}) };
+    target = target[key];
+  });
+  target[keys[keys.length - 1]] = value;
+  return nextPlayer;
+}
+
+function updatePlayerSheetField(campaignId, playerId, path, value) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  return upsertCampaign({
+    ...campaign,
+    players: (campaign.players || []).map((player) => (
+      player.id === playerId ? setPlayerSheetFieldValue(player, path, value) : player
+    )),
+  });
+}
+
+function bindCharacterSheetInteractions(campaignId, playerId) {
+  const sheet = document.querySelector(".character-sheet-paper");
+  if (!sheet) return;
+  const traitModal = sheet.querySelector("#sheet-trait-modal");
+  const traitTitle = sheet.querySelector("#sheet-trait-title");
+  const traitDetails = sheet.querySelector("#sheet-trait-details");
+  const editModal = sheet.querySelector("#sheet-edit-modal");
+  const editForm = sheet.querySelector("#sheet-edit-form");
+  const editTitle = sheet.querySelector("#sheet-edit-title");
+  const editValue = sheet.querySelector("#sheet-edit-value");
+  const equipmentModal = sheet.querySelector("#sheet-equipment-modal");
+  const equipmentTitle = sheet.querySelector("#sheet-equipment-title");
+  const equipmentType = sheet.querySelector("#sheet-equipment-type");
+  const equipmentDetails = sheet.querySelector("#sheet-equipment-details");
+  let activeEditPath = "";
+
+  sheet.querySelectorAll("[data-sheet-trait-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      traitTitle.textContent = button.dataset.traitTitle || "Trait";
+      traitDetails.textContent = button.dataset.traitDetails || "";
+      traitModal.hidden = false;
+    });
+  });
+
+  sheet.querySelectorAll("[data-close-sheet-trait]").forEach((button) => {
+    button.addEventListener("click", () => { traitModal.hidden = true; });
+  });
+
+  sheet.querySelectorAll("[data-sheet-equipment-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.homebrewItemId) {
+        openWidgetDetail("items", button.dataset.homebrewItemId);
+        return;
+      }
+      equipmentTitle.textContent = button.dataset.equipmentTitle || "Equipment";
+      equipmentType.textContent = button.dataset.equipmentType || "Equipment";
+      equipmentDetails.textContent = button.dataset.equipmentDetails || "No equipment details available.";
+      equipmentModal.hidden = false;
+    });
+  });
+
+  sheet.querySelectorAll("[data-close-sheet-equipment]").forEach((button) => {
+    button.addEventListener("click", () => { equipmentModal.hidden = true; });
+  });
+
+  sheet.querySelectorAll("[data-edit-sheet-field]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const campaign = getCampaign(campaignId);
+      const player = (campaign?.players || []).find((item) => item.id === playerId);
+      activeEditPath = button.dataset.editSheetField || "";
+      editTitle.textContent = button.closest(".sheet-box")?.querySelector("h3 span")?.textContent || "Sheet widget";
+      editValue.value = playerSheetFieldValue(player || {}, activeEditPath);
+      editModal.hidden = false;
+      editValue.focus();
+    });
+  });
+
+  sheet.querySelectorAll("[data-close-sheet-edit]").forEach((button) => {
+    button.addEventListener("click", () => { editModal.hidden = true; });
+  });
+
+  editForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!activeEditPath) return;
+    updatePlayerSheetField(campaignId, playerId, activeEditPath, editValue.value.trim());
+    renderPlayerCharacterPage(campaignId, playerId);
+  });
 }
 
 function renderPlayerCharacterPage(campaignId, playerId) {
@@ -6685,6 +6929,7 @@ function renderPlayerCharacterPage(campaignId, playerId) {
       ${characterSheetMarkup(player)}
     </section>`;
   document.getElementById("back-to-dashboard-button").addEventListener("click", goToDashboard);
+  bindCharacterSheetInteractions(campaignId, playerId);
 }
 
 function initCampaignRoutes() {
@@ -6706,6 +6951,200 @@ function initCampaignRoutes() {
   }
   renderNotFoundPage("This campaign route is not available yet.");
   return true;
+}
+
+const SPELL_LEVEL_LABELS = ["Cantrip", "1st Level", "2nd Level", "3rd Level", "4th Level", "5th Level", "6th Level", "7th Level", "8th Level", "9th Level"];
+
+function spellCollection() {
+  return Array.isArray(globalThis.DNDUCKS_SPELLS) ? globalThis.DNDUCKS_SPELLS : [];
+}
+
+function spellLevelLabel(level) {
+  return SPELL_LEVEL_LABELS[Number(level)] || `${level}th Level`;
+}
+
+function spellSearchText(spell) {
+  return textForSearch([
+    spell.name,
+    spell.levelName,
+    spell.school,
+    spell.castingTime,
+    spell.range,
+    spell.duration,
+    spell.components,
+    spell.description,
+  ]);
+}
+
+function spellCardMarkup(spell) {
+  const searchable = spellSearchText(spell);
+  const concentration = /concentration/i.test(spell.duration || "");
+  return `
+    <button class="content-card spell-card" type="button" data-spell-id="${escapeHtml(spell.id)}" data-searchable="${escapeHtml(searchable)}">
+      <span class="spell-card-topline">
+        <span class="status-badge status-prepared">${escapeHtml(spell.levelName || spellLevelLabel(spell.level))}</span>
+        <span>${escapeHtml(spell.school)}</span>
+      </span>
+      <strong>${escapeHtml(spell.name)}</strong>
+      <span class="spell-card-summary">${escapeHtml(spell.description)}</span>
+      <span class="spell-card-meta">
+        <span>${escapeHtml(spell.castingTime)}</span>
+        <span>${escapeHtml(spell.range)}</span>
+        <span>${escapeHtml(spell.components)}</span>
+        ${concentration ? "<span>Concentration</span>" : ""}
+      </span>
+    </button>`;
+}
+
+function filteredSpells() {
+  const query = document.getElementById("spell-search")?.value.trim().toLowerCase() || "";
+  const school = document.getElementById("spell-school-filter")?.value || "";
+  const level = document.getElementById("spell-level-filter")?.value || "";
+  return spellCollection().filter((spell) => {
+    const schoolMatches = !school || spell.school === school;
+    const levelMatches = level === "" || String(spell.level) === level;
+    const queryMatches = !query || spellSearchText(spell).includes(query);
+    return schoolMatches && levelMatches && queryMatches;
+  });
+}
+
+function renderSpellTabs() {
+  const tabs = document.getElementById("spell-level-tabs");
+  if (!tabs) return;
+  const currentLevel = document.getElementById("spell-level-filter")?.value || "";
+  const allCount = spellCollection().length;
+  tabs.innerHTML = [
+    `<button class="chip-button ${currentLevel === "" ? "is-active" : ""}" type="button" data-spell-tab="">All <span>${allCount}</span></button>`,
+    ...SPELL_LEVEL_LABELS.map((label, level) => {
+      const count = spellCollection().filter((spell) => Number(spell.level) === level).length;
+      return `<button class="chip-button ${currentLevel === String(level) ? "is-active" : ""}" type="button" data-spell-tab="${level}">${escapeHtml(label)} <span>${count}</span></button>`;
+    }),
+  ].join("");
+
+  tabs.querySelectorAll("[data-spell-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const levelFilter = document.getElementById("spell-level-filter");
+      if (levelFilter) levelFilter.value = button.dataset.spellTab || "";
+      renderSpells();
+    });
+  });
+}
+
+function populateSpellFilters() {
+  const schoolFilter = document.getElementById("spell-school-filter");
+  const levelFilter = document.getElementById("spell-level-filter");
+  const schools = [...new Set(spellCollection().map((spell) => spell.school).filter(Boolean))].sort();
+  if (schoolFilter && schoolFilter.options.length <= 1) {
+    schoolFilter.insertAdjacentHTML("beforeend", schools.map((school) => `<option value="${escapeHtml(school)}">${escapeHtml(school)}</option>`).join(""));
+  }
+  if (levelFilter && levelFilter.options.length <= 1) {
+    levelFilter.insertAdjacentHTML("beforeend", SPELL_LEVEL_LABELS.map((label, level) => `<option value="${level}">${escapeHtml(label)}</option>`).join(""));
+  }
+}
+
+function renderSpells() {
+  const list = document.getElementById("spell-list");
+  const title = document.getElementById("spell-results-title");
+  const count = document.getElementById("spell-results-count");
+  if (!list) return;
+
+  const spells = filteredSpells();
+  const level = document.getElementById("spell-level-filter")?.value || "";
+  const school = document.getElementById("spell-school-filter")?.value || "";
+  if (title) {
+    const titleParts = [
+      level === "" ? "All spells" : spellLevelLabel(level),
+      school ? `${school} magic` : "",
+    ].filter(Boolean);
+    title.textContent = titleParts.join(" - ");
+  }
+  if (count) count.textContent = `${spells.length} of ${spellCollection().length} spell widgets`;
+
+  list.innerHTML = spells.length
+    ? spells.map(spellCardMarkup).join("")
+    : `<div class="empty-state">No spell widgets match the current filters.</div>`;
+  list.querySelectorAll("[data-spell-id]").forEach((button) => {
+    button.addEventListener("click", () => openSpellDetail(button.dataset.spellId));
+  });
+  renderSpellTabs();
+}
+
+function spellDetailRows(spell) {
+  return [
+    ["Level", spell.levelName || spellLevelLabel(spell.level)],
+    ["School", spell.school],
+    ["Casting time", spell.castingTime],
+    ["Range", spell.range],
+    ["Duration", spell.duration],
+    ["Components", spell.components],
+  ].map(([label, value]) => `
+    <div>
+      <dt>${escapeHtml(label)}</dt>
+      <dd>${escapeHtml(value || "Unknown")}</dd>
+    </div>`).join("");
+}
+
+function openSpellDetail(spellId) {
+  const spell = spellCollection().find((item) => item.id === spellId);
+  const modal = document.getElementById("spell-detail-modal");
+  const body = document.getElementById("spell-detail-body");
+  if (!spell || !modal || !body) return;
+
+  body.innerHTML = `
+    <div class="card-kicker">
+      <span class="status-badge status-prepared">${escapeHtml(spell.levelName || spellLevelLabel(spell.level))}</span>
+      <span>${escapeHtml(spell.school)}</span>
+    </div>
+    <h2 id="spell-detail-title">${escapeHtml(spell.name)}</h2>
+    <dl class="widget-detail-meta spell-detail-meta">${spellDetailRows(spell)}</dl>
+    <section class="widget-detail-section">
+      <h3>Summary</h3>
+      <p>${escapeHtml(spell.description)}</p>
+    </section>
+    <div class="tag-row spell-detail-actions">
+      <a class="btn btn-secondary" href="${escapeHtml(spell.sourceUrl)}" target="_blank" rel="noreferrer">Open Source Page</a>
+    </div>`;
+  modal.hidden = false;
+  document.body.classList.add("spell-detail-open");
+  modal.querySelector("[data-close-spell-modal]")?.focus();
+}
+
+function initSpellsPage() {
+  const list = document.getElementById("spell-list");
+  if (!list) return;
+  updateTopNavActivePage("spells");
+  populateSpellFilters();
+  renderSpellTabs();
+  renderSpells();
+
+  ["spell-search", "spell-school-filter", "spell-level-filter"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", renderSpells);
+    document.getElementById(id)?.addEventListener("change", renderSpells);
+  });
+
+  document.getElementById("spell-clear-filters")?.addEventListener("click", () => {
+    const search = document.getElementById("spell-search");
+    const school = document.getElementById("spell-school-filter");
+    const level = document.getElementById("spell-level-filter");
+    if (search) search.value = "";
+    if (school) school.value = "";
+    if (level) level.value = "";
+    renderSpells();
+  });
+
+  const modal = document.getElementById("spell-detail-modal");
+  if (modal) {
+    const close = () => {
+      modal.hidden = true;
+      document.body.classList.remove("spell-detail-open");
+    };
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal || event.target.closest("[data-close-spell-modal]")) close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.hidden) close();
+    });
+  }
 }
 
 function initAppRoutes() {
@@ -6945,6 +7384,7 @@ if (!redirectToCanonicalLocalOrigin()) {
     initDashboardForms();
     initCalendarPage();
     initMaterials();
+    initSpellsPage();
     initAiPlaceholder();
     renderDashboard();
   }
