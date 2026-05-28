@@ -1903,7 +1903,10 @@ code { color: var(--ember-2); }
 .campaign-action-button { white-space: nowrap; }
 .compact-stats { margin-top: 18px; }
 .campaign-party-overview[hidden] { display: none; }
-.player-overview-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.player-overview-grid {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}
 .player-card {
   color: inherit;
   cursor: default;
