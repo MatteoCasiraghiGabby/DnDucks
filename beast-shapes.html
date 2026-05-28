@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="DnDucks Beast Shapes compendium with searchable D&D 5e Wild Shape forms for druids and Circle of the Moon."
+    />
+    <title>DnDucks | Beast Shapes</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/beast-shapes-data.js" defer></script>
+    <script src="assets/script.js" defer></script>
+  </head>
+  <body data-page="beast-shapes">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="DnDucks home">
+        <span class="brand-mark" aria-hidden="true">🦆</span>
+        <span><strong>DnDucks</strong><small>DM Command Center</small></span>
+      </a>
+      <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Toggle navigation</span>
+      </button>
+      <nav class="topnav" id="site-navigation" aria-label="Primary navigation">
+        <a href="index.html">Dashboard</a>
+        <a href="index.html#/media">Media</a>
+        <a href="index.html#/maps">Maps</a>
+        <a href="index.html#/comics">Comics</a>
+        <a href="spells.html">Spells</a>
+        <a href="beast-shapes.html" aria-current="page">Beast Shapes</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="about.html">About</a>
+      </nav>
+    </header>
+
+    <main class="page-layout section-shell beast-shapes-page">
+      <section class="page-hero beast-shapes-hero">
+        <p class="eyebrow">Wild Shape compendium</p>
+        <h1>Search beast forms by CR, movement, size, and druid circle.</h1>
+        <p>
+          Browse standard druid forms and Circle of the Moon expansions as compact widgets. Open a beast to view
+          defenses, movement, ability scores, traits, actions, and source reference.
+        </p>
+      </section>
+
+      <section class="panel beast-shape-controls" aria-label="Beast Shape filters">
+        <label class="search-control beast-shape-search-control" for="beast-shape-search">
+          <span aria-hidden="true">Search</span>
+          <input id="beast-shape-search" type="search" placeholder="Name, action, trait..." />
+        </label>
+        <label>
+          CR
+          <select id="beast-shape-cr-filter">
+            <option value="">All CRs</option>
+          </select>
+        </label>
+        <label>
+          Size
+          <select id="beast-shape-size-filter">
+            <option value="">All sizes</option>
+          </select>
+        </label>
+        <label>
+          Movement
+          <select id="beast-shape-movement-filter">
+            <option value="">Any movement</option>
+            <option value="walk">Walk</option>
+            <option value="swim">Swim</option>
+            <option value="fly">Fly</option>
+          </select>
+        </label>
+        <label>
+          List
+          <select id="beast-shape-form-filter">
+            <option value="">All lists</option>
+          </select>
+        </label>
+        <button class="btn btn-secondary" type="button" id="beast-shape-clear-filters">Clear Filters</button>
+      </section>
+
+      <section class="beast-shape-cr-tabs" id="beast-shape-cr-tabs" aria-label="Beast Shape CR quick filters"></section>
+
+      <section class="workspace-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Prepared forms</p>
+            <h2 id="beast-shape-results-title">All beast shapes</h2>
+          </div>
+          <p id="beast-shape-results-count">Loading beast shapes...</p>
+        </div>
+        <div class="beast-shape-grid" id="beast-shape-list" aria-live="polite"></div>
+      </section>
+
+      <p class="spell-source-note">
+        Beast Shape names and table metadata are derived from
+        <a href="https://dnd-5e.fandom.com/wiki/Beast_Shapes" target="_blank" rel="noreferrer">D&D 5e Wiki on Fandom</a>.
+        Trait overlays and beast detail panels keep source pages one click away.
+      </p>
+    </main>
+
+    <div class="modal-backdrop beast-shape-detail-modal" id="beast-shape-detail-modal" hidden>
+      <article class="event-detail-dialog beast-shape-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="beast-shape-detail-title">
+        <button class="modal-close" type="button" data-close-beast-shape-modal aria-label="Close beast shape details">×</button>
+        <div id="beast-shape-detail-body"></div>
+      </article>
+    </div>
+
+    <div class="modal-backdrop beast-trait-modal" id="beast-trait-modal" hidden>
+      <article class="event-detail-dialog beast-trait-dialog" role="dialog" aria-modal="true" aria-labelledby="beast-trait-title">
+        <button class="modal-close" type="button" data-close-beast-trait-modal aria-label="Close trait details">×</button>
+        <div id="beast-trait-body"></div>
+      </article>
+    </div>
+  </body>
+</html>

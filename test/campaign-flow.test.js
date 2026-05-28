@@ -1345,6 +1345,62 @@ test("personality story analysis workflow is available on the player form", () =
   assert.match(script, /collectCharacterSuggestionPayload/);
 });
 
+test("wild shape overlay preserves original character data and renders temporary beast widgets", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_BEAST_SHAPES = [{
+    id: "standard-wolf",
+    name: "Wolf",
+    cr: "1/4",
+    crValue: 0.25,
+    size: "Medium",
+    hp: 11,
+    ac: 13,
+    strength: 12,
+    dexterity: 15,
+    constitution: 12,
+    speed: "40 ft.",
+    swim: "—",
+    fly: "—",
+    traits: "Keen Hearing and Smell, Pack Tactics",
+    formType: "Standard",
+    sourceUrl: "https://dnd-5e.fandom.com/wiki/Wolf",
+    skills: { perception: 3, stealth: 4 },
+    actions: [{ name: "Bite", description: "Melee Weapon Attack: +4 to hit." }],
+  }];
+  const druid = {
+    id: "player-druid",
+    playerName: "M",
+    characterName: "Thorn",
+    classRole: "Druid",
+    level: 2,
+    race: "Human",
+    alignment: "Neutral",
+    abilities: { strength: 8, dexterity: 10, constitution: 12, intelligence: 14, wisdom: 16, charisma: 11 },
+    savingThrowProficiencies: ["intelligence", "wisdom"],
+    skillProficiencies: ["perception"],
+    combat: { armorClass: 11, speed: 30, hitPointMaximum: 19, hitDice: "2d8" },
+    attacks: [],
+  };
+
+  const transformed = app.applyWildShapeOverlay(druid, app.DNDUCKS_BEAST_SHAPES[0]);
+  assert.equal(transformed.abilities.strength, 8);
+  assert.equal(transformed.activeWildShape.beastId, "standard-wolf");
+  assert.equal(transformed.wildShapeOverlay.abilities.strength, 12);
+  assert.equal(transformed.wildShapeOverlay.abilities.wisdom, 16);
+  assert.equal(transformed.wildShapeOverlay.armorClass, 13);
+  assert.equal(transformed.wildShapeOverlay.spellcastingDisabled, true);
+
+  const markup = app.characterSheetMarkup(transformed);
+  assert.match(markup, /wild-shape-active-panel/);
+  assert.match(markup, /Beast Actions/);
+  assert.match(markup, /Original: 8/);
+
+  const reverted = app.revertWildShape(transformed);
+  assert.equal(reverted.activeWildShape, undefined);
+  assert.deepEqual(reverted.abilities, druid.abilities);
+  assert.deepEqual(reverted.combat, druid.combat);
+});
+
 test("API URL resolver keeps backend requests relative", () => {
   const app = createFrontendSandbox({ hostname: "localhost", port: "3000" });
 

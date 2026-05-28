@@ -111,6 +111,7 @@ function canonicalLocalPath(pathname = "/") {
   if (filename === "calendar.html") return "/calendar.html";
   if (filename === "about.html") return "/about.html";
   if (filename === "spells.html") return "/spells.html";
+  if (filename === "beast-shapes.html") return "/beast-shapes.html";
   return "/index.html";
 }
 
@@ -568,6 +569,211 @@ function playerPassivePerception(player) {
   const saved = Number(player?.combat?.passivePerception);
   if (Number.isFinite(saved) && saved > 0) return saved;
   return 10 + skillBonus(player, SKILLS.find((skill) => skill.key === "perception"));
+}
+
+const WILD_SHAPE_PHYSICAL_ABILITIES = ["strength", "dexterity", "constitution"];
+const WILD_SHAPE_MENTAL_ABILITIES = ["intelligence", "wisdom", "charisma"];
+
+function characterHasWildShapeAccess(player = {}) {
+  return String(player.classRole || "").trim().toLowerCase() === "druid" && Number(player.level) >= 2;
+}
+
+function isDruidCharacter(player = {}) {
+  return String(player.classRole || "").trim().toLowerCase() === "druid";
+}
+
+function wildShapeCrLimit(level = 1) {
+  const value = Number(level) || 1;
+  if (value >= 8) return 1;
+  if (value >= 4) return 0.5;
+  if (value >= 2) return 0.25;
+  return -1;
+}
+
+function wildShapeLimitText(player = {}) {
+  const level = Number(player.level) || 1;
+  if (level < 2) return "Wild Shape unlocks at Druid 2.";
+  if (level < 4) return "Max CR 1/4, no swim or fly speed.";
+  if (level < 8) return "Max CR 1/2, no fly speed.";
+  return "Max CR 1.";
+}
+
+function wildShapeBeastAllowed(player = {}, shape = {}) {
+  if (!characterHasWildShapeAccess(player)) return false;
+  if ((Number(shape.crValue) || 0) > wildShapeCrLimit(player.level)) return false;
+  const level = Number(player.level) || 1;
+  if (level < 4 && beastShapeHasMovement(shape.swim)) return false;
+  if (level < 8 && beastShapeHasMovement(shape.fly)) return false;
+  return true;
+}
+
+function wildShapeAvailableBeasts(player = {}) {
+  return beastShapeCollection().filter((shape) => wildShapeBeastAllowed(player, shape));
+}
+
+function wildShapeBeastById(beastId = "") {
+  return beastShapeCollection().find((shape) => shape.id === beastId) || null;
+}
+
+function wildShapeMovementSummary(shape = {}) {
+  return [
+    beastShapeHasMovement(shape.speed) ? `Walk ${shape.speed}` : "",
+    beastShapeHasMovement(shape.swim) ? `Swim ${shape.swim}` : "",
+    beastShapeHasMovement(shape.fly) ? `Fly ${shape.fly}` : "",
+  ].filter(Boolean).join(", ") || "No movement listed";
+}
+
+function wildShapeHitDice(shape = {}) {
+  return shape.hitDice || shape.hitDiceText || "Source stat block";
+}
+
+function wildShapeSenses(shape = {}) {
+  const explicit = shape.senses || shape.senseText;
+  if (explicit) return explicit;
+  const senses = beastShapeTraits(shape).filter((trait) => /blindsight|darkvision|tremorsense|truesight|telepathy/i.test(trait));
+  return senses.length ? senses.join(", ") : "No special senses listed";
+}
+
+function wildShapeBonusMap(value = {}) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, bonus]) => [normalizeRulesText(key), Number(bonus)]));
+  }
+  return String(value).split(",").reduce((map, entry) => {
+    const match = entry.trim().match(/^(.+?)\s*([+-]\d+)$/);
+    if (match) map[normalizeRulesText(match[1])] = Number(match[2]);
+    return map;
+  }, {});
+}
+
+function wildShapeSaveBonuses(shape = {}) {
+  return wildShapeBonusMap(shape.savingThrows || shape.saves || shape.saveBonuses);
+}
+
+function wildShapeSaveBonus(shape = {}, abilityKey = "") {
+  const bonuses = wildShapeSaveBonuses(shape);
+  const ability = ABILITIES.find((item) => item.key === abilityKey);
+  return bonuses[normalizeRulesText(abilityKey)]
+    ?? bonuses[normalizeRulesText(ability?.label)]
+    ?? bonuses[normalizeRulesText(ability?.short)];
+}
+
+function wildShapeSkillBonuses(shape = {}) {
+  return wildShapeBonusMap(shape.skills || shape.skillBonuses);
+}
+
+function wildShapeBeastAbilityScore(shape = {}, abilityKey = "") {
+  return shape[abilityKey] ?? "";
+}
+
+function wildShapeAbilityScore(player = {}, shape = {}, abilityKey = "") {
+  if (WILD_SHAPE_PHYSICAL_ABILITIES.includes(abilityKey)) return wildShapeBeastAbilityScore(shape, abilityKey) || abilityScore(player, abilityKey);
+  return abilityScore(player, abilityKey);
+}
+
+function wildShapeSavingThrowBonus(player = {}, shape = {}, abilityKey = "") {
+  const ownProficient = (player.savingThrowProficiencies || []).includes(abilityKey);
+  const ownBonus = abilityModifier(wildShapeAbilityScore(player, shape, abilityKey)) + (ownProficient ? proficiencyBonusForLevel(player.level) : 0);
+  const beastBonus = wildShapeSaveBonus(shape, abilityKey);
+  return Number.isFinite(beastBonus) ? Math.max(ownBonus, beastBonus) : ownBonus;
+}
+
+function wildShapeSkillBonus(player = {}, shape = {}, skill = {}) {
+  const ownProficient = (player.skillProficiencies || []).includes(skill.key);
+  const ownBonus = abilityModifier(wildShapeAbilityScore(player, shape, skill.ability)) + (ownProficient ? proficiencyBonusForLevel(player.level) : 0);
+  const beastBonuses = wildShapeSkillBonuses(shape);
+  const beastBonus = beastBonuses[normalizeRulesText(skill.key)] ?? beastBonuses[normalizeRulesText(skill.label)];
+  return Number.isFinite(beastBonus) ? Math.max(ownBonus, beastBonus) : ownBonus;
+}
+
+function wildShapeOverlayForPlayer(player = {}, shape = {}, activeState = {}) {
+  const abilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, wildShapeAbilityScore(player, shape, ability.key)]));
+  return {
+    source: "Wild Shape",
+    beastId: shape.id,
+    beastName: shape.name,
+    sizeType: `${shape.size || "Unknown"} beast`,
+    cr: shape.cr,
+    armorClass: shape.ac,
+    hitPointMaximum: shape.hp,
+    currentHp: Number.isFinite(Number(activeState.currentHp)) ? Number(activeState.currentHp) : shape.hp,
+    hitDice: wildShapeHitDice(shape),
+    speed: wildShapeMovementSummary(shape),
+    abilities,
+    savingThrows: Object.fromEntries(ABILITIES.map((ability) => [ability.key, wildShapeSavingThrowBonus(player, shape, ability.key)])),
+    skills: Object.fromEntries(SKILLS.map((skill) => [skill.key, wildShapeSkillBonus(player, shape, skill)])),
+    senses: wildShapeSenses(shape),
+    traits: beastShapeTraits(shape),
+    actions: beastShapeActions(shape).filter((action) => !/legendary|lair/i.test(action.name || "")),
+    spellcastingDisabled: true,
+    concentrationRetained: true,
+    speechHandsLimited: true,
+    equipmentMode: activeState.equipmentMode || "merged",
+    excessDamagePending: Number(activeState.excessDamagePending) || 0,
+  };
+}
+
+function wildShapeOriginalSnapshot(player = {}) {
+  return {
+    abilities: { ...(player.abilities || {}) },
+    combat: { ...(player.combat || {}) },
+    hitPointMaximum: player.combat?.hitPointMaximum || "",
+    capturedAt: new Date().toISOString(),
+  };
+}
+
+function applyWildShapeOverlay(player = {}, shape = {}) {
+  if (!shape?.id) return player;
+  const activeWildShape = {
+    beastId: shape.id,
+    beastName: shape.name,
+    activatedAt: new Date().toISOString(),
+    currentHp: shape.hp,
+    maxHp: shape.hp,
+    excessDamagePending: 0,
+    equipmentMode: "merged",
+  };
+  return {
+    ...player,
+    activeWildShape,
+    wildShapeOriginalSnapshot: player.wildShapeOriginalSnapshot || wildShapeOriginalSnapshot(player),
+    wildShapeOverlay: wildShapeOverlayForPlayer(player, shape, activeWildShape),
+  };
+}
+
+function revertWildShape(player = {}) {
+  const { activeWildShape, wildShapeOriginalSnapshot: _snapshot, wildShapeOverlay, ...normalForm } = player;
+  return normalForm;
+}
+
+function updateWildShapeHitPoints(player = {}, currentHp = 0) {
+  if (!player.activeWildShape) return player;
+  const numericHp = Number(currentHp);
+  const excessDamagePending = Number.isFinite(numericHp) && numericHp < 0 ? Math.abs(numericHp) : 0;
+  const activeWildShape = {
+    ...player.activeWildShape,
+    currentHp: Math.max(0, Number.isFinite(numericHp) ? numericHp : player.activeWildShape.currentHp || 0),
+    excessDamagePending,
+  };
+  const shape = wildShapeBeastById(activeWildShape.beastId);
+  return {
+    ...player,
+    activeWildShape,
+    wildShapeOverlay: shape ? wildShapeOverlayForPlayer(player, shape, activeWildShape) : player.wildShapeOverlay,
+  };
+}
+
+function useWildShape(player = {}) {
+  const active = player.activeWildShape || null;
+  const beast = active?.beastId ? wildShapeBeastById(active.beastId) : null;
+  return {
+    isDruid: isDruidCharacter(player),
+    hasWildShapeAccess: characterHasWildShapeAccess(player),
+    active,
+    beast,
+    overlay: active && beast ? wildShapeOverlayForPlayer(player, beast, active) : null,
+    availableBeasts: wildShapeAvailableBeasts(player),
+  };
 }
 
 function languageLabel(key) {
@@ -1572,6 +1778,7 @@ function updateTopNavActivePage(page) {
     maps: "index.html#/maps",
     comics: "index.html#/comics",
     spells: "spells.html",
+    "beast-shapes": "beast-shapes.html",
     calendar: "calendar.html",
     about: "about.html",
   };
@@ -6609,6 +6816,167 @@ function sheetField(label, value) {
   return `<div class="sheet-field"><span>${escapeHtml(label)}</span><strong>${escapeHtml(display)}</strong></div>`;
 }
 
+function WildShapeBadge(label = "Wild Shape") {
+  return `<span class="wild-shape-badge">${escapeHtml(label)}</span>`;
+}
+
+function WildShapeButton(player = {}) {
+  if (!isDruidCharacter(player)) return "";
+  const disabled = characterHasWildShapeAccess(player) ? "" : " disabled";
+  return `
+    <section class="sheet-box wild-shape-control">
+      <div>
+        <h3><span>Druid Wild Shape</span>${WildShapeBadge(characterHasWildShapeAccess(player) ? "Available" : "Locked")}</h3>
+        <p>${escapeHtml(wildShapeLimitText(player))}</p>
+      </div>
+      <button class="btn btn-primary" type="button" data-open-wild-shape-selector${disabled}>Wild Shape</button>
+    </section>`;
+}
+
+function WildShapeStatWidget(label, originalValue, beastValue, options = {}) {
+  const original = originalValue === 0 ? 0 : (originalValue || "—");
+  const beast = beastValue === 0 ? 0 : (beastValue || "—");
+  return `
+    <div class="sheet-field wild-shape-stat-widget ${options.compact ? "is-compact" : ""}">
+      <span>${escapeHtml(label)} ${WildShapeBadge("Wild Shape")}</span>
+      <strong>${escapeHtml(beast)}</strong>
+      <small>Original: ${escapeHtml(original)}</small>
+    </div>`;
+}
+
+function WildShapeAbilityBox(player = {}, ability = {}, wildShape = {}) {
+  const overlay = wildShape.overlay;
+  const original = abilityScore(player, ability.key) || "10";
+  if (!overlay) {
+    return `
+      <div class="ability-score-box">
+        <span>${escapeHtml(ability.label)}</span>
+        <strong>${escapeHtml(original)}</strong>
+        <small>${signedModifier(abilityModifier(original))}</small>
+      </div>`;
+  }
+  const beast = overlay.abilities[ability.key] || original;
+  const retained = WILD_SHAPE_MENTAL_ABILITIES.includes(ability.key);
+  return `
+    <div class="ability-score-box wild-shape-ability-box ${retained ? "is-retained" : ""}">
+      <span>${escapeHtml(ability.label)} ${WildShapeBadge(retained ? "Retained" : "Beast")}</span>
+      <strong>${escapeHtml(beast)}</strong>
+      <small>${signedModifier(abilityModifier(beast))}</small>
+      <em>Original: ${escapeHtml(original)}</em>
+    </div>`;
+}
+
+function WildShapeOverlay(player = {}, wildShape = useWildShape(player)) {
+  if (!wildShape.overlay) return "";
+  const overlay = wildShape.overlay;
+  const zeroWarning = Number(overlay.currentHp) <= 0;
+  return `
+    <section class="sheet-box wild-shape-active-panel">
+      <div class="wild-shape-active-header">
+        <div>
+          <p class="eyebrow">Temporary form</p>
+          <h3><span>${escapeHtml(overlay.beastName)}</span>${WildShapeBadge("Active")}</h3>
+          <p>${escapeHtml(overlay.sizeType)} · CR ${escapeHtml(overlay.cr)} · ${escapeHtml(overlay.speed)}</p>
+        </div>
+        <button class="btn btn-secondary" type="button" data-revert-wild-shape>Revert</button>
+      </div>
+      <div class="wild-shape-hp-tracker">
+        <label>
+          Beast HP
+          <input type="number" data-wild-shape-hp value="${escapeHtml(overlay.currentHp)}" min="-999" max="${escapeHtml(overlay.hitPointMaximum || 999)}" />
+        </label>
+        <span>${escapeHtml(overlay.currentHp)} / ${escapeHtml(overlay.hitPointMaximum || "—")}</span>
+        <button class="btn btn-secondary" type="button" data-update-wild-shape-hp>Update HP</button>
+      </div>
+      ${zeroWarning ? `<p class="wild-shape-warning">Beast form is at 0 HP. Revert and carry over ${escapeHtml(overlay.excessDamagePending || 0)} excess damage if applicable.</p>` : ""}
+      <div class="wild-shape-rule-notes">
+        <span>Spellcasting disabled; concentration retained.</span>
+        <span>Speech and hand-required actions depend on beast anatomy.</span>
+        <span>Equipment placeholder: ${escapeHtml(overlay.equipmentMode)}.</span>
+      </div>
+    </section>`;
+}
+
+function WildShapeActionMarkup(action = {}) {
+  return `
+    <article class="wild-shape-action-card">
+      <strong>${escapeHtml(action.name || "Action")}</strong>
+      <p>${escapeHtml(action.description || "No action details listed.")}</p>
+    </article>`;
+}
+
+function WildShapeAttackOverlay(player = {}, wildShape = useWildShape(player)) {
+  const actions = wildShape.overlay?.actions || [];
+  if (!wildShape.overlay) return "";
+  return `
+    <section class="wild-shape-action-panel">
+      <h4>${WildShapeBadge("Wild Shape")} Beast Actions</h4>
+      ${actions.length ? `<div class="wild-shape-action-list">${actions.map(WildShapeActionMarkup).join("")}</div>` : `<p>No beast actions are listed for this form.</p>`}
+      <p class="wild-shape-limited-note">Original attacks, spellcasting, speech, and hand-required actions are limited while transformed. Legendary and lair actions are not shown.</p>
+    </section>`;
+}
+
+function WildShapeEquipmentNote(player = {}, wildShape = useWildShape(player)) {
+  if (!wildShape.overlay) return "";
+  return `<div class="wild-shape-equipment-note">${WildShapeBadge("Wild Shape")} Equipment behavior is pending full rules support. Marked as ${escapeHtml(wildShape.overlay.equipmentMode)} for this temporary form.</div>`;
+}
+
+function BeastShapeSelector(player = {}) {
+  const wildShape = useWildShape(player);
+  const beasts = wildShape.availableBeasts;
+  return `
+    <div class="sheet-modal wild-shape-selector-modal" id="wild-shape-selector-modal" hidden>
+      <button class="sheet-modal-backdrop" type="button" data-close-wild-shape-selector aria-label="Close Beast Shape selector"></button>
+      <article class="sheet-modal-dialog wild-shape-selector-dialog" role="dialog" aria-modal="true" aria-labelledby="wild-shape-selector-title">
+        <button class="sheet-modal-close" type="button" data-close-wild-shape-selector aria-label="Close">&times;</button>
+        <p class="eyebrow">Beast selection</p>
+        <h2 id="wild-shape-selector-title">Choose Wild Shape form</h2>
+        <p>${escapeHtml(wildShapeLimitText(player))}</p>
+        <label class="search-control wild-shape-selector-search" for="wild-shape-selector-search">
+          <span aria-hidden="true">Search</span>
+          <input id="wild-shape-selector-search" type="search" placeholder="Name, action, trait..." />
+        </label>
+        <div class="wild-shape-selector-grid" id="wild-shape-selector-grid">
+          ${beasts.length ? beasts.map((shape) => BeastShapeSelectorCard(shape, player)).join("") : `<div class="empty-state">No legal Beast Shape forms are available for this Druid level.</div>`}
+        </div>
+      </article>
+    </div>`;
+}
+
+function BeastShapeSelectorCard(shape = {}, player = {}) {
+  const actions = beastShapeActions(shape).map((action) => action.name).filter(Boolean).slice(0, 4);
+  const searchable = beastShapeSearchText(shape);
+  const abilityPreview = [
+    `STR ${shape.strength || "—"}`,
+    `DEX ${shape.dexterity || "—"}`,
+    `CON ${shape.constitution || "—"}`,
+    `INT ${abilityScore(player, "intelligence") || "—"}`,
+    `WIS ${abilityScore(player, "wisdom") || "—"}`,
+    `CHA ${abilityScore(player, "charisma") || "—"}`,
+  ].join(" · ");
+  return `
+    <article class="wild-shape-selector-card" data-searchable="${escapeHtml(searchable)}">
+      <div class="card-kicker">
+        <span class="status-badge status-prepared">CR ${escapeHtml(shape.cr)}</span>
+        <span>${escapeHtml(shape.size || "Unknown")} beast</span>
+      </div>
+      <h3>${escapeHtml(shape.name)}</h3>
+      <dl>
+        <div><dt>AC</dt><dd>${escapeHtml(shape.ac || "—")}</dd></div>
+        <div><dt>HP</dt><dd>${escapeHtml(shape.hp || "—")}</dd></div>
+        <div><dt>Hit Dice</dt><dd>${escapeHtml(wildShapeHitDice(shape))}</dd></div>
+        <div><dt>Speed</dt><dd>${escapeHtml(wildShapeMovementSummary(shape))}</dd></div>
+        <div><dt>Abilities</dt><dd>${escapeHtml(abilityPreview)}</dd></div>
+        <div><dt>Saves</dt><dd>${escapeHtml(Object.keys(wildShapeSaveBonuses(shape)).join(", ") || "Character proficiencies + beast if listed")}</dd></div>
+        <div><dt>Skills</dt><dd>${escapeHtml(Object.keys(wildShapeSkillBonuses(shape)).join(", ") || "Character proficiencies + beast if listed")}</dd></div>
+        <div><dt>Senses</dt><dd>${escapeHtml(wildShapeSenses(shape))}</dd></div>
+        <div><dt>Traits</dt><dd>${escapeHtml(beastShapeTraits(shape).join(", ") || "—")}</dd></div>
+        <div><dt>Actions</dt><dd>${escapeHtml(actions.join(", ") || "No actions listed")}</dd></div>
+      </dl>
+      <button class="btn btn-primary" type="button" data-select-wild-shape="${escapeHtml(shape.id)}">Assume Form</button>
+    </article>`;
+}
+
 function sheetEditButton(label, path) {
   if (!path) return "";
   return `<button class="sheet-edit-button" type="button" data-edit-sheet-field="${escapeHtml(path)}" aria-label="Edit ${escapeHtml(label)}">Edit</button>`;
@@ -6619,32 +6987,38 @@ function sheetTextBlock(label, value, editPath = "") {
   return `<section class="sheet-box sheet-widget"${widgetAttribute}><h3><span>${escapeHtml(label)}</span>${sheetEditButton(label, editPath)}</h3><p>${escapeHtml(value || "—")}</p></section>`;
 }
 
-function sheetSkillGroupsMarkup(player) {
+function sheetSkillGroupsMarkup(player, wildShape = useWildShape(player)) {
   const proficientSaves = player.savingThrowProficiencies || [];
   const proficientSkills = player.skillProficiencies || [];
+  const shape = wildShape.beast;
+  const overlay = wildShape.overlay;
   return `
-    <section class="sheet-box sheet-skill-widget">
-      <h3><span>Saving Throws &amp; Skills</span><small>PB ${signedModifier(player.proficiencyBonus || proficiencyBonusForLevel(player.level))}</small></h3>
+    <section class="sheet-box sheet-skill-widget ${overlay ? "wild-shape-skill-widget" : ""}">
+      <h3><span>Saving Throws &amp; Skills</span><small>${overlay ? "Wild Shape" : `PB ${signedModifier(player.proficiencyBonus || proficiencyBonusForLevel(player.level))}`}</small></h3>
       <div class="sheet-skill-groups">
         ${ABILITIES.map((ability) => {
           const abilitySkills = SKILLS.filter((skill) => skill.ability === ability.key);
+          const wildSaveBonus = overlay && shape ? wildShapeSavingThrowBonus(player, shape, ability.key) : null;
           return `
             <div class="sheet-skill-group">
               <div class="sheet-skill-group-header">
                 <span>${escapeHtml(ability.short)}</span>
                 <strong>${escapeHtml(ability.label)}</strong>
               </div>
-              <div class="sheet-skill-row sheet-save-row">
+              <div class="sheet-skill-row sheet-save-row ${overlay ? "is-wild-shape-row" : ""}">
                 <span>${proficientSaves.includes(ability.key) ? "●" : "○"}</span>
-                <strong>${signedModifier(savingThrowBonus(player, ability.key))}</strong>
-                <em>Saving throw</em>
+                <strong>${signedModifier(overlay ? wildSaveBonus : savingThrowBonus(player, ability.key))}</strong>
+                <em>Saving throw${overlay ? ` <small>Original ${signedModifier(savingThrowBonus(player, ability.key))}</small>` : ""}</em>
               </div>
-              ${abilitySkills.map((skill) => `
-                <div class="sheet-skill-row">
+              ${abilitySkills.map((skill) => {
+                const wildBonus = overlay && shape ? wildShapeSkillBonus(player, shape, skill) : null;
+                return `
+                <div class="sheet-skill-row ${overlay ? "is-wild-shape-row" : ""}">
                   <span>${proficientSkills.includes(skill.key) ? "●" : "○"}</span>
-                  <strong>${signedModifier(skillBonus(player, skill))}</strong>
-                  <em>${escapeHtml(skill.label)}</em>
-                </div>`).join("")}
+                  <strong>${signedModifier(overlay ? wildBonus : skillBonus(player, skill))}</strong>
+                  <em>${escapeHtml(skill.label)}${overlay ? ` <small>Original ${signedModifier(skillBonus(player, skill))}</small>` : ""}</em>
+                </div>`;
+              }).join("")}
             </div>`;
         }).join("")}
       </div>
@@ -6706,13 +7080,14 @@ function sheetEquipmentItemDetails(item = "", player = {}) {
   return `Saved equipment entry: ${item}`;
 }
 
-function sheetEquipmentItemsMarkup(player, equipmentText = "") {
+function sheetEquipmentItemsMarkup(player, equipmentText = "", wildShape = useWildShape(player)) {
   const items = equipmentItems(player.equipment);
   const goldLine = Number(player.gold) > 0 ? `${player.gold} GP` : "";
-  if (!items.length && !goldLine) return sheetTextBlock("Equipment", equipmentText, "equipment");
+  if (!items.length && !goldLine) return `${sheetTextBlock("Equipment", equipmentText, "equipment")}${WildShapeEquipmentNote(player, wildShape)}`;
   return `
     <section class="sheet-box sheet-widget sheet-equipment-widget" data-sheet-widget="equipment">
       <h3><span>Equipment</span>${sheetEditButton("Equipment", "equipment")}</h3>
+      ${WildShapeEquipmentNote(player, wildShape)}
       ${items.length ? `
         <div class="sheet-equipment-grid">
           ${items.map((item, index) => {
@@ -6735,8 +7110,9 @@ function sheetEquipmentItemsMarkup(player, equipmentText = "") {
     </section>`;
 }
 
-function characterSheetOverlays() {
+function characterSheetOverlays(player = {}) {
   return `
+    ${BeastShapeSelector(player)}
     <div class="sheet-modal" id="sheet-trait-modal" hidden>
       <button class="sheet-modal-backdrop" type="button" data-close-sheet-trait aria-label="Close trait details"></button>
       <article class="sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="sheet-trait-title">
@@ -6793,6 +7169,8 @@ function playerAttackRows(player) {
 
 function characterSheetMarkup(player) {
   const combat = player.combat || {};
+  const wildShape = useWildShape(player);
+  const overlay = wildShape.overlay;
   const equipmentText = [
     player.equipment,
     Number(player.gold) > 0 ? `Gold: ${player.gold} GP` : "",
@@ -6810,40 +7188,38 @@ function characterSheetMarkup(player) {
         ${sheetField("Race", player.race)}
         ${sheetField("Alignment", player.alignment)}
       </header>
+      ${WildShapeButton(player)}
+      ${WildShapeOverlay(player, wildShape)}
 
       <div class="sheet-main-grid">
         <aside class="sheet-column sheet-left-column">
           <div class="ability-sheet-grid">
-            ${ABILITIES.map((ability) => `
-              <div class="ability-score-box">
-                <span>${escapeHtml(ability.label)}</span>
-                <strong>${escapeHtml(abilityScore(player, ability.key) || "10")}</strong>
-                <small>${signedModifier(abilityModifier(abilityScore(player, ability.key)))}</small>
-              </div>`).join("")}
+            ${ABILITIES.map((ability) => WildShapeAbilityBox(player, ability, wildShape)).join("")}
           </div>
-          ${sheetSkillGroupsMarkup(player)}
-          ${sheetField("Passive Wisdom (Perception)", playerPassivePerception(player))}
+          ${sheetSkillGroupsMarkup(player, wildShape)}
+          ${overlay ? WildShapeStatWidget("Passive Wisdom (Perception)", playerPassivePerception(player), 10 + (overlay.skills?.perception ?? skillBonus(player, SKILLS.find((skill) => skill.key === "perception")))) : sheetField("Passive Wisdom (Perception)", playerPassivePerception(player))}
           ${sheetTextBlock("Other Proficiencies & Languages", proficiencyText)}
         </aside>
 
         <section class="sheet-column">
           <div class="combat-sheet-grid">
-            ${sheetField("Armor Class", combat.armorClass)}
-            ${sheetField("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))))}
-            ${sheetField("Speed", combat.speed ? `${combat.speed} ft.` : "")}
+            ${overlay ? WildShapeStatWidget("Armor Class", combat.armorClass, overlay.armorClass) : sheetField("Armor Class", combat.armorClass)}
+            ${overlay ? WildShapeStatWidget("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))), signedModifier(abilityModifier(overlay.abilities.dexterity)), { compact: true }) : sheetField("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))))}
+            ${overlay ? WildShapeStatWidget("Speed", combat.speed ? `${combat.speed} ft.` : "", overlay.speed) : sheetField("Speed", combat.speed ? `${combat.speed} ft.` : "")}
           </div>
           <div class="hit-point-grid">
-            ${sheetField("Hit Points", combat.hitPointMaximum)}
-            ${sheetField("Hit Dice", combat.hitDice)}
+            ${overlay ? WildShapeStatWidget("Hit Points", combat.hitPointMaximum, `${overlay.currentHp} / ${overlay.hitPointMaximum}`) : sheetField("Hit Points", combat.hitPointMaximum)}
+            ${overlay ? WildShapeStatWidget("Hit Dice", combat.hitDice, overlay.hitDice) : sheetField("Hit Dice", combat.hitDice)}
           </div>
           <section class="sheet-box">
-            <h3>Attacks & Spellcasting</h3>
+            <h3>Attacks &amp; Spellcasting</h3>
+            ${WildShapeAttackOverlay(player, wildShape)}
             <table class="sheet-table">
               <thead><tr><th>Name</th><th>Atk Bonus</th><th>Damage / Type</th></tr></thead>
               <tbody>${playerAttackRows(player)}</tbody>
             </table>
           </section>
-          ${sheetEquipmentItemsMarkup(player, equipmentText)}
+          ${sheetEquipmentItemsMarkup(player, equipmentText, wildShape)}
         </section>
 
         <section class="sheet-column">
@@ -6855,7 +7231,7 @@ function characterSheetMarkup(player) {
           ${sheetTextBlock("Backstory / Notes", player.notes, "notes")}
         </section>
       </div>
-      ${characterSheetOverlays()}
+      ${characterSheetOverlays(player)}
     </article>`;
 }
 
@@ -6888,9 +7264,22 @@ function updatePlayerSheetField(campaignId, playerId, path, value) {
   });
 }
 
+function updatePlayerWildShapeState(campaignId, playerId, transform) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  return upsertCampaign({
+    ...campaign,
+    players: (campaign.players || []).map((player) => (
+      player.id === playerId ? transform(player) : player
+    )),
+  });
+}
+
 function bindCharacterSheetInteractions(campaignId, playerId) {
   const sheet = document.querySelector(".character-sheet-paper");
   if (!sheet) return;
+  const selectorModal = sheet.querySelector("#wild-shape-selector-modal");
+  const selectorSearch = sheet.querySelector("#wild-shape-selector-search");
   const traitModal = sheet.querySelector("#sheet-trait-modal");
   const traitTitle = sheet.querySelector("#sheet-trait-title");
   const traitDetails = sheet.querySelector("#sheet-trait-details");
@@ -6903,6 +7292,43 @@ function bindCharacterSheetInteractions(campaignId, playerId) {
   const equipmentType = sheet.querySelector("#sheet-equipment-type");
   const equipmentDetails = sheet.querySelector("#sheet-equipment-details");
   let activeEditPath = "";
+
+  sheet.querySelector("[data-open-wild-shape-selector]")?.addEventListener("click", () => {
+    if (!selectorModal) return;
+    selectorModal.hidden = false;
+    selectorSearch?.focus();
+  });
+
+  sheet.querySelectorAll("[data-close-wild-shape-selector]").forEach((button) => {
+    button.addEventListener("click", () => { selectorModal.hidden = true; });
+  });
+
+  selectorSearch?.addEventListener("input", () => {
+    const query = selectorSearch.value.trim().toLowerCase();
+    sheet.querySelectorAll(".wild-shape-selector-card").forEach((card) => {
+      card.hidden = Boolean(query) && !card.dataset.searchable.includes(query);
+    });
+  });
+
+  sheet.querySelectorAll("[data-select-wild-shape]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const beast = wildShapeBeastById(button.dataset.selectWildShape);
+      if (!beast) return;
+      updatePlayerWildShapeState(campaignId, playerId, (player) => applyWildShapeOverlay(player, beast));
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
+  });
+
+  sheet.querySelector("[data-revert-wild-shape]")?.addEventListener("click", () => {
+    updatePlayerWildShapeState(campaignId, playerId, revertWildShape);
+    renderPlayerCharacterPage(campaignId, playerId);
+  });
+
+  sheet.querySelector("[data-update-wild-shape-hp]")?.addEventListener("click", () => {
+    const hpInput = sheet.querySelector("[data-wild-shape-hp]");
+    updatePlayerWildShapeState(campaignId, playerId, (player) => updateWildShapeHitPoints(player, hpInput?.value));
+    renderPlayerCharacterPage(campaignId, playerId);
+  });
 
   sheet.querySelectorAll("[data-sheet-trait-index]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -7225,6 +7651,391 @@ function initSpellsPage() {
   }
 }
 
+function beastShapeCollection() {
+  return Array.isArray(globalThis.DNDUCKS_BEAST_SHAPES) ? globalThis.DNDUCKS_BEAST_SHAPES : [];
+}
+
+const BEAST_TRAIT_DESCRIPTIONS = {
+  "aether scent": "The beast can track creatures by unusual scent traces that ordinary beasts would miss.",
+  amphibious: "The beast can function both in air and in water.",
+  "beast of burden": "The beast counts as stronger for carrying, dragging, or pulling heavy loads.",
+  "bladed hide": "The beast's body can punish nearby attackers with sharp natural growths.",
+  "blood frenzy": "The beast is especially dangerous against wounded creatures.",
+  camouflage: "The beast can blend into its usual terrain and is harder to spot there.",
+  charge: "After moving straight toward a target, the beast can hit harder or knock the target down.",
+  "dive attack": "The beast can strike harder after diving down toward a target.",
+  drone: "The beast can create a distracting or numbing sound.",
+  echolocation: "The beast relies on sound to perceive nearby creatures and objects.",
+  flyby: "The beast can move past enemies without provoking the usual opportunity attack from its flight.",
+  "hold breath": "The beast can stay underwater or without air for an extended time.",
+  illumination: "The beast can shed light from its body.",
+  "innate spellcasting": "The beast has limited built-in magic.",
+  mimicry: "The beast can imitate sounds it has heard.",
+  multiattack: "The beast can make more than one attack with the same action.",
+  "pack tactics": "The beast fights better when an ally is threatening the same target.",
+  pounce: "After charging a target, the beast can knock it down and follow up with another attack.",
+  quickness: "The beast has an extra burst of speed or action economy.",
+  "raking charge": "The beast can make a more punishing attack after rushing forward.",
+  rampage: "After dropping a target, the beast can quickly move and attack again.",
+  relentless: "The beast can stay standing through a blow that would normally drop it.",
+  "running leap": "The beast can jump farther after a running start.",
+  "salt osmosis": "The beast is adapted to saltwater environments.",
+  "shell camouflage": "The beast can hide by blending its shell into natural surroundings.",
+  "siege monster": "The beast deals extra damage to objects and structures.",
+  "spider climb": "The beast can climb difficult surfaces, including ceilings, without normal checks.",
+  stable: "The beast is hard to knock prone.",
+  "standing leap": "The beast can jump unusually far without a running start.",
+  stench: "Nearby creatures can be sickened by the beast's smell.",
+  "sure-footed": "The beast has advantage or extra resilience against being knocked prone.",
+  "telepathic shroud": "The beast resists telepathic detection or mental intrusion.",
+  "trampling charge": "After moving straight toward a target, the beast can knock it down and trample it.",
+  "underwater camouflage": "The beast is harder to spot while underwater.",
+  "water breathing": "The beast can breathe underwater.",
+  "web sense": "The beast can sense creatures touching its webs.",
+  "web walker": "The beast ignores movement restrictions from webs.",
+};
+
+function beastShapeCrs() {
+  return [...new Set(beastShapeCollection().map((shape) => shape.cr).filter(Boolean))]
+    .sort((left, right) => {
+      const leftShape = beastShapeCollection().find((shape) => shape.cr === left);
+      const rightShape = beastShapeCollection().find((shape) => shape.cr === right);
+      return (leftShape?.crValue ?? 0) - (rightShape?.crValue ?? 0);
+    });
+}
+
+function beastShapeHasMovement(value) {
+  return Boolean(value) && value !== "—" && !/^0\s*ft\.?$/i.test(String(value).trim());
+}
+
+function beastShapeMovementTypes(shape) {
+  return [
+    beastShapeHasMovement(shape.speed) ? "walk" : "",
+    beastShapeHasMovement(shape.swim) ? "swim" : "",
+    beastShapeHasMovement(shape.fly) ? "fly" : "",
+  ].filter(Boolean);
+}
+
+function beastShapeTraits(shape) {
+  return String(shape.traits || "")
+    .replace(/\)\s+(Blindsight|Darkvision)/g, "), $1")
+    .split(",")
+    .map((trait) => trait.trim())
+    .filter((trait) => trait && trait !== "—");
+}
+
+function beastShapeActions(shape) {
+  return Array.isArray(shape.actions) ? shape.actions.filter((action) => action?.name || action?.description) : [];
+}
+
+function beastTraitKey(traitName = "") {
+  return String(traitName).toLowerCase().replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+}
+
+function beastTraitDescription(traitName = "") {
+  const key = beastTraitKey(traitName);
+  if (/^blindsight/.test(key)) return "The beast can perceive nearby creatures and objects without relying on sight.";
+  if (/^darkvision/.test(key)) return "The beast can see in darkness within the listed range.";
+  if (/^telepathy/.test(key)) return "The beast can communicate mentally within the listed range.";
+  if (/^burrow/.test(key)) return "The beast has a burrowing speed and can move through suitable ground.";
+  if (/^climb/.test(key)) return "The beast has a climbing speed and handles vertical surfaces better than ordinary movement.";
+  if (/^keen/.test(key)) {
+    return `The beast has heightened ${key.replace(/^keen\s+/, "")}, improving checks that rely on those senses.`;
+  }
+  return BEAST_TRAIT_DESCRIPTIONS[key] || "This trait changes how the beast moves, senses, fights, or survives. Open the source page for the full table wording.";
+}
+
+function beastTraitIconLabel(traitName = "") {
+  const clean = String(traitName).replace(/\([^)]*\)/g, "").trim();
+  const words = clean.split(/\s+/).filter(Boolean);
+  return (words.length === 1 ? words[0].slice(0, 2) : words.slice(0, 2).map((word) => word[0]).join("")).toUpperCase();
+}
+
+function beastTraitButtonsMarkup(shape) {
+  const traits = beastShapeTraits(shape);
+  if (!traits.length) return "";
+  return `
+    <span class="beast-trait-buttons" aria-label="Beast traits">
+      ${traits.map((trait) => `
+        <button class="beast-trait-button" type="button" data-beast-trait="${escapeHtml(trait)}" data-beast-trait-source="${escapeHtml(shape.sourceUrl)}" data-beast-trait-beast="${escapeHtml(shape.name)}" title="${escapeHtml(trait)}" aria-label="${escapeHtml(`${trait} trait details`)}">
+          <span aria-hidden="true">${escapeHtml(beastTraitIconLabel(trait))}</span>
+        </button>`).join("")}
+    </span>`;
+}
+
+function beastShapeSearchText(shape) {
+  return textForSearch([
+    shape.name,
+    shape.cr,
+    shape.size,
+    shape.formType,
+    shape.speed,
+    shape.swim,
+    shape.fly,
+    shape.traits,
+    ...beastShapeTraits(shape).map(beastTraitDescription),
+    ...beastShapeActions(shape).flatMap((action) => [action.name, action.description]),
+    ...beastShapeMovementTypes(shape),
+  ]);
+}
+
+function beastShapeCardMarkup(shape) {
+  const movement = [
+    beastShapeHasMovement(shape.speed) ? `Walk ${shape.speed}` : "",
+    beastShapeHasMovement(shape.swim) ? `Swim ${shape.swim}` : "",
+    beastShapeHasMovement(shape.fly) ? `Fly ${shape.fly}` : "",
+  ].filter(Boolean);
+  return `
+    <article class="content-card beast-shape-card" data-searchable="${escapeHtml(beastShapeSearchText(shape))}">
+      <span class="spell-card-topline">
+        <span class="status-badge status-prepared">CR ${escapeHtml(shape.cr)}</span>
+        <span>${escapeHtml(shape.formType)}</span>
+      </span>
+      <strong>${escapeHtml(shape.name)}</strong>
+      <span class="spell-class-tags" aria-label="Beast shape stats">
+        <span>${escapeHtml(shape.size)}</span>
+        <span>${escapeHtml(`${shape.hp} HP`)}</span>
+        <span>${escapeHtml(`AC ${shape.ac}`)}</span>
+      </span>
+      ${beastTraitButtonsMarkup(shape)}
+      <span class="spell-card-meta">
+        ${movement.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+      </span>
+      <button class="btn btn-secondary beast-shape-detail-button" type="button" data-beast-shape-id="${escapeHtml(shape.id)}">Details</button>
+    </article>`;
+}
+
+function filteredBeastShapes() {
+  const query = document.getElementById("beast-shape-search")?.value.trim().toLowerCase() || "";
+  const cr = document.getElementById("beast-shape-cr-filter")?.value || "";
+  const size = document.getElementById("beast-shape-size-filter")?.value || "";
+  const movement = document.getElementById("beast-shape-movement-filter")?.value || "";
+  const formType = document.getElementById("beast-shape-form-filter")?.value || "";
+  return beastShapeCollection().filter((shape) => {
+    const queryMatches = !query || beastShapeSearchText(shape).includes(query);
+    const crMatches = !cr || shape.cr === cr;
+    const sizeMatches = !size || shape.size === size;
+    const movementMatches = !movement || beastShapeMovementTypes(shape).includes(movement);
+    const formMatches = !formType || shape.formType === formType;
+    return queryMatches && crMatches && sizeMatches && movementMatches && formMatches;
+  });
+}
+
+function renderBeastShapeTabs() {
+  const tabs = document.getElementById("beast-shape-cr-tabs");
+  if (!tabs) return;
+  const currentCr = document.getElementById("beast-shape-cr-filter")?.value || "";
+  const allCount = beastShapeCollection().length;
+  tabs.innerHTML = [
+    `<button class="chip-button ${currentCr === "" ? "is-active" : ""}" type="button" data-beast-shape-cr-tab="">All <span>${allCount}</span></button>`,
+    ...beastShapeCrs().map((cr) => {
+      const count = beastShapeCollection().filter((shape) => shape.cr === cr).length;
+      return `<button class="chip-button ${currentCr === cr ? "is-active" : ""}" type="button" data-beast-shape-cr-tab="${escapeHtml(cr)}">CR ${escapeHtml(cr)} <span>${count}</span></button>`;
+    }),
+  ].join("");
+
+  tabs.querySelectorAll("[data-beast-shape-cr-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const crFilter = document.getElementById("beast-shape-cr-filter");
+      if (crFilter) crFilter.value = button.dataset.beastShapeCrTab || "";
+      renderBeastShapes();
+    });
+  });
+}
+
+function populateBeastShapeFilters() {
+  const crFilter = document.getElementById("beast-shape-cr-filter");
+  const sizeFilter = document.getElementById("beast-shape-size-filter");
+  const formFilter = document.getElementById("beast-shape-form-filter");
+  if (crFilter && crFilter.options.length <= 1) {
+    crFilter.insertAdjacentHTML("beforeend", beastShapeCrs().map((cr) => `<option value="${escapeHtml(cr)}">CR ${escapeHtml(cr)}</option>`).join(""));
+  }
+  if (sizeFilter && sizeFilter.options.length <= 1) {
+    const sizes = [...new Set(beastShapeCollection().map((shape) => shape.size).filter(Boolean))].sort();
+    sizeFilter.insertAdjacentHTML("beforeend", sizes.map((size) => `<option value="${escapeHtml(size)}">${escapeHtml(size)}</option>`).join(""));
+  }
+  if (formFilter && formFilter.options.length <= 1) {
+    const formTypes = [...new Set(beastShapeCollection().map((shape) => shape.formType).filter(Boolean))].sort();
+    formFilter.insertAdjacentHTML("beforeend", formTypes.map((formType) => `<option value="${escapeHtml(formType)}">${escapeHtml(formType)}</option>`).join(""));
+  }
+}
+
+function renderBeastShapes() {
+  const list = document.getElementById("beast-shape-list");
+  const title = document.getElementById("beast-shape-results-title");
+  const count = document.getElementById("beast-shape-results-count");
+  if (!list) return;
+
+  const shapes = filteredBeastShapes();
+  const cr = document.getElementById("beast-shape-cr-filter")?.value || "";
+  const size = document.getElementById("beast-shape-size-filter")?.value || "";
+  const movement = document.getElementById("beast-shape-movement-filter")?.value || "";
+  const formType = document.getElementById("beast-shape-form-filter")?.value || "";
+  if (title) {
+    title.textContent = [
+      cr ? `CR ${cr}` : "All beast shapes",
+      size,
+      movement ? `${movement[0].toUpperCase()}${movement.slice(1)} movement` : "",
+      formType,
+    ].filter(Boolean).join(" - ");
+  }
+  if (count) count.textContent = `${shapes.length} of ${beastShapeCollection().length} beast shapes`;
+
+  list.innerHTML = shapes.length
+    ? shapes.map(beastShapeCardMarkup).join("")
+    : `<div class="empty-state">No beast shapes match the current filters.</div>`;
+  list.querySelectorAll("[data-beast-shape-id]").forEach((button) => {
+    button.addEventListener("click", () => openBeastShapeDetail(button.dataset.beastShapeId));
+  });
+  list.querySelectorAll("[data-beast-trait]").forEach((button) => {
+    button.addEventListener("click", () => openBeastTraitDetail(
+      button.dataset.beastTrait,
+      button.dataset.beastTraitSource,
+      button.dataset.beastTraitBeast
+    ));
+  });
+  renderBeastShapeTabs();
+}
+
+function beastShapeDetailRows(shape) {
+  return [
+    ["List", shape.formType],
+    ["CR", shape.cr],
+    ["Size", shape.size],
+    ["HP", shape.hp],
+    ["AC", shape.ac],
+    ["Abilities", `STR ${shape.strength}, DEX ${shape.dexterity}, CON ${shape.constitution}`],
+    ["Speed", shape.speed],
+    ["Swim", shape.swim],
+    ["Fly", shape.fly],
+  ].map(([label, value]) => `
+    <div>
+      <dt>${escapeHtml(label)}</dt>
+      <dd>${escapeHtml(value || "Unknown")}</dd>
+    </div>`).join("");
+}
+
+function beastShapeActionsMarkup(shape) {
+  const actions = beastShapeActions(shape);
+  if (!actions.length) return `<p>No actions are listed on this source page.</p>`;
+  return `
+    <div class="beast-action-list">
+      ${actions.map((action) => `
+        <article class="beast-action-item">
+          <h4>${escapeHtml(action.name || "Action")}</h4>
+          <p>${escapeHtml(action.description || "No action details listed.")}</p>
+        </article>`).join("")}
+    </div>`;
+}
+
+function openBeastShapeDetail(shapeId) {
+  const shape = beastShapeCollection().find((item) => item.id === shapeId);
+  const modal = document.getElementById("beast-shape-detail-modal");
+  const body = document.getElementById("beast-shape-detail-body");
+  if (!shape || !modal || !body) return;
+
+  body.innerHTML = `
+    <div class="card-kicker">
+      <span class="status-badge status-prepared">CR ${escapeHtml(shape.cr)}</span>
+      <span>${escapeHtml(shape.formType)}</span>
+    </div>
+    <h2 id="beast-shape-detail-title">${escapeHtml(shape.name)}</h2>
+    <dl class="widget-detail-meta beast-shape-detail-meta">${beastShapeDetailRows(shape)}</dl>
+    <section class="widget-detail-section">
+      <h3>Traits</h3>
+      ${beastTraitButtonsMarkup(shape) || "<p>No listed traits.</p>"}
+    </section>
+    <section class="widget-detail-section">
+      <h3>Actions</h3>
+      ${beastShapeActionsMarkup(shape)}
+    </section>
+    <div class="tag-row spell-detail-actions">
+      <a class="btn btn-secondary" href="${escapeHtml(shape.sourceUrl)}" target="_blank" rel="noreferrer">Open Source Page</a>
+    </div>`;
+  modal.hidden = false;
+  document.body.classList.add("spell-detail-open");
+  modal.querySelector("[data-close-beast-shape-modal]")?.focus();
+  body.querySelectorAll("[data-beast-trait]").forEach((button) => {
+    button.addEventListener("click", () => openBeastTraitDetail(
+      button.dataset.beastTrait,
+      button.dataset.beastTraitSource,
+      button.dataset.beastTraitBeast
+    ));
+  });
+}
+
+function closeBeastTraitDetail() {
+  const modal = document.getElementById("beast-trait-modal");
+  if (!modal) return;
+  modal.hidden = true;
+  const beastDetailModal = document.getElementById("beast-shape-detail-modal");
+  if (!beastDetailModal || beastDetailModal.hidden) document.body.classList.remove("spell-detail-open");
+}
+
+function openBeastTraitDetail(traitName = "", sourceUrl = "", beastName = "") {
+  const modal = document.getElementById("beast-trait-modal");
+  const body = document.getElementById("beast-trait-body");
+  if (!modal || !body || !traitName) return;
+  body.innerHTML = `
+    <div class="card-kicker">
+      <span class="status-badge status-prepared">Trait</span>
+      <span>${escapeHtml(beastName || "Beast shape")}</span>
+    </div>
+    <h2 id="beast-trait-title">${escapeHtml(traitName)}</h2>
+    <section class="widget-detail-section">
+      <p>${escapeHtml(beastTraitDescription(traitName))}</p>
+    </section>
+    <div class="tag-row spell-detail-actions">
+      <a class="btn btn-secondary" href="${escapeHtml(sourceUrl || "https://dnd-5e.fandom.com/wiki/Beast_Shapes")}" target="_blank" rel="noreferrer">Open Source Page</a>
+    </div>`;
+  modal.hidden = false;
+  document.body.classList.add("spell-detail-open");
+  modal.querySelector("[data-close-beast-trait-modal]")?.focus();
+}
+
+function initBeastShapesPage() {
+  const list = document.getElementById("beast-shape-list");
+  if (!list) return;
+  updateTopNavActivePage("beast-shapes");
+  populateBeastShapeFilters();
+  renderBeastShapeTabs();
+  renderBeastShapes();
+
+  ["beast-shape-search", "beast-shape-cr-filter", "beast-shape-size-filter", "beast-shape-movement-filter", "beast-shape-form-filter"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", renderBeastShapes);
+    document.getElementById(id)?.addEventListener("change", renderBeastShapes);
+  });
+
+  document.getElementById("beast-shape-clear-filters")?.addEventListener("click", () => {
+    ["beast-shape-search", "beast-shape-cr-filter", "beast-shape-size-filter", "beast-shape-movement-filter", "beast-shape-form-filter"].forEach((id) => {
+      const field = document.getElementById(id);
+      if (field) field.value = "";
+    });
+    renderBeastShapes();
+  });
+
+  const modal = document.getElementById("beast-shape-detail-modal");
+  if (modal) {
+    const close = () => {
+      modal.hidden = true;
+      if (document.getElementById("beast-trait-modal")?.hidden !== false) {
+        document.body.classList.remove("spell-detail-open");
+      }
+    };
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal || event.target.closest("[data-close-beast-shape-modal]")) close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !document.getElementById("beast-trait-modal")?.hidden) closeBeastTraitDetail();
+      else if (event.key === "Escape" && !modal.hidden) close();
+    });
+  }
+  const traitModal = document.getElementById("beast-trait-modal");
+  traitModal?.addEventListener("click", (event) => {
+    if (event.target === traitModal || event.target.closest("[data-close-beast-trait-modal]")) closeBeastTraitDetail();
+  });
+}
+
 function initAppRoutes() {
   const parts = routeParts();
   if (parts[0] === "campaigns") return initCampaignRoutes();
@@ -7464,6 +8275,7 @@ async function bootApp() {
     initCalendarPage();
     initMaterials();
     initSpellsPage();
+    initBeastShapesPage();
     initAiPlaceholder();
     renderDashboard();
   }
