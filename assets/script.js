@@ -4571,7 +4571,6 @@ ${widgetActionMarkup(item, { edit: "Modify item", delete: "Delete item" })}
       const searchable = textForSearch([event.title, eventDateLabel(event), event.description, "session calendar event"]);
       return `
         <article class="content-card entry-card widget-card" ${widgetOriginAttribute(event)} ${widgetDmAttribute("events", event)} ${widgetEditAttribute("events", event)} data-searchable="${escapeHtml(searchable)}" data-status="prepared">
-          ${widgetImageMarkup(event, event.title)}
           <div class="card-kicker"><span class="status-badge status-prepared">Prepared</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
           <h3>${escapeHtml(event.title)}</h3>
           ${widgetDescriptionMarkup(event.description)}
