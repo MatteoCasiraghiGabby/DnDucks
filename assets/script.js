@@ -2396,7 +2396,8 @@ function eventDateLabel(event, settings = getCalendarSettings()) {
 
 function eventSortValue(event) {
   if (Number.isFinite(Number(event.day)) && Number.isFinite(Number(event.monthIndex)) && Number.isFinite(Number(event.year))) {
-    return Number(event.year) * 10000 + Number(event.monthIndex) * 100 + Number(event.day);
+    const hour = Number.isFinite(Number(event.hour)) ? Number(event.hour) : 24;
+    return Number(event.year) * 1000000 + Number(event.monthIndex) * 10000 + Number(event.day) * 100 + hour;
   }
   return Number.MAX_SAFE_INTEGER;
 }
@@ -2414,6 +2415,14 @@ function nextImminentEvent() {
 function eventWeather(event) {
   if (!event || !Number.isFinite(Number(event.day))) return "Weather unknown";
   return getWeatherMap()[weatherKey(event.year, event.monthIndex, event.day)] || "Weather not generated";
+}
+
+function eventTimeDisplay(event) {
+  if (!event) return "";
+  if (Number.isFinite(Number(event.hour))) {
+    return `${String(event.hour).padStart(2, "0")}:00`;
+  }
+  return "";
 }
 
 function populateCalendarFormDefaults() {
@@ -3733,10 +3742,11 @@ function imagePreviewMarkup(image, label = "") {
 function mediaImageCardMarkup(image, options = {}) {
   const title = image.title || image.originalFilename || "Uploaded image";
   const selectable = Boolean(options.selectable);
+  const mediaType = image.mediaType || "Uncategorized";
   return `
     <article class="content-card entry-card image-card" data-image-card="${escapeHtml(image.id)}">
       ${imagePreviewMarkup(image, title)}
-      <div class="card-kicker"><span class="status-badge status-active">Image</span><span>${escapeHtml(formatBytes(image.fileSize))}</span></div>
+      <div class="card-kicker"><span class="status-badge status-active">${escapeHtml(mediaType)}</span><span>${escapeHtml(formatBytes(image.fileSize))}</span></div>
       <h3>${escapeHtml(title)}</h3>
       ${widgetTagsMarkup([formatUploadedAt(image.uploadedAt)])}
       <div class="entry-actions">
@@ -3752,6 +3762,13 @@ function imageUploadMarkup({ submitLabel = "Upload image" } = {}) {
   return `
     <form class="panel form-grid image-upload-form" data-image-upload-form>
       <label class="full-width">Title<input name="title" type="text" placeholder="Image title" /></label>
+      <label class="full-width">Type<select name="mediaType" required>
+        <option value="">Select a type...</option>
+        <option value="Character">Character</option>
+        <option value="Item">Item</option>
+        <option value="Comic">Comic</option>
+        <option value="Object">Object</option>
+      </select></label>
       <div class="file-picker image-picker full-width" data-image-picker>
         <label>Image file</label>
         <input class="image-input" name="images" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required />
@@ -4097,6 +4114,7 @@ function populateWidgetForm(key, entry) {
     setFieldValue("#event-month", String(entry.monthIndex ?? getCalendarSettings().currentMonthIndex));
     setFieldValue("#event-day", entry.day || 1);
     setFieldValue("#event-year", entry.year || getCalendarSettings().currentYear);
+    setFieldValue("#event-hour", Number.isFinite(Number(entry.hour)) ? entry.hour : "");
     setFieldValue("#event-description", entry.description || "");
   }
 }
@@ -4854,6 +4872,7 @@ function initDashboardForms() {
     const monthIndex = Number(document.getElementById("event-month")?.value ?? settings.currentMonthIndex);
     const day = Number(document.getElementById("event-day")?.value ?? 1);
     const year = Number(document.getElementById("event-year")?.value ?? settings.currentYear);
+    const hour = document.getElementById("event-hour")?.value?.trim();
     const title = document.getElementById("event-title").value.trim();
     const image = selectedMediaImageFromForm(form);
     const event = {
@@ -4862,6 +4881,7 @@ function initDashboardForms() {
       monthIndex,
       day,
       year,
+      hour: hour && Number.isFinite(Number(hour)) ? Number(hour) : undefined,
       description: document.getElementById("event-description").value.trim(),
       ...imageFields(image),
       createdAt: readableDate(),
@@ -4999,13 +5019,52 @@ async function loadMediaLibrary() {
   try {
     const images = await listImages();
     if (count) count.textContent = `${images.length} image${images.length === 1 ? "" : "s"}`;
-    list.innerHTML = images.length
-      ? images.map((image) => mediaImageCardMarkup(image, { selectable: false })).join("")
-      : `<div class="empty-state">No media images yet. Upload images below, then select them from dashboard widgets.</div>`;
+    if (!images.length) {
+      list.innerHTML = `<div class="empty-state">No media images yet. Upload images below, then select them from dashboard widgets.</div>`;
+      return;
+    }
+    
+    const typeGroups = groupMediaByType(images);
+    const groupOrder = ["Character", "Item", "Comic", "Object", "Uncategorized"];
+    let html = "";
+    
+    groupOrder.forEach((type) => {
+      if (typeGroups[type] && typeGroups[type].length > 0) {
+        html += `<div class="media-type-group">
+          <h3 class="media-type-heading">${escapeHtml(type)}</h3>
+          <div class="media-type-grid">
+            ${typeGroups[type].map((image) => mediaImageCardMarkup(image, { selectable: false })).join("")}
+          </div>
+        </div>`;
+      }
+    });
+    
+    list.innerHTML = html;
   } catch (error) {
     list.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
     if (count) count.textContent = "Backend offline";
   }
+}
+
+function groupMediaByType(images) {
+  const groups = {
+    Character: [],
+    Item: [],
+    Comic: [],
+    Object: [],
+    Uncategorized: [],
+  };
+  
+  images.forEach((image) => {
+    const type = image.mediaType || "Uncategorized";
+    if (groups[type]) {
+      groups[type].push(image);
+    } else {
+      groups.Uncategorized.push(image);
+    }
+  });
+  
+  return groups;
 }
 
 function initMediaLibraryPage() {
@@ -5020,13 +5079,15 @@ function initMediaLibraryPage() {
     }
     const status = uploadForm.querySelector("[data-image-upload-status]");
     const input = uploadForm.querySelector('input[name="images"]');
-    const title = new FormData(uploadForm).get("title")?.toString().trim() || "";
+    const formData = new FormData(uploadForm);
+    const title = formData.get("title")?.toString().trim() || "";
+    const mediaType = formData.get("mediaType")?.toString().trim() || "";
     if (status) {
       status.textContent = "Uploading image...";
       status.classList.remove("error");
     }
     try {
-      const images = await uploadImages(input?.files || [], { title, source: "media" });
+      const images = await uploadImages(input?.files || [], { title, mediaType, source: "media" });
       uploadForm.reset();
       resetImagePickers(uploadForm);
       if (status) status.textContent = `Uploaded ${images.length} image${images.length === 1 ? "" : "s"}.`;
@@ -5046,14 +5107,55 @@ function initMediaLibraryPage() {
     if (editId) {
       const card = event.target.closest("[data-image-card]");
       const currentTitle = card?.querySelector("h3")?.textContent || "";
-      const title = prompt("Image title", currentTitle);
-      if (title === null) return;
-      try {
-        await updateImageMetadata(editId, { title });
-        await loadMediaLibrary();
-      } catch (error) {
-        alert(error.message);
-      }
+      const currentBadge = card?.querySelector(".status-badge")?.textContent || "Uncategorized";
+      const currentMediaType = (currentBadge === "Image") ? "Uncategorized" : currentBadge;
+      
+      const modal = document.createElement("div");
+      modal.className = "modal-backdrop";
+      modal.innerHTML = `
+        <article class="panel" style="max-width: 400px;">
+          <h2>Edit image</h2>
+          <div style="display: grid; gap: 16px; margin: 16px 0;">
+            <label>Title<input id="edit-title" type="text" value="${escapeHtml(currentTitle)}" /></label>
+            <label>Type<select id="edit-type">
+              <option value="Character" ${currentMediaType === "Character" ? "selected" : ""}>Character</option>
+              <option value="Item" ${currentMediaType === "Item" ? "selected" : ""}>Item</option>
+              <option value="Comic" ${currentMediaType === "Comic" ? "selected" : ""}>Comic</option>
+              <option value="Object" ${currentMediaType === "Object" ? "selected" : ""}>Object</option>
+              <option value="Uncategorized" ${currentMediaType === "Uncategorized" ? "selected" : ""}>Uncategorized</option>
+            </select></label>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="btn btn-secondary" type="button" id="edit-cancel">Cancel</button>
+            <button class="btn btn-primary" type="button" id="edit-save">Save</button>
+          </div>
+        </article>`;
+      document.body.appendChild(modal);
+      
+      let done = false;
+      const cleanup = () => {
+        if (!done) {
+          done = true;
+          modal.remove();
+        }
+      };
+      
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) cleanup();
+      });
+      
+      document.getElementById("edit-cancel").addEventListener("click", cleanup);
+      document.getElementById("edit-save").addEventListener("click", async () => {
+        const newTitle = document.getElementById("edit-title").value.trim() || currentTitle;
+        const newMediaType = document.getElementById("edit-type").value;
+        try {
+          await updateImageMetadata(editId, { title: newTitle, mediaType: newMediaType });
+          cleanup();
+          await loadMediaLibrary();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
     }
     if (deleteId) {
       if (!confirm("Delete this image and remove the stored file from disk?")) return;
@@ -5701,6 +5803,12 @@ function mapPinMarkup(city, options = {}) {
     </a>`;
 }
 
+function mapCanvasStyle(map) {
+  const width = Number(map?.imageWidth) || 16;
+  const height = Number(map?.imageHeight) || 9;
+  return `--map-scale: 1; aspect-ratio: ${width} / ${height};`;
+}
+
 function interactiveMapViewerMarkup(map, cities = [], options = {}) {
   const title = map.title || map.originalFilename || "Map";
   const imageUrl = resolveBackendUrl(map.imageUrl);
@@ -5712,8 +5820,8 @@ function interactiveMapViewerMarkup(map, cities = [], options = {}) {
         <button class="btn btn-secondary" type="button" data-map-zoom-in>Zoom in</button>
       </div>
       <div class="interactive-map-viewport">
-        <div class="interactive-map-canvas" style="--map-scale: 1;" data-map-canvas>
-          <img data-map-image src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" />
+        <div class="interactive-map-canvas" style="${escapeHtml(mapCanvasStyle(map))}" data-map-canvas>
+          <img data-map-image src="${escapeHtml(imageUrl)}" alt="${escapeHtml(title)}" draggable="false" />
           ${cities.map((city) => mapPinMarkup(city, options)).join("")}
           <button class="map-click-marker" type="button" data-map-click-marker hidden></button>
         </div>
@@ -5729,8 +5837,10 @@ function cityPinFormMarkup() {
       <input id="city-y" type="hidden" />
       <input id="city-normalized-x" type="hidden" />
       <input id="city-normalized-y" type="hidden" />
+      <input id="city-edit-id" type="hidden" />
       <div class="form-message full-width" id="city-pin-status" aria-live="polite">Click the map to choose a city location.</div>
-      <button class="btn btn-primary" type="submit">Save city pin</button>
+      <button class="btn btn-primary" type="submit" id="city-pin-submit">Save city pin</button>
+      <button class="btn btn-secondary" type="button" id="city-pin-cancel-edit" hidden>Cancel edit</button>
     </form>`;
 }
 
@@ -5794,13 +5904,15 @@ async function renderMapDetailPage(mapId) {
 }
 
 function setCityPinFormPoint(map, normalizedX, normalizedY) {
-  const x = Math.round(normalizedX * (Number(map.imageWidth) || 0));
-  const y = Math.round(normalizedY * (Number(map.imageHeight) || 0));
+  const pointX = Math.max(0, Math.min(1, Number(normalizedX)));
+  const pointY = Math.max(0, Math.min(1, Number(normalizedY)));
+  const x = Math.round(pointX * (Number(map.imageWidth) || 0));
+  const y = Math.round(pointY * (Number(map.imageHeight) || 0));
   const fields = {
     "city-x": x,
     "city-y": y,
-    "city-normalized-x": normalizedX,
-    "city-normalized-y": normalizedY,
+    "city-normalized-x": pointX,
+    "city-normalized-y": pointY,
   };
   Object.entries(fields).forEach(([id, value]) => {
     const input = document.getElementById(id);
@@ -5808,21 +5920,40 @@ function setCityPinFormPoint(map, normalizedX, normalizedY) {
   });
   const status = document.getElementById("city-pin-status");
   if (status) {
-    status.textContent = `Pin selected at ${Math.round(normalizedX * 100)}%, ${Math.round(normalizedY * 100)}% on the map.`;
+    status.textContent = `Pin selected at ${Math.round(pointX * 100)}%, ${Math.round(pointY * 100)}% on the map.`;
     status.classList.remove("error");
   }
   const marker = document.querySelector("[data-map-click-marker]");
   if (marker) {
-    marker.style.left = `${normalizedX * 100}%`;
-    marker.style.top = `${normalizedY * 100}%`;
+    marker.style.left = `${pointX * 100}%`;
+    marker.style.top = `${pointY * 100}%`;
     marker.hidden = false;
   }
+}
+
+function mapPointFromCanvasEvent(event, canvas) {
+  const rect = canvas?.getBoundingClientRect?.();
+  if (!rect?.width || !rect?.height) return null;
+  return {
+    normalizedX: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
+    normalizedY: Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)),
+  };
+}
+
+function setCityPinFormEditState(city = null) {
+  const editInput = document.getElementById("city-edit-id");
+  const nameInput = document.getElementById("city-name");
+  const submit = document.getElementById("city-pin-submit");
+  const cancel = document.getElementById("city-pin-cancel-edit");
+  if (editInput) editInput.value = city?.id || "";
+  if (nameInput) nameInput.value = city?.cityName || "";
+  if (submit) submit.textContent = city ? "Update city pin" : "Save city pin";
+  if (cancel) cancel.hidden = !city;
 }
 
 function initMapDetailPage(map, cities) {
   let zoom = 1;
   const canvas = document.querySelector("[data-map-canvas]");
-  const image = document.querySelector("[data-map-image]");
   const applyZoom = () => {
     if (canvas) canvas.style.setProperty("--map-scale", String(zoom));
   };
@@ -5849,17 +5980,29 @@ function initMapDetailPage(map, cities) {
     }
   });
 
-  image?.addEventListener("click", (event) => {
-    const rect = image.getBoundingClientRect();
-    const normalizedX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-    const normalizedY = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
-    setCityPinFormPoint(map, normalizedX, normalizedY);
+  canvas?.addEventListener("click", (event) => {
+    if (event.target?.closest?.(".map-pin")) return;
+    const point = mapPointFromCanvasEvent(event, canvas);
+    if (!point) return;
+    setCityPinFormPoint(map, point.normalizedX, point.normalizedY);
     document.getElementById("city-name")?.focus();
+  });
+
+  document.getElementById("city-pin-cancel-edit")?.addEventListener("click", () => {
+    setCityPinFormEditState(null);
+    const marker = document.querySelector("[data-map-click-marker]");
+    if (marker) marker.hidden = true;
+    const status = document.getElementById("city-pin-status");
+    if (status) {
+      status.textContent = "Click the map to choose a city location.";
+      status.classList.remove("error");
+    }
   });
 
   document.getElementById("city-pin-form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const status = document.getElementById("city-pin-status");
+    const editId = document.getElementById("city-edit-id")?.value;
     const payload = {
       cityName: document.getElementById("city-name")?.value.trim(),
       x: Number(document.getElementById("city-x")?.value),
@@ -5875,7 +6018,8 @@ function initMapDetailPage(map, cities) {
       return;
     }
     try {
-      await createMapCity(map.id, payload);
+      if (editId) await updateMapCity(map.id, editId, payload);
+      else await createMapCity(map.id, payload);
       renderMapDetailPage(map.id);
     } catch (error) {
       if (status) {
@@ -5890,14 +6034,10 @@ function initMapDetailPage(map, cities) {
     const deleteId = event.target?.dataset?.deleteCity;
     if (editId) {
       const city = cities.find((item) => item.id === editId);
-      const cityName = prompt("City name", city?.cityName || "");
-      if (cityName === null) return;
-      try {
-        await updateMapCity(map.id, editId, { cityName });
-        renderMapDetailPage(map.id);
-      } catch (error) {
-        alert(error.message);
-      }
+      if (!city) return;
+      setCityPinFormEditState(city);
+      setCityPinFormPoint(map, Number(city.normalizedX), Number(city.normalizedY));
+      document.getElementById("city-name")?.focus();
     }
     if (deleteId) {
       if (!confirm("Delete this city pin and its notes?")) return;
@@ -5915,8 +6055,8 @@ function mapPreviewMarkup(map, cities, selectedCity) {
   const imageUrl = resolveBackendUrl(map.imageUrl);
   return `
     <div class="map-preview">
-      <div class="interactive-map-canvas" style="--map-scale: 1;">
-        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(map.title || "Map preview")}" />
+      <div class="interactive-map-canvas" style="${escapeHtml(mapCanvasStyle(map))}">
+        <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(map.title || "Map preview")}" draggable="false" />
         ${cities.map((city) => mapPinMarkup(city, { selectedCityId: selectedCity.id })).join("")}
       </div>
     </div>`;
@@ -8370,12 +8510,19 @@ function renderCampaignCalendar() {
   const headers = settings.weekdays.map((day) => `<div class="calendar-weekday">${escapeHtml(day)}</div>`).join("");
   const days = Array.from({ length: settings.daysPerMonth }, (_, index) => {
     const day = index + 1;
-    const dayEvents = monthEvents.filter((event) => Number(event.day) === day);
+    const dayEvents = monthEvents.filter((event) => Number(event.day) === day).sort((a, b) => {
+      const aHour = Number.isFinite(Number(a.hour)) ? Number(a.hour) : 24;
+      const bHour = Number.isFinite(Number(b.hour)) ? Number(b.hour) : 24;
+      return aHour - bHour;
+    });
     const forecast = weather[weatherKey(settings.currentYear, settings.currentMonthIndex, day)] || "No forecast";
+    const eventPills = dayEvents.map((event) => {
+      return `<button type="button" class="calendar-event-pill" data-calendar-event-id="${escapeHtml(event.id)}">${escapeHtml(event.title)}</button>`;
+    }).join("");
     return `<article class="calendar-day">
       <div class="calendar-day-top"><strong>${day}</strong><span>${escapeHtml(forecast)}</span></div>
       <div class="calendar-day-events">
-        ${dayEvents.map((event) => `<button type="button" class="calendar-event-pill" data-calendar-event-id="${escapeHtml(event.id)}">${escapeHtml(event.title)}</button>`).join("")}
+        ${eventPills}
       </div>
     </article>`;
   }).join("");
@@ -8392,11 +8539,13 @@ function openEventDetail(eventId) {
   if (!modal || !body) return;
   const event = getStoredCollection("events").find((item) => item.id === eventId);
   if (!event) return;
+  const timeDisplay = eventTimeDisplay(event);
+  const timeSection = timeDisplay ? `<span class="tag">${timeDisplay}</span>` : "";
   body.innerHTML = `
     <div class="card-kicker"><span class="status-badge status-prepared">Calendar event</span><span>${escapeHtml(eventDateLabel(event))}</span></div>
     <h2 id="event-detail-title">${escapeHtml(event.title)}</h2>
     <p>${escapeHtml(event.description)}</p>
-    <div class="tag-row"><span class="tag">${escapeHtml(eventWeather(event))}</span><span class="tag">Created ${escapeHtml(event.createdAt || "Unknown")}</span></div>
+    <div class="tag-row">${timeSection}<span class="tag">${escapeHtml(eventWeather(event))}</span><span class="tag">Created ${escapeHtml(event.createdAt || "Unknown")}</span></div>
   `;
   modal.hidden = false;
 }

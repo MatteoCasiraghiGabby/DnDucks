@@ -1214,7 +1214,7 @@ test("media library owns reusable image uploads", () => {
   const styles = fs.readFileSync(path.join(process.cwd(), "assets/styles.css"), "utf8");
 
   assert.match(script, /imageUploadMarkup\(\{ submitLabel: "Upload to media" \}\)/);
-  assert.match(script, /uploadImages\(input\?\.files \|\| \[\], \{ title, source: "media" \}\)/);
+  assert.match(script, /uploadImages\(input\?\.files \|\| \[\], \{ title, mediaType, source: "media" \}\)/);
   assert.match(script, /Upload images below, then select them from dashboard widgets\./);
   assert.match(script, /Upload images from the Media page, then select them here\./);
   assert.match(styles, /\.media-upload-block \{/);
@@ -1256,6 +1256,41 @@ test("media selection controls keep the selected media image on the form", () =>
     fileSize: 0,
     uploadedAt: "",
   }));
+});
+
+test("interactive maps use image-coordinate canvas and centered pins", () => {
+  const app = createFrontendSandbox();
+  const styles = fs.readFileSync(path.join(process.cwd(), "assets/styles.css"), "utf8");
+  const map = {
+    id: "map-1",
+    title: "Sword Coast",
+    imageUrl: "/uploads/maps/sword-coast.png",
+    imageWidth: 1000,
+    imageHeight: 500,
+  };
+  const city = {
+    id: "city-1",
+    mapId: "map-1",
+    cityName: "Brightwater",
+    normalizedX: 0.25,
+    normalizedY: 0.5,
+  };
+
+  const html = app.interactiveMapViewerMarkup(map, [city]);
+  assert.match(html, /aspect-ratio: 1000 \/ 500/);
+  assert.match(html, /data-map-canvas/);
+  assert.match(html, /draggable="false"/);
+  assert.match(app.cityPinFormMarkup(), /id="city-edit-id"/);
+  assert.match(app.cityPinFormMarkup(), /id="city-pin-cancel-edit" hidden/);
+  assert.match(styles, /\.map-pin span \{[\s\S]*transform: translate\(-50%, -50%\);/);
+  assert.match(styles, /\.map-click-marker \{[\s\S]*transform: translate\(-50%, -50%\);/);
+
+  const point = app.mapPointFromCanvasEvent(
+    { clientX: 250, clientY: 125 },
+    { getBoundingClientRect: () => ({ left: 50, top: 25, width: 800, height: 400 }) }
+  );
+  assert.equal(point.normalizedX, 0.25);
+  assert.equal(point.normalizedY, 0.25);
 });
 
 test("quota errors while saving collections explain how to recover", () => {

@@ -61,6 +61,11 @@ function cleanMetadataText(value, maxLength = 240) {
   return String(value || "").replace(/[\0\r\n]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength);
 }
 
+function cleanOptionalMetadataText(value, maxLength = 80) {
+  const cleaned = cleanMetadataText(value, maxLength);
+  return cleaned || undefined;
+}
+
 function imagePublicUrl(savedFilename) {
   return `/uploads/images/${encodeURIComponent(savedFilename)}`;
 }
@@ -107,6 +112,7 @@ class ImageStorageService {
       fileSize: size,
       mimeType,
       title: cleanMetadataText(fields.title || fields.name || safeOriginal),
+      mediaType: cleanOptionalMetadataText(fields.mediaType),
       uploadedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -151,6 +157,7 @@ class ImageStorageService {
     images[index] = {
       ...images[index],
       ...(fields.title !== undefined ? { title: cleanMetadataText(fields.title || images[index].originalFilename) } : {}),
+      ...(fields.mediaType !== undefined ? { mediaType: cleanOptionalMetadataText(fields.mediaType) } : {}),
       updatedAt: new Date().toISOString(),
     };
     await this.writeIndex(images);

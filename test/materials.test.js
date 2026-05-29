@@ -169,6 +169,7 @@ test("image upload endpoint accepts multiple images and serves public URLs", asy
   const { baseUrl, imageUploadDir } = await withServer(t);
   const form = new FormData();
   form.set("title", "Encounter Splash");
+  form.set("mediaType", "Character");
   form.append("images", new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47])], { type: "image/png" }), "map.png");
   form.append("images", new Blob(["portrait"], { type: "image/webp" }), "npc.webp");
 
@@ -180,6 +181,7 @@ test("image upload endpoint accepts multiple images and serves public URLs", asy
   assert.ok(payload.images[0].id);
   assert.equal(payload.images[0].originalFilename, "map.png");
   assert.equal(payload.images[0].title, "Encounter Splash");
+  assert.equal(payload.images[0].mediaType, "Character");
   assert.equal(payload.images[0].category, undefined);
   assert.equal(payload.images[0].altText, undefined);
   assert.equal(payload.images[0].description, undefined);
@@ -212,10 +214,11 @@ test("image library lists, updates title, gets, and deletes image records", asyn
   const updatedResponse = await fetch(`${baseUrl}/api/uploads/images/${image.id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: "Flooded Vault Map" }),
+    body: JSON.stringify({ title: "Flooded Vault Map", mediaType: "Item" }),
   });
   const updated = await updatedResponse.json();
   assert.equal(updated.title, "Flooded Vault Map");
+  assert.equal(updated.mediaType, "Item");
   assert.equal(updated.altText, undefined);
 
   const deletion = await fetch(`${baseUrl}/api/uploads/images/${image.id}`, { method: "DELETE" });

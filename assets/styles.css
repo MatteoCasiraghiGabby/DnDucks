@@ -613,7 +613,7 @@ textarea { resize: vertical; }
 }
 .media-page-grid-single { grid-template-columns: 1fr; }
 .media-page .media-library-grid {
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  display: block;
   gap: 18px;
 }
 .image-card {
@@ -637,6 +637,24 @@ textarea { resize: vertical; }
   margin-top: 24px;
   padding-top: 22px;
   border-top: 1px solid var(--line);
+}
+.media-type-group {
+  margin-bottom: 28px;
+}
+.media-type-heading {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--line);
+}
+.media-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 18px;
 }
 .image-preview {
   margin: 0;
@@ -852,25 +870,27 @@ textarea { resize: vertical; }
   width: calc(100% * var(--map-scale));
   min-width: 100%;
   line-height: 0;
+  background: rgba(255, 250, 236, 0.62);
+  cursor: crosshair;
+  user-select: none;
 }
 .interactive-map-canvas img {
   width: 100%;
-  height: auto;
-  min-height: 260px;
+  height: 100%;
   object-fit: contain;
   background: rgba(255, 250, 236, 0.62);
 }
 .map-pin,
 .map-click-marker {
   position: absolute;
-  transform: translate(-50%, -100%);
   z-index: 2;
 }
 .map-pin {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
+  display: block;
+  width: 0;
+  height: 0;
   color: #fff6e6;
+  cursor: pointer;
   line-height: 1.1;
   text-align: center;
 }
@@ -883,7 +903,17 @@ textarea { resize: vertical; }
   background: var(--ember-2);
   box-shadow: 0 7px 18px rgba(0, 0, 0, 0.32);
 }
+.map-pin span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+}
 .map-pin strong {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  transform: translateX(-50%);
   max-width: 140px;
   border-radius: 999px;
   padding: 4px 8px;
@@ -896,11 +926,13 @@ textarea { resize: vertical; }
 .map-pin:hover span,
 .map-pin.is-selected span {
   background: var(--arcane);
-  transform: scale(1.18);
+  transform: translate(-50%, -50%) scale(1.18);
 }
 .map-click-marker {
   border: 2px solid var(--text);
   background: var(--gold);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
 }
 .map-side-panel,
 .city-preview-panel,
@@ -1425,14 +1457,14 @@ code { color: var(--ember-2); }
   text-transform: uppercase;
 }
 .calendar-day {
-  min-height: 150px;
+  min-height: 280px;
   padding: 12px;
 }
 .calendar-day-top {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .calendar-day-top strong {
   color: var(--text);
@@ -1446,18 +1478,21 @@ code { color: var(--ember-2); }
 }
 .calendar-day-events {
   display: grid;
-  gap: 8px;
+  gap: 4px;
 }
 .calendar-event-pill {
   width: 100%;
   border: 1px solid rgba(255, 179, 92, 0.38);
-  border-radius: 14px;
-  padding: 8px 10px;
+  border-radius: 8px;
+  padding: 5px 8px;
   color: var(--text);
-  font-size: 0.84rem;
+  font-size: 0.72rem;
   font-weight: 850;
   text-align: left;
   background: rgba(232, 111, 58, 0.16);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .calendar-event-pill:hover,
 .calendar-event-pill:focus-visible {
