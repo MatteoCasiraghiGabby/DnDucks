@@ -100,6 +100,8 @@ function createCharacterFormStub(initialValues = {}) {
   const fields = {};
   [
     "#player-name", "#player-character-name", "#player-class-role", "#player-level", "#player-race",
+    "#player-multiclass-enabled", "#player-primary-class-level", "#player-multiclass-2-class", "#player-multiclass-2-level",
+    "#player-multiclass-3-class", "#player-multiclass-3-level",
     "#player-background", "#player-alignment", "#player-experience", "#player-equipment",
     "#player-equipment-entry", "#player-features", "#player-background-skills", "#player-tool-proficiencies",
     "#player-bonds", "#player-notes",
@@ -110,6 +112,7 @@ function createCharacterFormStub(initialValues = {}) {
   ].forEach((selector) => {
     fields[selector] = {
       value: initialValues[selector] ?? "",
+      checked: Boolean(initialValues[`${selector}:checked`]),
       dataset: {},
       hidden: false,
       innerHTML: "",
@@ -173,6 +176,62 @@ test("player character validation requires player and character names and numeri
   }));
   assert.deepEqual(Array.from(app.validatePlayerCharacter(valid)), []);
   assert.equal(valid.level, 3);
+});
+
+test("player character creation supports multiclass level splits", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Fighter",
+    "#player-level": "5",
+    "#player-multiclass-enabled:checked": true,
+    "#player-primary-class-level": "3",
+    "#player-multiclass-2-class": "Rogue",
+    "#player-multiclass-2-level": "2",
+    "#player-strength": "14",
+    "#player-dexterity": "14",
+    "#player-constitution": "12",
+  });
+
+  const player = app.buildPlayerCharacter(form);
+  const markup = app.characterSheetMarkup(player);
+
+  assert.equal(player.level, 5);
+  assert.equal(player.classRole, "Fighter / Rogue");
+  assert.deepEqual(JSON.parse(JSON.stringify(player.classLevels)), [{ className: "Fighter", level: 3 }, { className: "Rogue", level: 2 }]);
+  assert.equal(player.proficiencyBonus, 3);
+  assert.equal(player.combat.hitDice, "3d10 + 2d8");
+  assert.equal(player.combat.hitPointMaximum, 37);
+  assert.ok(player.toolProficiencies.includes("Thieves' Tools"));
+  assert.match(player.features, /Multiclassing \(Character option\)[\s\S]*Class levels: Fighter 3 \/ Rogue 2/);
+  assert.match(player.features, /Proficiency Bonus uses total character level/);
+  assert.match(markup, /Fighter 3 \/ Rogue 2/);
+  assert.deepEqual(Array.from(app.validatePlayerCharacter(player)), []);
+});
+
+test("multiclass validation enforces class prerequisites", () => {
+  const app = createFrontendSandbox();
+  const form = createCharacterFormStub({
+    "#player-name": "Sam",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Paladin",
+    "#player-level": "2",
+    "#player-multiclass-enabled:checked": true,
+    "#player-primary-class-level": "1",
+    "#player-multiclass-2-class": "Wizard",
+    "#player-multiclass-2-level": "1",
+    "#player-strength": "13",
+    "#player-charisma": "10",
+    "#player-intelligence": "12",
+  });
+
+  const player = app.buildPlayerCharacter(form);
+  const errors = app.validatePlayerCharacter(player);
+
+  assert.equal(player.level, 2);
+  assert.match(errors.join(" "), /Paladin requires Charisma 13/);
+  assert.match(errors.join(" "), /Wizard requires Intelligence 13/);
 });
 
 test("saving players persists them on the local campaign", () => {

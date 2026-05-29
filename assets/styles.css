@@ -1053,6 +1053,7 @@ textarea { resize: vertical; }
   .campaign-card { grid-template-columns: 1fr; }
   .span-2,
   .full-width { grid-column: auto; }
+  .multiclass-row { grid-template-columns: 1fr; }
   .content-card-body { padding: 0; }
   .card-visual { min-height: 190px; }
   .section-heading { display: grid; align-items: start; }
@@ -2146,6 +2147,48 @@ code { color: var(--ember-2); }
   font-size: 1.1rem;
   font-weight: 900;
 }
+.multiclass-toggle {
+  justify-content: flex-start;
+  min-height: 48px;
+}
+.multiclass-builder {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(255, 250, 236, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(38, 27, 20, 0.035);
+}
+.multiclass-builder[hidden] { display: none; }
+.multiclass-builder-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.multiclass-builder-heading h3 { margin: 0; }
+.multiclass-builder-heading strong {
+  border: 1px solid rgba(183, 138, 59, 0.42);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: var(--text-on-dark);
+  background: var(--green);
+}
+.multiclass-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.multiclass-rule-summary {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+.multiclass-rule-summary strong { color: var(--crimson); }
 .sheet-derived-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .sheet-derived-grid div {
   border: 1px solid var(--line);

@@ -176,6 +176,23 @@ const PLAYER_CLASSES = [
   { name: "Wizard", hitDie: "d6", primary: "Intelligence", saves: ["intelligence", "wisdom"], skillLimit: 2, skillChoices: ["arcana", "history", "insight", "investigation", "medicine", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
 ];
 
+const MULTICLASS_CLASS_RULES = {
+  Barbarian: { prerequisites: [["strength"]], multiclassProficiencies: ["Martial weapons", "Shields"], extraAttackLevel: 5 },
+  Bard: { prerequisites: [["charisma"]], multiclassProficiencies: ["One skill of your choice", "One musical instrument", "Light armor"], multiclassSkillLimit: 1, multiclassTools: ["1 musical instrument"] },
+  Cleric: { prerequisites: [["wisdom"]], multiclassProficiencies: ["Light armor", "Medium armor", "Shields"] },
+  Druid: { prerequisites: [["wisdom"]], multiclassProficiencies: ["Light armor", "Shields"] },
+  Fighter: { prerequisites: [["strength", "dexterity"]], multiclassProficiencies: ["Martial weapons", "Light armor", "Medium armor", "Shields"], extraAttackLevel: 5 },
+  Monk: { prerequisites: [["dexterity"], ["wisdom"]], multiclassProficiencies: [], extraAttackLevel: 5 },
+  Paladin: { prerequisites: [["strength"], ["charisma"]], multiclassProficiencies: ["Martial weapons", "Light armor", "Medium armor", "Shields"], extraAttackLevel: 5 },
+  Ranger: { prerequisites: [["dexterity"], ["wisdom"]], multiclassProficiencies: ["Martial weapons", "One skill from the Ranger skill list", "Light armor", "Medium armor", "Shields"], multiclassSkillLimit: 1, extraAttackLevel: 5 },
+  Rogue: { prerequisites: [["dexterity"]], multiclassProficiencies: ["One skill from the Rogue skill list", "Thieves' Tools", "Light armor"], multiclassSkillLimit: 1, multiclassTools: ["Thieves' Tools"] },
+  Sorcerer: { prerequisites: [["charisma"]], multiclassProficiencies: [] },
+  Warlock: { prerequisites: [["charisma"]], multiclassProficiencies: ["Light armor"] },
+  Wizard: { prerequisites: [["intelligence"]], multiclassProficiencies: [] },
+};
+
+PLAYER_CLASSES.forEach((playerClass) => Object.assign(playerClass, MULTICLASS_CLASS_RULES[playerClass.name] || {}));
+
 const PLAYER_RACES = [
   "Aarakocra", "Aasimar", "Aetherborn", "Astral Elf", "Autognome", "Aven", "Bugbear", "Centaur", "Changeling", "Custom",
   "Deep Gnome", "Dhampir", "Dragonborn", "Duergar", "Dwarf", "Eladrin", "Elf", "Fairy", "Firbolg",
@@ -529,9 +546,98 @@ function checkedFormValues(form, name) {
   return Array.from(form.querySelectorAll?.(`input[name="${name}"]:checked`) || []).map((input) => input.value);
 }
 
+function checkedFormValue(form, selector) {
+  return Boolean(form.querySelector(selector)?.checked);
+}
+
 function classInfo(classRole = "") {
   const normalized = String(classRole).trim().toLowerCase();
   return PLAYER_CLASSES.find((item) => item.name.toLowerCase() === normalized) || null;
+}
+
+function classNameForValue(value = "") {
+  const info = classInfo(value);
+  return info?.name || String(value || "").trim();
+}
+
+function classLevelEntriesFromParts(parts = []) {
+  const byClass = new Map();
+  parts.forEach((part, index) => {
+    const className = classNameForValue(part.className || part.classRole);
+    const level = Math.max(0, Math.floor(Number(part.level) || 0));
+    if (!className || level < 1) return;
+    const key = normalizeRulesText(className);
+    const existing = byClass.get(key);
+    if (existing) existing.level += level;
+    else byClass.set(key, { className, level, order: index });
+  });
+  return Array.from(byClass.values())
+    .sort((a, b) => a.order - b.order)
+    .map(({ className, level }) => ({ className, level }));
+}
+
+function classLevelEntriesFromForm(form) {
+  const primaryClass = formValue(form, "#player-class-role");
+  const totalLevel = numberFormValue(form, "#player-level");
+  if (!checkedFormValue(form, "#player-multiclass-enabled")) {
+    return classLevelEntriesFromParts([{ className: primaryClass, level: totalLevel || 1 }]);
+  }
+  const primaryLevel = numberFormValue(form, "#player-primary-class-level") || totalLevel || 1;
+  return classLevelEntriesFromParts([
+    { className: primaryClass, level: primaryLevel },
+    { className: formValue(form, "#player-multiclass-2-class"), level: numberFormValue(form, "#player-multiclass-2-level") },
+    { className: formValue(form, "#player-multiclass-3-class"), level: numberFormValue(form, "#player-multiclass-3-level") },
+  ]);
+}
+
+function classLevelEntriesForPlayer(player = {}) {
+  if (Array.isArray(player.classLevels) && player.classLevels.length) {
+    return classLevelEntriesFromParts(player.classLevels);
+  }
+  return classLevelEntriesFromParts([{ className: player.classRole, level: player.level || 1 }]);
+}
+
+function totalLevelForClassLevels(classLevels = []) {
+  return classLevels.reduce((total, entry) => total + (Number(entry.level) || 0), 0);
+}
+
+function isMulticlassClassLevelSet(classLevels = []) {
+  return classLevels.filter((entry) => entry.className && Number(entry.level) > 0).length > 1;
+}
+
+function classLevelFor(player = {}, className = "") {
+  const normalized = normalizeRulesText(className);
+  return classLevelEntriesForPlayer(player).find((entry) => normalizeRulesText(entry.className) === normalized)?.level || 0;
+}
+
+function classLevelSummary(classLevels = []) {
+  const entries = classLevels.filter((entry) => entry.className && Number(entry.level) > 0);
+  return entries.map((entry) => `${entry.className} ${entry.level}`).join(" / ");
+}
+
+function classRoleSummary(classLevels = [], fallback = "") {
+  const entries = classLevels.filter((entry) => entry.className && Number(entry.level) > 0);
+  return entries.length > 1 ? entries.map((entry) => entry.className).join(" / ") : (entries[0]?.className || fallback);
+}
+
+function hitDieSidesForClassName(className = "") {
+  return Number(String(classInfo(className)?.hitDie || "d8").replace("d", "")) || 8;
+}
+
+function classHitDiceFromClassLevels(classLevels = []) {
+  const diceBySides = new Map();
+  classLevels.forEach((entry) => {
+    const level = Number(entry.level) || 0;
+    if (!entry.className || level < 1) return;
+    const sides = hitDieSidesForClassName(entry.className);
+    diceBySides.set(sides, (diceBySides.get(sides) || 0) + level);
+  });
+  const dice = Array.from(diceBySides.entries()).sort((a, b) => b[0] - a[0]);
+  return dice.length ? dice.map(([sides, count]) => `${count}d${sides}`).join(" + ") : "1d8";
+}
+
+function classHasLevel(player = {}, className = "") {
+  return classLevelFor(player, className) > 0;
 }
 
 function abilityModifier(score) {
@@ -575,11 +681,11 @@ const WILD_SHAPE_PHYSICAL_ABILITIES = ["strength", "dexterity", "constitution"];
 const WILD_SHAPE_MENTAL_ABILITIES = ["intelligence", "wisdom", "charisma"];
 
 function characterHasWildShapeAccess(player = {}) {
-  return String(player.classRole || "").trim().toLowerCase() === "druid" && Number(player.level) >= 2;
+  return classLevelFor(player, "Druid") >= 2;
 }
 
 function isDruidCharacter(player = {}) {
-  return String(player.classRole || "").trim().toLowerCase() === "druid";
+  return classHasLevel(player, "Druid");
 }
 
 function wildShapeCrLimit(level = 1) {
@@ -591,7 +697,7 @@ function wildShapeCrLimit(level = 1) {
 }
 
 function wildShapeLimitText(player = {}) {
-  const level = Number(player.level) || 1;
+  const level = classLevelFor(player, "Druid") || 1;
   if (level < 2) return "Wild Shape unlocks at Druid 2.";
   if (level < 4) return "Max CR 1/4, no swim or fly speed.";
   if (level < 8) return "Max CR 1/2, no fly speed.";
@@ -600,8 +706,8 @@ function wildShapeLimitText(player = {}) {
 
 function wildShapeBeastAllowed(player = {}, shape = {}) {
   if (!characterHasWildShapeAccess(player)) return false;
-  if ((Number(shape.crValue) || 0) > wildShapeCrLimit(player.level)) return false;
-  const level = Number(player.level) || 1;
+  const level = classLevelFor(player, "Druid") || 1;
+  if ((Number(shape.crValue) || 0) > wildShapeCrLimit(level)) return false;
   if (level < 4 && beastShapeHasMovement(shape.swim)) return false;
   if (level < 8 && beastShapeHasMovement(shape.fly)) return false;
   return true;
@@ -906,6 +1012,57 @@ function derivedToolProficienciesForClass(classRole = "") {
   if (info.toolChoices === "musical" && info.toolLimit) tools.push(`${info.toolLimit} musical instruments`);
   else if (info.toolChoices === "artisanOrMusical" && info.toolLimit) tools.push(`${info.toolLimit} artisan's tools or musical instrument`);
   return tools;
+}
+
+function derivedToolProficienciesForClassLevels(classLevels = []) {
+  const [primary, ...additional] = classLevels;
+  return uniqueTextList([
+    ...derivedToolProficienciesForClass(primary?.className || ""),
+    ...additional.flatMap((entry) => classInfo(entry.className)?.multiclassTools || []),
+  ]);
+}
+
+function multiclassAdditionalProficiencyLines(classLevels = []) {
+  return classLevels.slice(1).map((entry) => {
+    const info = classInfo(entry.className);
+    const proficiencies = info?.multiclassProficiencies || [];
+    return `${entry.className}: ${proficiencies.length ? proficiencies.join(", ") : "Hit Point Die only"}`;
+  });
+}
+
+function classFeatureProgressionLines(classLevels = []) {
+  if (!isMulticlassClassLevelSet(classLevels)) return [];
+  const entries = classLevels.map((entry) => `${entry.className} features through level ${entry.level}`);
+  return [`Class features: ${entries.join("; ")}.`];
+}
+
+function extraAttackMulticlassLine(classLevels = []) {
+  const classesWithExtraAttack = classLevels.filter((entry) => {
+    const info = classInfo(entry.className);
+    return info?.extraAttackLevel && Number(entry.level) >= info.extraAttackLevel;
+  });
+  if (classesWithExtraAttack.length <= 1) return "";
+  return "Extra Attack: multiple Extra Attack features do not add together.";
+}
+
+function multiclassRulesFeatureText(classLevels = []) {
+  if (!isMulticlassClassLevelSet(classLevels)) return "";
+  const additionalProficiencies = multiclassAdditionalProficiencyLines(classLevels);
+  const lines = [
+    "Multiclassing (Character option)",
+    `Class levels: ${classLevelSummary(classLevels)}.`,
+    "Proficiency Bonus uses total character level.",
+    `Hit Dice pool: ${classHitDiceFromClassLevels(classLevels)}.`,
+    ...classFeatureProgressionLines(classLevels),
+    additionalProficiencies.length ? `Additional class proficiencies: ${additionalProficiencies.join("; ")}.` : "",
+    "Armor Class: if more than one feature gives a different AC calculation, choose one method; they do not combine.",
+    extraAttackMulticlassLine(classLevels),
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+function multiclassSkillChoiceLimit(classLevels = []) {
+  return classLevels.slice(1).reduce((total, entry) => total + (Number(classInfo(entry.className)?.multiclassSkillLimit) || 0), 0);
 }
 
 function equipmentItems(equipment = "") {
@@ -1395,7 +1552,7 @@ function equipmentHomebrewCardsMarkup(player = {}) {
 }
 
 function hitDieSides(classRole = "") {
-  return Number(String(classInfo(classRole)?.hitDie || "d8").replace("d", "")) || 8;
+  return hitDieSidesForClassName(classRole);
 }
 
 function classHitDice(level, classRole = "") {
@@ -1525,7 +1682,7 @@ function homebrewArmorClassBonusFromEquipment(equipment = "", selectedArmor = {}
   }, 0);
 }
 
-function armorClassFromEquipment(dexterityScore, equipment = "", classRole = "", abilities = {}) {
+function armorClassFromEquipment(dexterityScore, equipment = "", classRole = "", abilities = {}, classLevels = []) {
   const dexMod = abilityModifier(dexterityScore);
   const armor = armorFormulaFromEquipment(equipment);
   const shieldBonus = /\bshield\b/i.test(String(equipment)) ? 2 : 0;
@@ -1533,28 +1690,47 @@ function armorClassFromEquipment(dexterityScore, equipment = "", classRole = "",
   const hasArmor = armor.base !== 10;
   if (!hasArmor) {
     const normalizedClass = String(classRole).toLowerCase();
-    if (normalizedClass === "barbarian") return 10 + dexMod + abilityModifier(abilities.constitution) + shieldBonus + homebrewArmorBonus;
-    if (normalizedClass === "monk") return 10 + dexMod + abilityModifier(abilities.wisdom) + homebrewArmorBonus;
+    const classes = classLevels.length ? classLevels : classLevelEntriesFromParts([{ className: classRole, level: 1 }]);
+    const hasBarbarian = normalizedClass === "barbarian" || classes.some((entry) => normalizeRulesText(entry.className) === "barbarian");
+    const hasMonk = normalizedClass === "monk" || classes.some((entry) => normalizeRulesText(entry.className) === "monk");
+    const armorClassOptions = [10 + dexMod + shieldBonus + homebrewArmorBonus];
+    if (hasBarbarian) armorClassOptions.push(10 + dexMod + abilityModifier(abilities.constitution) + shieldBonus + homebrewArmorBonus);
+    if (hasMonk && !shieldBonus) armorClassOptions.push(10 + dexMod + abilityModifier(abilities.wisdom) + homebrewArmorBonus);
+    return Math.max(...armorClassOptions);
   }
   const dexBonus = armor.dex === "none" ? 0 : armor.dex === "max2" ? Math.min(dexMod, 2) : dexMod;
   return armor.base + dexBonus + shieldBonus + homebrewArmorBonus;
 }
 
-function derivedCombatStats({ level, classRole, race, abilities, equipment, hitPointMaximum }) {
+function fixedHitPointsForClassLevels(classLevels = [], constitutionScore = "") {
+  const conMod = abilityModifier(constitutionScore);
+  const entries = classLevels.filter((entry) => entry.className && Number(entry.level) > 0);
+  if (!entries.length) return Math.max(1, 8 + conMod);
+  return entries.reduce((total, entry, index) => {
+    const sides = hitDieSidesForClassName(entry.className);
+    const level = Math.max(1, Number(entry.level) || 1);
+    const firstLevelHitPoints = index === 0 ? Math.max(1, sides + conMod) : 0;
+    const higherLevelCount = index === 0 ? level - 1 : level;
+    const higherLevelHitPoints = Array.from({ length: higherLevelCount }, () => Math.max(1, Math.floor(sides / 2) + 1 + conMod))
+      .reduce((subtotal, value) => subtotal + value, 0);
+    return total + firstLevelHitPoints + higherLevelHitPoints;
+  }, 0);
+}
+
+function derivedCombatStats({ level, classRole, race, abilities, equipment, hitPointMaximum, classLevels = [] }) {
   const dexMod = abilityModifier(abilities?.dexterity);
-  const sides = hitDieSides(classRole);
-  const conMod = abilityModifier(abilities?.constitution);
-  const fixedHitPoints = Math.max(1, sides + conMod);
+  const levels = classLevels.length ? classLevels : classLevelEntriesFromParts([{ className: classRole, level: level || 1 }]);
+  const fixedHitPoints = fixedHitPointsForClassLevels(levels, abilities?.constitution);
   const savedHitPoints = Number(hitPointMaximum);
   const hitPoints = Number.isFinite(savedHitPoints) && savedHitPoints > 0 ? savedHitPoints : fixedHitPoints;
   return {
-    armorClass: armorClassFromEquipment(abilities?.dexterity, equipment, classRole, abilities),
+    armorClass: armorClassFromEquipment(abilities?.dexterity, equipment, classRole, abilities, levels),
     initiative: dexMod,
     speed: raceSpeed(race),
     hitPointMaximum: hitPoints,
     currentHitPoints: hitPoints,
     temporaryHitPoints: "",
-    hitDice: classHitDice(level, classRole),
+    hitDice: classHitDiceFromClassLevels(levels),
   };
 }
 
@@ -1582,8 +1758,10 @@ function checkboxMarkup(name, options, selected = []) {
 function buildPlayerCharacter(form) {
   const playerName = formValue(form, "#player-name");
   const characterName = formValue(form, "#player-character-name");
-  const level = numberFormValue(form, "#player-level");
-  const classRole = formValue(form, "#player-class-role");
+  const classLevels = classLevelEntriesFromForm(form);
+  const multiclassEnabled = checkedFormValue(form, "#player-multiclass-enabled") && isMulticlassClassLevelSet(classLevels);
+  const level = multiclassEnabled ? totalLevelForClassLevels(classLevels) : numberFormValue(form, "#player-level");
+  const classRole = multiclassEnabled ? classRoleSummary(classLevels, formValue(form, "#player-class-role")) : formValue(form, "#player-class-role");
   const baseAbilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
   const lineageAbilityBonuses = lineageAbilityBonusesFromForm(form);
   const backgroundAbilityBonuses = backgroundAbilityBonusesFromForm(form);
@@ -1612,12 +1790,16 @@ function buildPlayerCharacter(form) {
       abilities,
       equipment,
       hitPointMaximum,
+      classLevels,
     }),
     hitPointsRolled: Boolean(hitPointMaximum),
     passivePerception,
   };
   const features = appendUniqueTextBlock(
-    appendUniqueTextBlock(formValue(form, "#player-features"), formValue(form, "#player-lineage-traits")),
+    appendUniqueTextBlock(
+      appendUniqueTextBlock(formValue(form, "#player-features"), formValue(form, "#player-lineage-traits")),
+      multiclassRulesFeatureText(classLevels)
+    ),
     homebrewFeatureTextForEquipment(equipment)
   );
   return {
@@ -1626,6 +1808,7 @@ function buildPlayerCharacter(form) {
     playerName,
     characterName,
     classRole,
+    classLevels,
     level,
     race,
     background: formValue(form, "#player-background"),
@@ -1640,7 +1823,7 @@ function buildPlayerCharacter(form) {
     skillProficiencies,
     languages: checkedFormValues(form, "player-languages"),
     toolProficiencies: uniqueTextList([
-      ...derivedToolProficienciesForClass(classRole),
+      ...derivedToolProficienciesForClassLevels(classLevels),
       ...splitListInput(formValue(form, "#player-tool-proficiencies")),
     ]),
     combat,
@@ -1673,7 +1856,28 @@ function validatePlayerCharacter(player, requireData = true) {
   if (!player.playerName) errors.push("Player name is required.");
   if (!player.characterName) errors.push("Character name is required.");
   if (player.level !== "" && (!Number.isFinite(player.level) || player.level < 1)) errors.push("Level must be a number greater than 0.");
+  const classLevels = classLevelEntriesForPlayer(player);
+  if (isMulticlassClassLevelSet(classLevels)) {
+    if (totalLevelForClassLevels(classLevels) > 20) errors.push("Multiclass total level cannot exceed 20.");
+    const failedPrerequisites = multiclassPrerequisiteFailures(classLevels, player.abilities || {});
+    if (failedPrerequisites.length) errors.push(`Multiclass prerequisites not met: ${failedPrerequisites.join("; ")}.`);
+  }
   return errors;
+}
+
+function multiclassPrerequisiteFailures(classLevels = [], abilities = {}) {
+  return classLevels.map((entry) => {
+    const info = classInfo(entry.className);
+    const failedGroups = (info?.prerequisites || []).filter((group) => (
+      !group.some((abilityKey) => Number(abilities[abilityKey]) >= 13)
+    ));
+    if (!failedGroups.length) return "";
+    return `${entry.className} requires ${failedGroups.map(prerequisiteGroupLabel).join(" and ")}`;
+  }).filter(Boolean);
+}
+
+function prerequisiteGroupLabel(group = []) {
+  return `${group.map((abilityKey) => ABILITIES.find((ability) => ability.key === abilityKey)?.label || abilityKey).join(" or ")} 13`;
 }
 
 function savePlayerToCampaign(campaignId, player) {
@@ -5917,6 +6121,8 @@ function abilitySectionComplete(player) {
 
 function playerSectionDefinitions(player, options = {}) {
   const combat = player.combat || {};
+  const classLevels = classLevelEntriesForPlayer(player);
+  const classSummary = classLevelSummary(classLevels);
   const personality = player.personality || {};
   const storyBlocks = [
     ["Short description", player.description],
@@ -5966,7 +6172,7 @@ function playerSectionDefinitions(player, options = {}) {
       complete: hasText(player.playerName) && hasText(player.characterName),
       body: `
         <h3>${escapeHtml(player.characterName || "Unnamed hero")}</h3>
-        ${widgetTagsMarkup([`Player: ${player.playerName}`, player.classRole, player.level ? `Level ${player.level}` : "", player.race, player.alignment])}`,
+        ${widgetTagsMarkup([`Player: ${player.playerName}`, classSummary || player.classRole, player.level ? `Level ${player.level}` : "", player.race, player.alignment])}`,
     },
     {
       key: "personality",
@@ -6105,6 +6311,21 @@ function playerCharacterFormMarkup(options = {}) {
         <label>Character name<input id="player-character-name" type="text" placeholder="Character name" required /></label>
         <label>Class<input id="player-class-role" type="text" list="player-class-options" placeholder="Fighter" /></label>
         <label>Level<input id="player-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
+        <label class="checkbox-row multiclass-toggle full-width"><input id="player-multiclass-enabled" type="checkbox" /><span>Multiclass</span></label>
+        <div class="multiclass-builder full-width" id="player-multiclass-builder" hidden>
+          <div class="multiclass-builder-heading">
+            <h3>Class levels</h3>
+            <strong id="player-multiclass-total">Level 1</strong>
+          </div>
+          <div class="multiclass-row">
+            <label>Primary class levels<input id="player-primary-class-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
+            <label>Second class<input id="player-multiclass-2-class" type="text" list="player-class-options" placeholder="Rogue" /></label>
+            <label>Second class levels<input id="player-multiclass-2-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
+            <label>Third class<input id="player-multiclass-3-class" type="text" list="player-class-options" placeholder="Wizard" /></label>
+            <label>Third class levels<input id="player-multiclass-3-level" type="number" min="1" max="20" step="1" placeholder="1" /></label>
+          </div>
+          <div class="multiclass-rule-summary" id="player-multiclass-summary"></div>
+        </div>
         <label>Race<input id="player-race" type="text" list="player-race-options" placeholder="Human" /></label>
         <label>Alignment<input id="player-alignment" type="text" list="player-alignment-options" placeholder="Neutral Good" /></label>
         <div class="sheet-derived-grid full-width" id="player-lineage-ability-controls" hidden></div>
@@ -6195,7 +6416,38 @@ function playerCharacterFormMarkup(options = {}) {
     </form>`;
 }
 
+function syncMulticlassControls(form) {
+  const enabled = checkedFormValue(form, "#player-multiclass-enabled");
+  const builder = form.querySelector("#player-multiclass-builder");
+  if (builder) builder.hidden = !enabled;
+  if (!enabled) return classLevelEntriesFromForm(form);
+  const totalLevelField = form.querySelector("#player-level");
+  const primaryLevelField = form.querySelector("#player-primary-class-level");
+  if (primaryLevelField && !String(primaryLevelField.value || "").trim()) {
+    primaryLevelField.value = String(numberFormValue(form, "#player-level") || 1);
+  }
+  const classLevels = classLevelEntriesFromForm(form);
+  const total = Math.min(20, Math.max(1, totalLevelForClassLevels(classLevels) || 1));
+  if (totalLevelField) totalLevelField.value = String(total);
+  return classLevels;
+}
+
+function multiclassSummaryMarkup(classLevels = [], abilities = {}) {
+  if (!isMulticlassClassLevelSet(classLevels)) return `<span>Add another class to build a multiclass split.</span>`;
+  const failedPrerequisites = multiclassPrerequisiteFailures(classLevels, abilities);
+  const proficiencyLines = multiclassAdditionalProficiencyLines(classLevels);
+  const extraAttackLine = extraAttackMulticlassLine(classLevels);
+  return `
+    <span>${escapeHtml(classLevelSummary(classLevels))}</span>
+    <span>PB ${escapeHtml(signedModifier(proficiencyBonusForLevel(totalLevelForClassLevels(classLevels))))} · Hit Dice ${escapeHtml(classHitDiceFromClassLevels(classLevels))}</span>
+    ${proficiencyLines.length ? `<span>Added proficiencies: ${escapeHtml(proficiencyLines.join("; "))}</span>` : ""}
+    <span>Features follow each class level.</span>
+    <span>AC methods are chosen, not stacked.${extraAttackLine ? ` ${escapeHtml(extraAttackLine)}` : ""}</span>
+    ${failedPrerequisites.length ? `<strong>${escapeHtml(`Prerequisites: ${failedPrerequisites.join("; ")}`)}</strong>` : ""}`;
+}
+
 function updatePlayerFormDerivedFields(form) {
+  const classLevels = syncMulticlassControls(form);
   const level = numberFormValue(form, "#player-level") || 1;
   const proficiencyBonus = proficiencyBonusForLevel(level);
   const baseScores = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
@@ -6235,7 +6487,12 @@ function updatePlayerFormDerivedFields(form) {
     abilities: scores,
     equipment,
     hitPointMaximum: numberFormValue(form, "#player-hp-max"),
+    classLevels,
   });
+  const multiclassTotal = document.getElementById("player-multiclass-total");
+  if (multiclassTotal) multiclassTotal.textContent = `Level ${totalLevelForClassLevels(classLevels) || level}`;
+  const multiclassSummary = document.getElementById("player-multiclass-summary");
+  if (multiclassSummary) multiclassSummary.innerHTML = multiclassSummaryMarkup(classLevels, scores);
 }
 
 function rollAbilityScore() {
@@ -6251,19 +6508,23 @@ function clearRolledHitPoints(form) {
 }
 
 function rollHitPointsForLevel(form) {
+  const classLevels = classLevelEntriesFromForm(form);
   const level = Math.max(1, Math.min(20, Number(numberFormValue(form, "#player-level")) || 1));
   const classRole = formValue(form, "#player-class-role");
   const constitution = applyBackgroundBonusesToScores({
     constitution: numberFormValue(form, "#player-constitution"),
   }, combineAbilityBonuses(lineageAbilityBonusesFromForm(form), backgroundAbilityBonusesFromForm(form))).constitution;
-  const sides = hitDieSides(classRole);
   const conMod = abilityModifier(constitution);
-  const baseHitPoints = Math.max(1, sides + conMod);
+  const primarySides = hitDieSides(classRole);
+  const baseHitPoints = Math.max(1, primarySides + conMod);
   if (level <= 1) {
     clearRolledHitPoints(form);
     return baseHitPoints;
   }
-  const extraHitPoints = Array.from({ length: level - 1 }, () => {
+  const rollEntries = isMulticlassClassLevelSet(classLevels)
+    ? classLevels.flatMap((entry, index) => Array.from({ length: index === 0 ? Math.max(0, entry.level - 1) : entry.level }, () => hitDieSidesForClassName(entry.className)))
+    : Array.from({ length: level - 1 }, () => primarySides);
+  const extraHitPoints = rollEntries.map((sides) => {
     const roll = Math.floor(Math.random() * sides) + 1;
     return Math.max(1, roll + conMod);
   }).reduce((total, value) => total + value, 0);
@@ -6438,9 +6699,11 @@ function extraSkillChoiceLimitForForm(form) {
   const originFeat = normalizeRulesText(background?.originFeat || "");
   const lineageTraits = normalizeRulesText(formValue(form, "#player-lineage-traits"));
   const features = normalizeRulesText(formValue(form, "#player-features"));
+  const classLevels = checkedFormValue(form, "#player-multiclass-enabled") ? classLevelEntriesFromForm(form) : [];
   let limit = 0;
   if (originFeat === "skilled" || /\bskilled feat\b/.test(features)) limit += 3;
   if (lineageTraits.includes("skill versatility")) limit += 2;
+  limit += multiclassSkillChoiceLimit(classLevels);
   return limit;
 }
 
@@ -6632,13 +6895,13 @@ function initPlayerCharacterForm(form) {
       renderEquipmentShop(form, event.target.value);
       return;
     }
-    if (["player-class-role", "player-level", "player-constitution"].includes(event.target?.id)) clearRolledHitPoints(form);
+    if (["player-class-role", "player-level", "player-constitution", "player-primary-class-level", "player-multiclass-2-class", "player-multiclass-2-level", "player-multiclass-3-class", "player-multiclass-3-level"].includes(event.target?.id)) clearRolledHitPoints(form);
     if (event.target?.id === "player-class-role" || event.target?.id === "player-race") applyClassRestrictions(form);
     updatePlayerFormDerivedFields(form);
     refreshPlayerSectionSummary(form);
   });
   form.addEventListener("change", (event) => {
-    if (["player-class-role", "player-level", "player-constitution"].includes(event.target?.id)) clearRolledHitPoints(form);
+    if (["player-class-role", "player-level", "player-constitution", "player-multiclass-enabled", "player-primary-class-level", "player-multiclass-2-class", "player-multiclass-2-level", "player-multiclass-3-class", "player-multiclass-3-level"].includes(event.target?.id)) clearRolledHitPoints(form);
     if (event.target?.id === "player-background") {
       const background = backgroundPackageForName(event.target.value);
       if (background) applyBackgroundPackageToForm(form, background);
@@ -6658,6 +6921,9 @@ function initPlayerCharacterForm(form) {
     }
     if (
 	      event.target?.id === "player-class-role"
+	      || event.target?.id === "player-multiclass-enabled"
+	      || event.target?.id === "player-multiclass-2-class"
+	      || event.target?.id === "player-multiclass-3-class"
 	      || event.target?.id === "player-race"
 	      || event.target?.name === "player-skill-proficiencies"
 	      || event.target?.name === "player-languages"
@@ -7195,6 +7461,8 @@ function playerAttackRows(player) {
 
 function characterSheetMarkup(player) {
   const combat = player.combat || {};
+  const classLevels = classLevelEntriesForPlayer(player);
+  const classSummary = classLevelSummary(classLevels);
   const wildShape = useWildShape(player);
   const overlay = wildShape.overlay;
   const equipmentText = [
@@ -7209,7 +7477,7 @@ function characterSheetMarkup(player) {
     <article class="character-sheet-paper">
       <header class="sheet-header-grid">
         ${sheetField("Character Name", player.characterName)}
-        ${sheetField("Class & Level", `${player.classRole || "—"}${player.level ? ` ${player.level}` : ""}`)}
+        ${sheetField("Class & Level", classSummary || `${player.classRole || "—"}${player.level ? ` ${player.level}` : ""}`)}
         ${sheetField("Player Name", player.playerName)}
         ${sheetField("Race", player.race)}
         ${sheetField("Alignment", player.alignment)}
