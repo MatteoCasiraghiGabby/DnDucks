@@ -1,5 +1,42 @@
 {
-  "maps": [],
-  "cities": [],
-  "notes": []
+  "maps": [
+    {
+      "id": "1089cb50-5473-4fd9-aab1-490f2958dcc4",
+      "title": "Region",
+      "originalFilename": "0d41a038-457a-49c7-9cbf-684cf7c1884d.jpeg",
+      "savedFilename": "1780061832547-504ba237-8868-4a41-82ac-7c5cda4e4352.jpeg",
+      "imageUrl": "/uploads/maps/1780061832547-504ba237-8868-4a41-82ac-7c5cda4e4352.jpeg",
+      "storedImagePath": "/uploads/maps/1780061832547-504ba237-8868-4a41-82ac-7c5cda4e4352.jpeg",
+      "imageWidth": 2048,
+      "imageHeight": 1536,
+      "fileSize": 786284,
+      "mimeType": "image/jpeg",
+      "status": "ready",
+      "createdAt": "2026-05-29T13:37:12.547Z",
+      "updatedAt": "2026-05-29T13:37:16.226Z"
+    }
+  ],
+  "cities": [
+    {
+      "id": "74897c41-9e92-418a-993b-28f67f2b76dc",
+      "mapId": "1089cb50-5473-4fd9-aab1-490f2958dcc4",
+      "cityName": "House of Winter",
+      "x": 1364,
+      "y": 1218,
+      "normalizedX": 0.6658809664113141,
+      "normalizedY": 0.7931398546454528,
+      "createdAt": "2026-05-29T13:38:14.333Z",
+      "updatedAt": "2026-05-29T13:38:14.333Z"
+    }
+  ],
+  "notes": [
+    {
+      "id": "a6b4fe7d-afda-464d-8dc8-8512ef24cc64",
+      "mapCityId": "74897c41-9e92-418a-993b-28f67f2b76dc",
+      "title": "Caveau Aureo",
+      "content": "house of the organisation that look for the global economy equilibrium.",
+      "createdAt": "2026-05-29T13:39:43.400Z",
+      "updatedAt": "2026-05-29T13:39:43.400Z"
+    }
+  ]
 }

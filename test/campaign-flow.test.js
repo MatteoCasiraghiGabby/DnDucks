@@ -135,6 +135,14 @@ function createCharacterFormStub(initialValues = {}) {
     closest: () => ({ classList: makeClassList() }),
   }));
   const languageInputs = [];
+  const spellInputs = (initialValues["player-spells"] || []).map((value) => ({
+    value,
+    name: "player-spells",
+    checked: true,
+    disabled: false,
+    dataset: {},
+    closest: () => ({ classList: makeClassList() }),
+  }));
   fields["#player-background-ability-controls"] = {
     value: "",
     dataset: {},
@@ -155,6 +163,8 @@ function createCharacterFormStub(initialValues = {}) {
       if (selector === 'input[name="player-skill-proficiencies"]') return skillInputs;
       if (selector === 'input[name="player-languages"]') return languageInputs;
       if (selector === 'input[name="player-saving-throws"]') return [];
+      if (selector === 'input[name="player-spells"]:checked') return spellInputs.filter((input) => input.checked);
+      if (selector === 'input[name="player-spells"]') return spellInputs;
       return [];
     },
   };
@@ -1138,6 +1148,54 @@ test("character sheet divides equipment into item widgets with homebrew detail l
   assert.match(sheetMarkup, /Attack:/);
   assert.match(sheetMarkup, /id="sheet-equipment-modal"/);
   assert.match(script, /openWidgetDetail\("items", button\.dataset\.homebrewItemId\)/);
+});
+
+test("spellcasting classes choose starting spells and render slot tracking", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_SPELLS = [
+    { id: "0-fire-bolt", name: "Fire Bolt", level: 0, levelName: "Cantrip", school: "Evocation", castingTime: "1 Action", range: "120 feet", duration: "Instantaneous", description: "A ranged spell attack.", classes: ["Wizard", "Sorcerer"] },
+    { id: "1-magic-missile", name: "Magic Missile", level: 1, levelName: "1st Level", school: "Evocation", castingTime: "1 Action", range: "120 feet", duration: "Instantaneous", description: "Force darts hit automatically.", classes: ["Wizard", "Sorcerer"] },
+    { id: "1-hex", name: "Hex", level: 1, levelName: "1st Level", school: "Enchantment", castingTime: "1 Bonus Action", range: "90 feet", duration: "Concentration, up to 1 hour", description: "A curse empowered by pact magic.", classes: ["Warlock"] },
+  ];
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Wizard",
+    "#player-level": "1",
+    "player-spells": ["0-fire-bolt", "1-magic-missile"],
+  }));
+  const sheetMarkup = app.characterSheetMarkup(player);
+  const runtime = app.spellcastingRuntimeForPlayer(player);
+
+  assert.deepEqual(player.spellcasting.spells, ["0-fire-bolt", "1-magic-missile"]);
+  assert.deepEqual(Array.from(runtime.normalSlots), [2]);
+  assert.match(sheetMarkup, /Spellcasting/);
+  assert.match(sheetMarkup, /Magic Missile/);
+  assert.match(sheetMarkup, /Normal spell slots recover when you finish a long rest/);
+  assert.match(sheetMarkup, /data-spell-slot-kind="normal"/);
+  assert.match(sheetMarkup, /id="sheet-spell-modal"/);
+});
+
+test("warlock pact slots are tracked separately and recover on short rest", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_SPELLS = [
+    { id: "1-hex", name: "Hex", level: 1, levelName: "1st Level", school: "Enchantment", castingTime: "1 Bonus Action", range: "90 feet", duration: "Concentration, up to 1 hour", description: "A curse empowered by pact magic.", classes: ["Warlock"] },
+  ];
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Warlock",
+    "#player-level": "2",
+    "player-spells": ["1-hex"],
+  }));
+  const used = app.setPlayerSpellSlotUsage(player, "pact", 1, 1);
+  const rested = app.recoverPlayerSpellSlots(used, "short");
+  const sheetMarkup = app.characterSheetMarkup(used);
+
+  assert.equal(app.spellcastingRuntimeForPlayer(used).slotUsage.pact, 1);
+  assert.equal(app.spellcastingRuntimeForPlayer(rested).slotUsage.pact, 0);
+  assert.match(sheetMarkup, /Pact 1st Level/);
+  assert.match(sheetMarkup, /Warlock Pact Magic slots recover when you finish a short or long rest/);
 });
 
 test("widget image picker falls back to local data urls when backend uploads are unavailable", async () => {

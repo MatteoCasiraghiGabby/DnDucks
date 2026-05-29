@@ -176,6 +176,41 @@ const PLAYER_CLASSES = [
   { name: "Wizard", hitDie: "d6", primary: "Intelligence", saves: ["intelligence", "wisdom"], skillLimit: 2, skillChoices: ["arcana", "history", "insight", "investigation", "medicine", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
 ];
 
+const SPELLCASTING_CLASS_RULES = {
+  Bard: { kind: "full", ability: "Charisma", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, known: { 1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14, 11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22 } },
+  Cleric: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 3, 4: 4, 10: 5 }, prepared: "Wisdom modifier + Cleric level" },
+  Druid: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, prepared: "Wisdom modifier + Druid level" },
+  Paladin: { kind: "half", ability: "Charisma", recovery: "long", cantrips: {}, prepared: "Charisma modifier + half Paladin level", startsAt: 2 },
+  Ranger: { kind: "half", ability: "Wisdom", recovery: "long", cantrips: {}, known: { 2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5, 8: 5, 9: 6, 10: 6, 11: 7, 12: 7, 13: 8, 14: 8, 15: 9, 16: 9, 17: 10, 18: 10, 19: 11, 20: 11 }, startsAt: 2 },
+  Sorcerer: { kind: "full", ability: "Charisma", recovery: "long", cantrips: { 1: 4, 4: 5, 10: 6 }, known: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 12, 13: 13, 14: 13, 15: 14, 16: 14, 17: 15, 18: 15, 19: 15, 20: 15 } },
+  Warlock: { kind: "pact", ability: "Charisma", recovery: "short", cantrips: { 1: 2, 4: 3, 10: 4 }, known: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10, 11: 11, 12: 11, 13: 12, 14: 12, 15: 13, 16: 13, 17: 14, 18: 14, 19: 15, 20: 15 } },
+  Wizard: { kind: "full", ability: "Intelligence", recovery: "long", cantrips: { 1: 3, 4: 4, 10: 5 }, prepared: "Intelligence modifier + Wizard level", spellbook: (level) => 6 + Math.max(0, Number(level) - 1) * 2 },
+};
+
+const FULL_CASTER_SLOTS = {
+  1: [2], 2: [3], 3: [4, 2], 4: [4, 3], 5: [4, 3, 2], 6: [4, 3, 3],
+  7: [4, 3, 3, 1], 8: [4, 3, 3, 2], 9: [4, 3, 3, 3, 1], 10: [4, 3, 3, 3, 2],
+  11: [4, 3, 3, 3, 2, 1], 12: [4, 3, 3, 3, 2, 1], 13: [4, 3, 3, 3, 2, 1, 1],
+  14: [4, 3, 3, 3, 2, 1, 1], 15: [4, 3, 3, 3, 2, 1, 1, 1], 16: [4, 3, 3, 3, 2, 1, 1, 1],
+  17: [4, 3, 3, 3, 2, 1, 1, 1, 1], 18: [4, 3, 3, 3, 3, 1, 1, 1, 1],
+  19: [4, 3, 3, 3, 3, 2, 1, 1, 1], 20: [4, 3, 3, 3, 3, 2, 2, 1, 1],
+};
+
+const HALF_CASTER_SLOTS = {
+  2: [2], 3: [3], 4: [3], 5: [4, 2], 6: [4, 2], 7: [4, 3], 8: [4, 3],
+  9: [4, 3, 2], 10: [4, 3, 2], 11: [4, 3, 3], 12: [4, 3, 3], 13: [4, 3, 3, 1],
+  14: [4, 3, 3, 1], 15: [4, 3, 3, 2], 16: [4, 3, 3, 2], 17: [4, 3, 3, 3, 1],
+  18: [4, 3, 3, 3, 1], 19: [4, 3, 3, 3, 2], 20: [4, 3, 3, 3, 2],
+};
+
+const WARLOCK_PACT_SLOTS = {
+  1: { slots: 1, level: 1 }, 2: { slots: 2, level: 1 }, 3: { slots: 2, level: 2 }, 4: { slots: 2, level: 2 },
+  5: { slots: 2, level: 3 }, 6: { slots: 2, level: 3 }, 7: { slots: 2, level: 4 }, 8: { slots: 2, level: 4 },
+  9: { slots: 2, level: 5 }, 10: { slots: 2, level: 5 }, 11: { slots: 3, level: 5 }, 12: { slots: 3, level: 5 },
+  13: { slots: 3, level: 5 }, 14: { slots: 3, level: 5 }, 15: { slots: 3, level: 5 }, 16: { slots: 3, level: 5 },
+  17: { slots: 4, level: 5 }, 18: { slots: 4, level: 5 }, 19: { slots: 4, level: 5 }, 20: { slots: 4, level: 5 },
+};
+
 const MULTICLASS_CLASS_RULES = {
   Barbarian: { prerequisites: [["strength"]], multiclassProficiencies: ["Martial weapons", "Shields"], extraAttackLevel: 5 },
   Bard: { prerequisites: [["charisma"]], multiclassProficiencies: ["One skill of your choice", "One musical instrument", "Light armor"], multiclassSkillLimit: 1, multiclassTools: ["1 musical instrument"] },
@@ -638,6 +673,152 @@ function classHitDiceFromClassLevels(classLevels = []) {
 
 function classHasLevel(player = {}, className = "") {
   return classLevelFor(player, className) > 0;
+}
+
+function spellcastingRule(className = "") {
+  return SPELLCASTING_CLASS_RULES[classNameForValue(className)] || null;
+}
+
+function spellcastingClassEntries(classLevels = []) {
+  return classLevelEntriesFromParts(classLevels)
+    .map((entry) => ({ ...entry, rule: spellcastingRule(entry.className) }))
+    .filter((entry) => entry.rule && Number(entry.level) >= (entry.rule.startsAt || 1));
+}
+
+function progressionValueAtLevel(table = {}, level = 1) {
+  const numericLevel = Math.max(1, Math.min(20, Math.floor(Number(level) || 1)));
+  return Object.keys(table)
+    .map(Number)
+    .filter((breakpoint) => breakpoint <= numericLevel)
+    .sort((a, b) => b - a)
+    .map((breakpoint) => table[breakpoint])[0] || 0;
+}
+
+function spellSlotsForClassEntry(entry = {}) {
+  const level = Math.max(1, Math.min(20, Math.floor(Number(entry.level) || 1)));
+  if (entry.rule?.kind === "full") return FULL_CASTER_SLOTS[level] || [];
+  if (entry.rule?.kind === "half") return HALF_CASTER_SLOTS[level] || [];
+  if (entry.rule?.kind === "pact") return [];
+  return [];
+}
+
+function normalSpellSlotsForClassLevels(classLevels = []) {
+  const entries = spellcastingClassEntries(classLevels).filter((entry) => entry.rule.kind !== "pact");
+  if (!entries.length) return [];
+  if (entries.length === 1) return spellSlotsForClassEntry(entries[0]);
+  const casterLevel = entries.reduce((total, entry) => {
+    if (entry.rule.kind === "full") return total + Number(entry.level);
+    if (entry.rule.kind === "half") return total + Math.floor(Number(entry.level) / 2);
+    return total;
+  }, 0);
+  return FULL_CASTER_SLOTS[Math.max(1, Math.min(20, casterLevel))] || [];
+}
+
+function pactMagicForClassLevels(classLevels = []) {
+  const warlockLevel = classLevelEntriesFromParts(classLevels)
+    .filter((entry) => classNameForValue(entry.className) === "Warlock")
+    .reduce((total, entry) => total + Number(entry.level || 0), 0);
+  return warlockLevel > 0 ? WARLOCK_PACT_SLOTS[Math.max(1, Math.min(20, warlockLevel))] : null;
+}
+
+function maxSpellLevelForClassEntry(entry = {}) {
+  if (entry.rule?.kind === "pact") return pactMagicForClassLevels([entry])?.level || 0;
+  return spellSlotsForClassEntry(entry).length;
+}
+
+function spellClassMatches(spell = {}, className = "") {
+  const canonical = classNameForValue(className);
+  return (spell.classes || []).some((spellClass) => spellClass === canonical);
+}
+
+function availableSpellsForClassLevels(classLevels = []) {
+  const entries = spellcastingClassEntries(classLevels);
+  const byId = new Map();
+  entries.forEach((entry) => {
+    const maxLevel = maxSpellLevelForClassEntry(entry);
+    const cantripsAllowed = Number(progressionValueAtLevel(entry.rule.cantrips || {}, entry.level)) > 0;
+    spellCollection().forEach((spell) => {
+      const spellLevel = Number(spell.level) || 0;
+      if (!spellClassMatches(spell, entry.className)) return;
+      if (spellLevel === 0 && !cantripsAllowed) return;
+      if (spellLevel > 0 && spellLevel > maxLevel) return;
+      byId.set(spell.id, spell);
+    });
+  });
+  return Array.from(byId.values()).sort((a, b) => (Number(a.level) - Number(b.level)) || a.name.localeCompare(b.name));
+}
+
+function selectedSpellIdsFromForm(form) {
+  return uniqueTextList(checkedFormValues(form, "player-spells"));
+}
+
+function spellById(spellId = "") {
+  return spellCollection().find((spell) => spell.id === spellId) || null;
+}
+
+function selectedSpellsForPlayer(player = {}) {
+  return uniqueTextList(player.spellcasting?.spells || []).map(spellById).filter(Boolean);
+}
+
+function spellcastingGuidanceLine(entry = {}) {
+  const cantrips = progressionValueAtLevel(entry.rule?.cantrips || {}, entry.level);
+  const known = progressionValueAtLevel(entry.rule?.known || {}, entry.level);
+  const prepared = entry.rule?.prepared || "";
+  const spellbook = typeof entry.rule?.spellbook === "function" ? entry.rule.spellbook(entry.level) : 0;
+  return [
+    `${entry.className} ${entry.level}`,
+    cantrips ? `${cantrips} cantrip${cantrips === 1 ? "" : "s"}` : "",
+    known ? `${known} known spell${known === 1 ? "" : "s"}` : "",
+    prepared ? `prepare ${prepared}` : "",
+    spellbook ? `${spellbook} spellbook spell${spellbook === 1 ? "" : "s"}` : "",
+  ].filter(Boolean).join(": ");
+}
+
+function spellcastingSummaryForClassLevels(classLevels = []) {
+  const entries = spellcastingClassEntries(classLevels);
+  if (!entries.length) return null;
+  return {
+    entries,
+    normalSlots: normalSpellSlotsForClassLevels(classLevels),
+    pact: pactMagicForClassLevels(classLevels),
+    guidance: entries.map(spellcastingGuidanceLine),
+  };
+}
+
+function buildSpellcastingFromForm(form, classLevels = []) {
+  const summary = spellcastingSummaryForClassLevels(classLevels);
+  const spells = selectedSpellIdsFromForm(form);
+  if (!summary && !spells.length) return null;
+  return {
+    classes: (summary?.entries || []).map((entry) => ({
+      className: entry.className,
+      level: entry.level,
+      ability: entry.rule.ability,
+      kind: entry.rule.kind,
+    })),
+    spells,
+    slotUsage: { normal: {}, pact: 0 },
+  };
+}
+
+function clampSlotUsage(value, maximum) {
+  return Math.max(0, Math.min(Number(maximum) || 0, Math.floor(Number(value) || 0)));
+}
+
+function spellcastingRuntimeForPlayer(player = {}) {
+  const summary = spellcastingSummaryForClassLevels(classLevelEntriesForPlayer(player));
+  if (!summary && !selectedSpellsForPlayer(player).length) return null;
+  const usage = player.spellcasting?.slotUsage || {};
+  const normalUsage = {};
+  (summary?.normalSlots || []).forEach((maximum, index) => {
+    normalUsage[index + 1] = clampSlotUsage(usage.normal?.[index + 1], maximum);
+  });
+  const pactUsage = summary?.pact ? clampSlotUsage(usage.pact, summary.pact.slots) : 0;
+  return {
+    ...(summary || { entries: [], normalSlots: [], pact: null, guidance: [] }),
+    spells: selectedSpellsForPlayer(player),
+    slotUsage: { normal: normalUsage, pact: pactUsage },
+  };
 }
 
 function abilityModifier(score) {
@@ -1802,6 +1983,7 @@ function buildPlayerCharacter(form) {
     ),
     homebrewFeatureTextForEquipment(equipment)
   );
+  const spellcasting = buildSpellcastingFromForm(form, classLevels);
   return {
     id: createId("player"),
     campaignId: DEFAULT_CAMPAIGN_ID,
@@ -1828,6 +2010,7 @@ function buildPlayerCharacter(form) {
     ]),
     combat,
     attacks: [...equipmentAttacks, ...manualAttacks],
+    spellcasting,
     personality: {
       traits: formValue(form, "#player-personality-traits"),
       ideals: formValue(form, "#player-ideals"),
@@ -6433,6 +6616,102 @@ function attackInputMarkup(index) {
     </div>`;
 }
 
+function playerSpellcastingFormMarkup() {
+  return `
+    <fieldset class="sheet-form-section spellcasting-form-section" id="player-spellcasting-section" hidden>
+      <legend>Starting spells</legend>
+      <div class="spellcasting-form-summary full-width" id="player-spellcasting-summary"></div>
+      <label class="full-width">Search spells<input id="player-spell-search" type="search" placeholder="Filter by spell name, school, level, or casting time..." /></label>
+      <div class="spell-picker-count full-width" id="player-spell-picker-count"></div>
+      <div class="spell-picker-list full-width" id="player-spell-picker-list"></div>
+    </fieldset>`;
+}
+
+function spellPickerCardMarkup(spell, selectedSet) {
+  const searchText = [spell.name, spell.levelName, spell.school, spell.castingTime, spell.range, spell.duration, (spell.classes || []).join(" ")].join(" ");
+  return `
+    <label class="spell-picker-card" data-spell-picker-card data-searchable="${escapeHtml(normalizeRulesText(searchText))}">
+      <input type="checkbox" name="player-spells" value="${escapeHtml(spell.id)}" ${selectedSet.has(spell.id) ? "checked" : ""} />
+      <span>
+        <strong>${escapeHtml(spell.name)}</strong>
+        <small>${escapeHtml(spell.levelName || spellLevelLabel(spell.level))} · ${escapeHtml(spell.school)} · ${escapeHtml(spell.castingTime)}</small>
+      </span>
+    </label>`;
+}
+
+function spellPickerLevelGroupMarkup(level, spells, selectedSet) {
+  return `
+    <section class="spell-picker-level-group" data-spell-picker-level-group>
+      <h3>${escapeHtml(spellLevelLabel(level))}</h3>
+      <div class="spell-picker-grid">
+        ${spells.map((spell) => spellPickerCardMarkup(spell, selectedSet)).join("")}
+      </div>
+    </section>`;
+}
+
+function updateSpellPickerCount(form) {
+  const count = form.querySelector("#player-spell-picker-count");
+  if (!count) return;
+  const selected = selectedSpellIdsFromForm(form).length;
+  const summary = spellcastingSummaryForClassLevels(classLevelEntriesFromForm(form));
+  const guide = summary?.guidance?.join(" · ") || "";
+  count.textContent = `${selected} selected${guide ? ` · ${guide}` : ""}`;
+}
+
+function filterSpellPicker(form) {
+  const query = normalizeRulesText(form.querySelector("#player-spell-search")?.value || "");
+  form.querySelectorAll?.("[data-spell-picker-card]").forEach((card) => {
+    card.hidden = Boolean(query) && !String(card.dataset.searchable || "").includes(query);
+  });
+  form.querySelectorAll?.("[data-spell-picker-level-group]").forEach((group) => {
+    const visibleCards = Array.from(group.querySelectorAll?.("[data-spell-picker-card]") || []).filter((card) => !card.hidden);
+    group.hidden = !visibleCards.length;
+  });
+}
+
+function updatePlayerSpellPicker(form) {
+  const section = form.querySelector("#player-spellcasting-section");
+  const summaryTarget = form.querySelector("#player-spellcasting-summary");
+  const list = form.querySelector("#player-spell-picker-list");
+  if (!section || !summaryTarget || !list) return;
+  const classLevels = classLevelEntriesFromForm(form);
+  const summary = spellcastingSummaryForClassLevels(classLevels);
+  const selectedSet = new Set(selectedSpellIdsFromForm(form));
+  const spells = availableSpellsForClassLevels(classLevels);
+  section.hidden = !summary;
+  if (!summary) {
+    summaryTarget.innerHTML = "";
+    list.innerHTML = "";
+    return;
+  }
+  const normalSlots = summary.normalSlots.length
+    ? summary.normalSlots.map((amount, index) => `${spellLevelLabel(index + 1)}: ${amount}`).join(" · ")
+    : "";
+  const pactSlots = summary.pact ? `Pact Magic: ${summary.pact.slots} ${spellLevelLabel(summary.pact.level)} slot${summary.pact.slots === 1 ? "" : "s"}` : "";
+  summaryTarget.innerHTML = `
+    ${widgetTagsMarkup([
+      ...summary.entries.map((entry) => `${entry.className} spellcasting (${entry.rule.ability})`),
+      normalSlots,
+      pactSlots,
+    ].filter(Boolean))}
+    <p>${escapeHtml(summary.guidance.join(" · "))}</p>
+    <p>Normal spell slots recover on a long rest. Warlock Pact Magic slots recover on a short or long rest.</p>`;
+  if (!spellCollection().length) {
+    list.innerHTML = `<div class="empty-state">Spell data is still loading. Save the character after the compendium finishes loading.</div>`;
+    return;
+  }
+  if (!spells.length) {
+    list.innerHTML = `<div class="empty-state">This class and level does not have selectable starting spells yet.</div>`;
+    return;
+  }
+  const grouped = Array.from({ length: 10 }, (_, level) => spells.filter((spell) => Number(spell.level) === level));
+  list.innerHTML = grouped.map((levelSpells, level) => (
+    levelSpells.length ? spellPickerLevelGroupMarkup(level, levelSpells, selectedSet) : ""
+  )).join("");
+  filterSpellPicker(form);
+  updateSpellPickerCount(form);
+}
+
 function playerCharacterFormMarkup(options = {}) {
   const saveLabel = options.saveLabel || "ADD ANOTHER PLAYER";
   const continueLabel = options.continueLabel || "GO ON";
@@ -6525,6 +6804,8 @@ function playerCharacterFormMarkup(options = {}) {
           </div>
         </div>
       </fieldset>
+
+      ${playerSpellcastingFormMarkup()}
 
       <fieldset class="sheet-form-section">
         <legend>Equipment and features</legend>
@@ -6632,6 +6913,7 @@ function updatePlayerFormDerivedFields(form) {
   if (multiclassTotal) multiclassTotal.textContent = `Level ${totalLevelForClassLevels(classLevels) || level}`;
   const multiclassSummary = document.getElementById("player-multiclass-summary");
   if (multiclassSummary) multiclassSummary.innerHTML = multiclassSummaryMarkup(classLevels, scores);
+  updatePlayerSpellPicker(form);
 }
 
 function rollAbilityScore() {
@@ -7541,6 +7823,73 @@ function sheetEquipmentItemsMarkup(player, equipmentText = "", wildShape = useWi
     </section>`;
 }
 
+function spellSlotButtonsMarkup({ kind, level, total, used }) {
+  return `
+    <div class="spell-slot-row">
+      <span>${escapeHtml(kind === "pact" ? `Pact ${spellLevelLabel(level)}` : spellLevelLabel(level))}</span>
+      <div class="spell-slot-buttons">
+        ${Array.from({ length: total }, (_, index) => {
+          const slotNumber = index + 1;
+          const isUsed = slotNumber <= used;
+          return `<button class="spell-slot-button ${isUsed ? "is-used" : ""}" type="button" data-spell-slot-kind="${escapeHtml(kind)}" data-spell-slot-level="${escapeHtml(level)}" data-spell-slot-used="${escapeHtml(isUsed ? slotNumber - 1 : slotNumber)}" title="${escapeHtml(isUsed ? "Mark slot available" : "Mark slot used")}">${escapeHtml(slotNumber)}</button>`;
+        }).join("")}
+      </div>
+      <strong>${escapeHtml(Math.max(0, total - used))}/${escapeHtml(total)} left</strong>
+    </div>`;
+}
+
+function sheetSpellCardMarkup(spell) {
+  return `
+    <button class="sheet-spell-card" type="button" data-sheet-spell-id="${escapeHtml(spell.id)}" data-spell-title="${escapeHtml(spell.name)}" data-spell-level="${escapeHtml(spell.levelName || spellLevelLabel(spell.level))}" data-spell-details="${escapeHtml(spell.description || "")}">
+      <strong>${escapeHtml(spell.name)}</strong>
+      <span>${escapeHtml(spell.levelName || spellLevelLabel(spell.level))} · ${escapeHtml(spell.school)}</span>
+      <small>${escapeHtml(spell.castingTime)} · ${escapeHtml(spell.range)} · ${escapeHtml(spell.duration)}</small>
+    </button>`;
+}
+
+function sheetSpellcastingMarkup(player, wildShape = useWildShape(player)) {
+  const runtime = spellcastingRuntimeForPlayer(player);
+  if (!runtime) return "";
+  const spellsByLevel = Array.from({ length: 10 }, (_, level) => runtime.spells.filter((spell) => Number(spell.level) === level));
+  const normalSlotRows = runtime.normalSlots.map((total, index) => spellSlotButtonsMarkup({
+    kind: "normal",
+    level: index + 1,
+    total,
+    used: runtime.slotUsage.normal[index + 1] || 0,
+  })).join("");
+  const pactSlotRows = runtime.pact ? spellSlotButtonsMarkup({
+    kind: "pact",
+    level: runtime.pact.level,
+    total: runtime.pact.slots,
+    used: runtime.slotUsage.pact || 0,
+  }) : "";
+  return `
+    <section class="sheet-box sheet-widget sheet-spellcasting-widget" data-sheet-widget="spellcasting">
+      <h3><span>Spellcasting</span><small>${escapeHtml(runtime.entries.map((entry) => `${entry.className} ${entry.rule.ability}`).join(" / "))}</small></h3>
+      ${wildShape.overlay ? `<p class="wild-shape-limited-note">Original spellcasting is limited while transformed.</p>` : ""}
+      <div class="spell-slot-panel">
+        ${normalSlotRows || pactSlotRows ? `
+          ${normalSlotRows}
+          ${pactSlotRows}` : `<p>No spell slots at this level.</p>`}
+      </div>
+      <div class="spell-recovery-note">
+        <p>Normal spell slots recover when you finish a long rest.</p>
+        ${runtime.pact ? `<p>Warlock Pact Magic slots recover when you finish a short or long rest.</p>` : ""}
+        <div class="spell-rest-actions">
+          <button class="btn btn-secondary" type="button" data-spell-rest="short">Short rest</button>
+          <button class="btn btn-secondary" type="button" data-spell-rest="long">Long rest</button>
+        </div>
+      </div>
+      <div class="sheet-spell-list">
+        ${runtime.spells.length ? spellsByLevel.map((spells, level) => spells.length ? `
+          <section>
+            <h4>${escapeHtml(spellLevelLabel(level))}</h4>
+            <div class="sheet-spell-grid">${spells.map(sheetSpellCardMarkup).join("")}</div>
+          </section>` : "").join("") : `<p>No starting spells selected.</p>`}
+      </div>
+    </section>`;
+}
+
 function characterSheetOverlays(player = {}) {
   return `
     ${BeastShapeSelector(player)}
@@ -7573,6 +7922,15 @@ function characterSheetOverlays(player = {}) {
         <p class="eyebrow" id="sheet-equipment-type">Equipment</p>
         <h2 id="sheet-equipment-title"></h2>
         <p id="sheet-equipment-details"></p>
+      </article>
+    </div>
+    <div class="sheet-modal" id="sheet-spell-modal" hidden>
+      <button class="sheet-modal-backdrop" type="button" data-close-sheet-spell aria-label="Close spell details"></button>
+      <article class="sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="sheet-spell-title">
+        <button class="sheet-modal-close" type="button" data-close-sheet-spell aria-label="Close">&times;</button>
+        <p class="eyebrow" id="sheet-spell-level">Spell</p>
+        <h2 id="sheet-spell-title"></h2>
+        <p id="sheet-spell-details"></p>
       </article>
     </div>`;
 }
@@ -7652,6 +8010,7 @@ function characterSheetMarkup(player) {
               <tbody>${playerAttackRows(player)}</tbody>
             </table>
           </section>
+          ${sheetSpellcastingMarkup(player, wildShape)}
           ${sheetEquipmentItemsMarkup(player, equipmentText, wildShape)}
         </section>
 
@@ -7708,6 +8067,48 @@ function updatePlayerWildShapeState(campaignId, playerId, transform) {
   });
 }
 
+function updatePlayerSpellcastingState(campaignId, playerId, transform) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  return upsertCampaign({
+    ...campaign,
+    players: (campaign.players || []).map((player) => (
+      player.id === playerId ? transform(player) : player
+    )),
+  });
+}
+
+function setPlayerSpellSlotUsage(player = {}, kind = "normal", level = 1, used = 0) {
+  const next = {
+    ...player,
+    spellcasting: {
+      ...(player.spellcasting || {}),
+      slotUsage: {
+        normal: { ...(player.spellcasting?.slotUsage?.normal || {}) },
+        pact: Number(player.spellcasting?.slotUsage?.pact) || 0,
+      },
+    },
+  };
+  if (kind === "pact") next.spellcasting.slotUsage.pact = Math.max(0, Math.floor(Number(used) || 0));
+  else next.spellcasting.slotUsage.normal[level] = Math.max(0, Math.floor(Number(used) || 0));
+  return next;
+}
+
+function recoverPlayerSpellSlots(player = {}, restType = "long") {
+  const next = {
+    ...player,
+    spellcasting: {
+      ...(player.spellcasting || {}),
+      slotUsage: {
+        normal: { ...(player.spellcasting?.slotUsage?.normal || {}) },
+        pact: 0,
+      },
+    },
+  };
+  if (restType === "long") next.spellcasting.slotUsage.normal = {};
+  return next;
+}
+
 function bindCharacterSheetInteractions(campaignId, playerId) {
   const sheet = document.querySelector(".character-sheet-paper");
   if (!sheet) return;
@@ -7724,6 +8125,10 @@ function bindCharacterSheetInteractions(campaignId, playerId) {
   const equipmentTitle = sheet.querySelector("#sheet-equipment-title");
   const equipmentType = sheet.querySelector("#sheet-equipment-type");
   const equipmentDetails = sheet.querySelector("#sheet-equipment-details");
+  const spellModal = sheet.querySelector("#sheet-spell-modal");
+  const spellTitle = sheet.querySelector("#sheet-spell-title");
+  const spellLevel = sheet.querySelector("#sheet-spell-level");
+  const spellDetails = sheet.querySelector("#sheet-spell-details");
   let activeEditPath = "";
 
   sheet.querySelector("[data-open-wild-shape-selector]")?.addEventListener("click", () => {
@@ -7790,6 +8195,38 @@ function bindCharacterSheetInteractions(campaignId, playerId) {
 
   sheet.querySelectorAll("[data-close-sheet-equipment]").forEach((button) => {
     button.addEventListener("click", () => { equipmentModal.hidden = true; });
+  });
+
+  sheet.querySelectorAll("[data-sheet-spell-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      spellTitle.textContent = button.dataset.spellTitle || "Spell";
+      spellLevel.textContent = button.dataset.spellLevel || "Spell";
+      spellDetails.textContent = button.dataset.spellDetails || "No spell details available.";
+      spellModal.hidden = false;
+    });
+  });
+
+  sheet.querySelectorAll("[data-close-sheet-spell]").forEach((button) => {
+    button.addEventListener("click", () => { spellModal.hidden = true; });
+  });
+
+  sheet.querySelectorAll("[data-spell-slot-kind]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updatePlayerSpellcastingState(campaignId, playerId, (player) => setPlayerSpellSlotUsage(
+        player,
+        button.dataset.spellSlotKind,
+        button.dataset.spellSlotLevel,
+        button.dataset.spellSlotUsed
+      ));
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
+  });
+
+  sheet.querySelectorAll("[data-spell-rest]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updatePlayerSpellcastingState(campaignId, playerId, (player) => recoverPlayerSpellSlots(player, button.dataset.spellRest));
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
   });
 
   sheet.querySelectorAll("[data-edit-sheet-field]").forEach((button) => {
