@@ -1562,7 +1562,7 @@ test("wild shape overlay preserves original character data and renders temporary
     formType: "Standard",
     sourceUrl: "https://dnd-5e.fandom.com/wiki/Wolf",
     skills: { perception: 3, stealth: 4 },
-    actions: [{ name: "Bite", description: "Melee Weapon Attack: +4 to hit." }],
+    actions: [{ name: "Bite", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 7 (2d4 + 2) piercing damage." }],
   }];
   const druid = {
     id: "player-druid",
@@ -1586,11 +1586,20 @@ test("wild shape overlay preserves original character data and renders temporary
   assert.equal(transformed.wildShapeOverlay.abilities.wisdom, 16);
   assert.equal(transformed.wildShapeOverlay.armorClass, 13);
   assert.equal(transformed.wildShapeOverlay.spellcastingDisabled, true);
+  assert.equal(transformed.wildShapeOverlay.actions[0].attackBonus, "+4");
+  assert.equal(transformed.wildShapeOverlay.actions[0].damageDice, "2d4");
+  assert.equal(transformed.wildShapeOverlay.actions[0].damageBonus, "+2");
+  assert.equal(transformed.wildShapeOverlay.actions[0].damageType, "piercing");
 
   const markup = app.characterSheetMarkup(transformed);
   assert.match(markup, /wild-shape-active-panel/);
+  assert.match(markup, /wild-shape-banner/);
+  assert.match(markup, /beast-hp-panel/);
+  assert.match(markup, /wild-shape-mechanics-grid/);
   assert.match(markup, /Beast Actions/);
-  assert.match(markup, /Original: 8/);
+  assert.match(markup, /Beast Traits/);
+  assert.doesNotMatch(markup, /Quarterstaff/);
+  assert.match(markup, /Original 8/);
 
   const reverted = app.revertWildShape(transformed);
   assert.equal(reverted.activeWildShape, undefined);

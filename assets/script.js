@@ -973,6 +973,56 @@ function wildShapeSkillBonus(player = {}, shape = {}, skill = {}) {
   return Number.isFinite(beastBonus) ? Math.max(ownBonus, beastBonus) : ownBonus;
 }
 
+function parseWildShapeDamageFormula(formula = "") {
+  const match = String(formula).trim().match(/^(\d+d\d+(?:\s*[+-]\s*\d+)?)$/i);
+  if (!match) return { dice: "", bonus: "", formula: String(formula || "").trim() };
+  const bonusMatch = match[1].match(/([+-])\s*(\d+)$/);
+  const dice = match[1].replace(/\s*[+-]\s*\d+$/, "").trim();
+  return {
+    dice,
+    bonus: bonusMatch ? `${bonusMatch[1]}${bonusMatch[2]}` : "",
+    formula: match[1].replace(/\s+/g, " ").trim(),
+  };
+}
+
+function parseWildShapeAttackAction(action = {}) {
+  const description = String(action.description || "");
+  const attackMatch = description.match(/(?:Melee|Ranged|Melee or Ranged)\s+Weapon Attack:\s*([+-]\d+)\s+to hit,?\s*([\s\S]*?)(?=\s*Hit:|$)/i);
+  const hitMatch = description.match(/Hit:\s*(?:\d+\s*)?\(([^)]+)\)\s+([a-z]+)\s+damage\.?/i);
+  const fallbackHitMatch = description.match(/Hit:\s*([^.]*)/i);
+  const parsedDamage = parseWildShapeDamageFormula(hitMatch?.[1] || "");
+  const damageType = hitMatch?.[2] || "";
+  const consumed = [attackMatch?.[0], hitMatch?.[0], fallbackHitMatch && !hitMatch ? fallbackHitMatch[0] : ""].filter(Boolean);
+  const notes = consumed.reduce((text, part) => text.replace(part, ""), description).trim();
+  return {
+    name: action.name || "Action",
+    attackBonus: attackMatch?.[1] || "",
+    reachRange: attackMatch?.[2]?.replace(/\.$/, "").trim() || "",
+    damageDice: parsedDamage.dice,
+    damageBonus: parsedDamage.bonus,
+    damageFormula: parsedDamage.formula,
+    damageType,
+    damageTypeText: parsedDamage.formula && damageType ? `${parsedDamage.formula} ${damageType}` : (fallbackHitMatch?.[1]?.trim() || ""),
+    notes: notes.replace(/\s+/g, " ").replace(/^\s*[,.]\s*/, ""),
+    description,
+    isAttack: Boolean(attackMatch || hitMatch),
+  };
+}
+
+function wildShapeAttackActions(shape = {}) {
+  return beastShapeActions(shape)
+    .filter((action) => !/legendary|lair/i.test(action.name || ""))
+    .map(parseWildShapeAttackAction);
+}
+
+function wildShapeActionSummary(action = {}) {
+  return [
+    action.attackBonus ? `${action.attackBonus} to hit` : "",
+    action.damageTypeText,
+    action.reachRange,
+  ].filter(Boolean).join(" · ") || action.description || "No action details listed.";
+}
+
 function wildShapeOverlayForPlayer(player = {}, shape = {}, activeState = {}) {
   const abilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, wildShapeAbilityScore(player, shape, ability.key)]));
   return {
@@ -991,7 +1041,7 @@ function wildShapeOverlayForPlayer(player = {}, shape = {}, activeState = {}) {
     skills: Object.fromEntries(SKILLS.map((skill) => [skill.key, wildShapeSkillBonus(player, shape, skill)])),
     senses: wildShapeSenses(shape),
     traits: beastShapeTraits(shape),
-    actions: beastShapeActions(shape).filter((action) => !/legendary|lair/i.test(action.name || "")),
+    actions: wildShapeAttackActions(shape),
     spellcastingDisabled: true,
     concentrationRetained: true,
     speechHandsLimited: true,
@@ -7533,31 +7583,39 @@ function WildShapeBadge(label = "Wild Shape") {
   return `<span class="wild-shape-badge">${escapeHtml(label)}</span>`;
 }
 
+function WildShapeSourceChip(label = "Beast", variant = "beast") {
+  return `<span class="wild-shape-source-chip is-${escapeHtml(variant)}">${escapeHtml(label)}</span>`;
+}
+
 function WildShapeButton(player = {}) {
   if (!isDruidCharacter(player)) return "";
+  const wildShape = useWildShape(player);
+  const active = Boolean(wildShape.overlay);
   const disabled = characterHasWildShapeAccess(player) ? "" : " disabled";
   return `
-    <section class="sheet-box wild-shape-control">
+    <section class="sheet-box wild-shape-control ${active ? "is-active" : ""}">
       <div>
-        <h3><span>Druid Wild Shape</span>${WildShapeBadge(characterHasWildShapeAccess(player) ? "Available" : "Locked")}</h3>
-        <p>${escapeHtml(wildShapeLimitText(player))}</p>
+        <h3><span>Druid Wild Shape</span>${WildShapeBadge(active ? "Active" : (characterHasWildShapeAccess(player) ? "Available" : "Locked"))}</h3>
+        <p>${escapeHtml(active ? "Choose another legal beast form or revert from the active form below." : wildShapeLimitText(player))}</p>
       </div>
-      <button class="btn btn-primary" type="button" data-open-wild-shape-selector${disabled}>Wild Shape</button>
+      <button class="btn ${active ? "btn-secondary" : "btn-primary"}" type="button" data-open-wild-shape-selector${disabled}>${active ? "Change Form" : "Wild Shape"}</button>
     </section>`;
 }
 
 function WildShapeStatWidget(label, originalValue, beastValue, options = {}) {
   const original = originalValue === 0 ? 0 : (originalValue || "—");
   const beast = beastValue === 0 ? 0 : (beastValue || "—");
+  const sourceLabel = options.sourceLabel || "Beast";
+  const sourceVariant = options.sourceVariant || "beast";
   return `
-    <div class="sheet-field wild-shape-stat-widget ${options.compact ? "is-compact" : ""}">
-      <span>${escapeHtml(label)} ${WildShapeBadge("Wild Shape")}</span>
+    <div class="sheet-field wild-shape-stat-widget ${options.compact ? "is-compact" : ""} is-${escapeHtml(sourceVariant)}">
+      <span>${escapeHtml(label)} ${WildShapeSourceChip(sourceLabel, sourceVariant)}</span>
       <strong>${escapeHtml(beast)}</strong>
       <small>Original: ${escapeHtml(original)}</small>
     </div>`;
 }
 
-function WildShapeAbilityBox(player = {}, ability = {}, wildShape = {}) {
+function StatOverrideCard(player = {}, ability = {}, wildShape = {}) {
   const overlay = wildShape.overlay;
   const original = abilityScore(player, ability.key) || "10";
   if (!overlay) {
@@ -7568,44 +7626,108 @@ function WildShapeAbilityBox(player = {}, ability = {}, wildShape = {}) {
         <small>${signedModifier(abilityModifier(original))}</small>
       </div>`;
   }
-  const beast = overlay.abilities[ability.key] || original;
   const retained = WILD_SHAPE_MENTAL_ABILITIES.includes(ability.key);
+  const current = retained ? original : (overlay.abilities[ability.key] || original);
+  const changed = String(current) !== String(original);
   return `
-    <div class="ability-score-box wild-shape-ability-box ${retained ? "is-retained" : ""}">
-      <span>${escapeHtml(ability.label)} ${WildShapeBadge(retained ? "Retained" : "Beast")}</span>
-      <strong>${escapeHtml(beast)}</strong>
-      <small>${signedModifier(abilityModifier(beast))}</small>
-      <em>Original: ${escapeHtml(original)}</em>
+    <div class="ability-score-box stat-override-card ${retained ? "is-retained" : "is-overridden"} ${changed ? "has-change" : ""}">
+      <div class="stat-override-card__top">
+        <span>${escapeHtml(ability.short || ability.label)}</span>
+        ${WildShapeSourceChip(retained ? "Retained" : "Beast", retained ? "retained" : "beast")}
+      </div>
+      <strong>${escapeHtml(current)}</strong>
+      <small>${signedModifier(abilityModifier(current))}</small>
+      <em>Original ${escapeHtml(original)}</em>
     </div>`;
+}
+
+function WildShapeAbilityBox(player = {}, ability = {}, wildShape = {}) {
+  return StatOverrideCard(player, ability, wildShape);
+}
+
+function WildShapeBanner(player = {}, wildShape = {}) {
+  const overlay = wildShape.overlay;
+  if (!overlay) return "";
+  const chips = [
+    overlay.sizeType || "Beast form",
+    `CR ${overlay.cr || "—"}`,
+    overlay.speed || "",
+    "Concentration retained",
+  ].filter(hasText);
+  return `
+    <div class="wild-shape-banner">
+      <div class="wild-shape-banner__status">
+        <span class="wild-shape-status-dot" aria-hidden="true"></span>
+        <span>Wild Shape Active</span>
+      </div>
+      <div class="wild-shape-banner__main">
+        <div>
+          <h2>${escapeHtml(overlay.beastName)}</h2>
+          <p>${escapeHtml(player.characterName || "Character")} is using a temporary beast form.</p>
+        </div>
+        <div class="wild-shape-chip-row" aria-label="Active form details">
+          ${chips.map((chip) => `<span class="wild-shape-chip">${escapeHtml(chip)}</span>`).join("")}
+        </div>
+      </div>
+      <button class="btn btn-secondary wild-shape-revert-button" type="button" data-revert-wild-shape>Revert</button>
+    </div>`;
+}
+
+function BeastHpPanel(player = {}, wildShape = {}) {
+  const overlay = wildShape.overlay;
+  if (!overlay) return "";
+  const maxHp = Number(overlay.hitPointMaximum) || 0;
+  const currentHp = Number(overlay.currentHp) || 0;
+  const originalHp = player.combat?.hitPointMaximum || player.wildShapeOriginalSnapshot?.combat?.hitPointMaximum || "—";
+  const hpPercent = maxHp ? Math.max(0, Math.min(100, Math.round((currentHp / maxHp) * 100))) : 0;
+  const zeroWarning = currentHp <= 0;
+  return `
+    <section class="beast-hp-panel" aria-labelledby="beast-hp-title">
+      <div class="beast-hp-panel__summary">
+        <span id="beast-hp-title">Beast vitality</span>
+        <strong>${escapeHtml(currentHp)} / ${escapeHtml(maxHp || "—")} HP</strong>
+        <small>Separate from character HP. Original max: ${escapeHtml(originalHp)}</small>
+      </div>
+      <div class="beast-hp-meter" role="meter" aria-label="Beast hit points" aria-valuemin="0" aria-valuemax="${escapeHtml(maxHp || 0)}" aria-valuenow="${escapeHtml(Math.max(0, currentHp))}">
+        <span style="width: ${escapeHtml(hpPercent)}%"></span>
+      </div>
+      <div class="beast-hp-panel__controls">
+        <label>
+          <span>Current HP</span>
+          <input type="number" data-wild-shape-hp value="${escapeHtml(currentHp)}" min="-999" max="${escapeHtml(maxHp || 999)}" />
+        </label>
+        <button class="btn btn-secondary" type="button" data-update-wild-shape-hp>Update</button>
+      </div>
+      ${zeroWarning ? `<p class="wild-shape-warning">Beast form is at 0 HP. Prepare to carry over ${escapeHtml(overlay.excessDamagePending || 0)} excess damage on revert.</p>` : ""}
+    </section>`;
+}
+
+function TransformationEffectList(wildShape = {}) {
+  const overlay = wildShape.overlay;
+  if (!overlay) return "";
+  const effects = [
+    ["Spellcasting", "Disabled while transformed; concentration is retained."],
+    ["Equipment", `${overlay.equipmentMode || "Merged"} placeholder for this form.`],
+    ["Anatomy", "Speech and hand-required actions depend on the beast body."],
+  ];
+  return `
+    <section class="transformation-effects" aria-label="Transformation effects">
+      ${effects.map(([label, text]) => `
+        <div class="transformation-effect">
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(text)}</span>
+        </div>`).join("")}
+    </section>`;
 }
 
 function WildShapeOverlay(player = {}, wildShape = useWildShape(player)) {
   if (!wildShape.overlay) return "";
-  const overlay = wildShape.overlay;
-  const zeroWarning = Number(overlay.currentHp) <= 0;
   return `
-    <section class="sheet-box wild-shape-active-panel">
-      <div class="wild-shape-active-header">
-        <div>
-          <p class="eyebrow">Temporary form</p>
-          <h3><span>${escapeHtml(overlay.beastName)}</span>${WildShapeBadge("Active")}</h3>
-          <p>${escapeHtml(overlay.sizeType)} · CR ${escapeHtml(overlay.cr)} · ${escapeHtml(overlay.speed)}</p>
-        </div>
-        <button class="btn btn-secondary" type="button" data-revert-wild-shape>Revert</button>
-      </div>
-      <div class="wild-shape-hp-tracker">
-        <label>
-          Beast HP
-          <input type="number" data-wild-shape-hp value="${escapeHtml(overlay.currentHp)}" min="-999" max="${escapeHtml(overlay.hitPointMaximum || 999)}" />
-        </label>
-        <span>${escapeHtml(overlay.currentHp)} / ${escapeHtml(overlay.hitPointMaximum || "—")}</span>
-        <button class="btn btn-secondary" type="button" data-update-wild-shape-hp>Update HP</button>
-      </div>
-      ${zeroWarning ? `<p class="wild-shape-warning">Beast form is at 0 HP. Revert and carry over ${escapeHtml(overlay.excessDamagePending || 0)} excess damage if applicable.</p>` : ""}
-      <div class="wild-shape-rule-notes">
-        <span>Spellcasting disabled; concentration retained.</span>
-        <span>Speech and hand-required actions depend on beast anatomy.</span>
-        <span>Equipment placeholder: ${escapeHtml(overlay.equipmentMode)}.</span>
+    <section class="wild-shape-active-panel">
+      ${WildShapeBanner(player, wildShape)}
+      <div class="wild-shape-active-panel__body">
+        ${BeastHpPanel(player, wildShape)}
+        ${TransformationEffectList(wildShape)}
       </div>
     </section>`;
 }
@@ -7614,7 +7736,12 @@ function WildShapeActionMarkup(action = {}) {
   return `
     <article class="wild-shape-action-card">
       <strong>${escapeHtml(action.name || "Action")}</strong>
-      <p>${escapeHtml(action.description || "No action details listed.")}</p>
+      <dl>
+        <div><dt>To hit</dt><dd>${escapeHtml(action.attackBonus || "—")}</dd></div>
+        <div><dt>Damage</dt><dd>${escapeHtml(action.damageTypeText || "—")}</dd></div>
+        ${action.reachRange ? `<div><dt>Reach/Range</dt><dd>${escapeHtml(action.reachRange)}</dd></div>` : ""}
+      </dl>
+      ${action.notes ? `<p>${escapeHtml(action.notes)}</p>` : ""}
     </article>`;
 }
 
@@ -7629,9 +7756,15 @@ function WildShapeAttackOverlay(player = {}, wildShape = useWildShape(player)) {
     </section>`;
 }
 
-function WildShapeEquipmentNote(player = {}, wildShape = useWildShape(player)) {
+function WildShapeBeastActionsWidget(player = {}, wildShape = useWildShape(player)) {
   if (!wildShape.overlay) return "";
-  return `<div class="wild-shape-equipment-note">${WildShapeBadge("Wild Shape")} Equipment behavior is pending full rules support. Marked as ${escapeHtml(wildShape.overlay.equipmentMode)} for this temporary form.</div>`;
+  const actions = wildShape.overlay.actions || [];
+  return `
+    <section class="sheet-box wild-shape-actions-widget">
+      <h3><span>Beast Actions</span>${WildShapeSourceChip("Replaces equipment", "beast")}</h3>
+      <p class="wild-shape-limited-note">Normal equipment is ${escapeHtml(wildShape.overlay.equipmentMode)} while transformed. Use the beast stat block actions below.</p>
+      ${actions.length ? `<div class="wild-shape-action-list">${actions.map(WildShapeActionMarkup).join("")}</div>` : `<p>No beast actions are listed for this form.</p>`}
+    </section>`;
 }
 
 function BeastShapeSelector(player = {}) {
@@ -7743,11 +7876,14 @@ function traitIconLabel(title = "") {
   return words.slice(0, 2).map((word) => word[0]).join("").toUpperCase();
 }
 
-function sheetTraitButtonsMarkup(player) {
-  const blocks = featureBlocksForPlayer(player);
+function sheetTraitButtonsMarkup(player, wildShape = useWildShape(player)) {
+  const beastTraits = wildShape.overlay?.traits || [];
+  const blocks = wildShape.overlay
+    ? beastTraits.map((trait) => ({ title: trait, details: beastTraitDescription(trait) }))
+    : featureBlocksForPlayer(player);
   return `
-    <section class="sheet-box sheet-widget sheet-traits-widget" data-sheet-widget="features">
-      <h3><span>Traits</span>${sheetEditButton("Traits", "features")}</h3>
+    <section class="sheet-box sheet-widget sheet-traits-widget ${wildShape.overlay ? "wild-shape-traits-widget" : ""}" data-sheet-widget="features">
+      <h3><span>${wildShape.overlay ? "Beast Traits" : "Traits"}</span>${wildShape.overlay ? WildShapeSourceChip("Beast", "beast") : sheetEditButton("Traits", "features")}</h3>
       ${blocks.length ? `
         <div class="sheet-trait-grid">
           ${blocks.map((block, index) => `
@@ -7794,13 +7930,13 @@ function sheetEquipmentItemDetails(item = "", player = {}) {
 }
 
 function sheetEquipmentItemsMarkup(player, equipmentText = "", wildShape = useWildShape(player)) {
+  if (wildShape.overlay) return WildShapeBeastActionsWidget(player, wildShape);
   const items = equipmentItems(player.equipment);
   const goldLine = Number(player.gold) > 0 ? `${player.gold} GP` : "";
-  if (!items.length && !goldLine) return `${sheetTextBlock("Equipment", equipmentText, "equipment")}${WildShapeEquipmentNote(player, wildShape)}`;
+  if (!items.length && !goldLine) return sheetTextBlock("Equipment", equipmentText, "equipment");
   return `
     <section class="sheet-box sheet-widget sheet-equipment-widget" data-sheet-widget="equipment">
       <h3><span>Equipment</span>${sheetEditButton("Equipment", "equipment")}</h3>
-      ${WildShapeEquipmentNote(player, wildShape)}
       ${items.length ? `
         <div class="sheet-equipment-grid">
           ${items.map((item, index) => {
@@ -7850,6 +7986,13 @@ function sheetSpellCardMarkup(spell) {
 function sheetSpellcastingMarkup(player, wildShape = useWildShape(player)) {
   const runtime = spellcastingRuntimeForPlayer(player);
   if (!runtime) return "";
+  if (wildShape.overlay) {
+    return `
+      <section class="sheet-box sheet-widget sheet-spellcasting-widget wild-shape-spellcasting-widget" data-sheet-widget="spellcasting">
+        <h3><span>Spellcasting</span>${WildShapeSourceChip("Disabled", "override")}</h3>
+        <p>Wild Shape prevents casting spells in beast form. Existing concentration is retained, and spell slots are not changed by this temporary state.</p>
+      </section>`;
+  }
   const spellsByLevel = Array.from({ length: 10 }, (_, level) => runtime.spells.filter((spell) => Number(spell.level) === level));
   const normalSlotRows = runtime.normalSlots.map((total, index) => spellSlotButtonsMarkup({
     kind: "normal",
@@ -7866,7 +8009,6 @@ function sheetSpellcastingMarkup(player, wildShape = useWildShape(player)) {
   return `
     <section class="sheet-box sheet-widget sheet-spellcasting-widget" data-sheet-widget="spellcasting">
       <h3><span>Spellcasting</span><small>${escapeHtml(runtime.entries.map((entry) => `${entry.className} ${entry.rule.ability}`).join(" / "))}</small></h3>
-      ${wildShape.overlay ? `<p class="wild-shape-limited-note">Original spellcasting is limited while transformed.</p>` : ""}
       <div class="spell-slot-panel">
         ${normalSlotRows || pactSlotRows ? `
           ${normalSlotRows}
@@ -7945,7 +8087,27 @@ function playerSheetAttacks(player = {}) {
   return [...equipmentAttacks, ...manualAttacks];
 }
 
-function playerAttackRows(player) {
+function wildShapeAttackRows(wildShape = {}) {
+  const attacks = wildShape.overlay?.actions || [];
+  if (!attacks.length) {
+    return `<tr><td colspan="3">No beast attacks are listed for this form.</td></tr>`;
+  }
+  return attacks.map((attack) => `
+    <tr class="wild-shape-attack-row">
+      <td>
+        <strong>${escapeHtml(attack.name || "Action")}</strong>
+        ${attack.reachRange ? `<small>${escapeHtml(attack.reachRange)}</small>` : ""}
+      </td>
+      <td>${escapeHtml(attack.attackBonus || "—")}</td>
+      <td>
+        ${escapeHtml(attack.damageTypeText || "—")}
+        ${attack.notes ? `<small>${escapeHtml(attack.notes)}</small>` : ""}
+      </td>
+    </tr>`).join("");
+}
+
+function playerAttackRows(player, wildShape = useWildShape(player)) {
+  if (wildShape.overlay) return wildShapeAttackRows(wildShape);
   const sheetAttacks = playerSheetAttacks(player);
   const attacks = sheetAttacks.length ? sheetAttacks : [{ name: "", attackBonus: "", damageType: "" }];
   return attacks.map((attack) => `
@@ -7954,6 +8116,41 @@ function playerAttackRows(player) {
       <td>${escapeHtml(attack.attackBonus || "—")}</td>
       <td>${escapeHtml(attack.damageType || "—")}</td>
     </tr>`).join("");
+}
+
+function WildShapeMechanicCard(label, currentValue, sourceLabel, originalValue = "", options = {}) {
+  const sourceVariant = options.sourceVariant || (sourceLabel === "Character" ? "retained" : "beast");
+  const current = currentValue === 0 ? 0 : (currentValue || "—");
+  const original = originalValue === 0 ? 0 : originalValue;
+  return `
+    <div class="wild-shape-mechanic-card is-${escapeHtml(sourceVariant)}">
+      <div>
+        <span>${escapeHtml(label)}</span>
+        ${WildShapeSourceChip(sourceLabel, sourceVariant)}
+      </div>
+      <strong>${escapeHtml(current)}</strong>
+      ${original !== "" && original !== undefined ? `<small>Original ${escapeHtml(original)}</small>` : ""}
+    </div>`;
+}
+
+function WildShapeMechanicsGrid(player = {}, wildShape = useWildShape(player), combat = player.combat || {}) {
+  const overlay = wildShape.overlay;
+  if (!overlay) return "";
+  const originalInitiative = signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity")));
+  const beastInitiative = signedModifier(abilityModifier(overlay.abilities.dexterity));
+  return `
+    <section class="sheet-box wild-shape-mechanics-widget">
+      <h3><span>Transformed Mechanics</span>${WildShapeSourceChip("Temporary", "override")}</h3>
+      <div class="wild-shape-mechanics-grid">
+        ${WildShapeMechanicCard("Armor Class", overlay.armorClass, "Beast", combat.armorClass)}
+        ${WildShapeMechanicCard("Initiative", beastInitiative, "Beast", originalInitiative)}
+        ${WildShapeMechanicCard("Speed", overlay.speed, "Beast", combat.speed ? `${combat.speed} ft.` : "")}
+        ${WildShapeMechanicCard("Hit Points", `${overlay.currentHp} / ${overlay.hitPointMaximum}`, "Beast", combat.hitPointMaximum)}
+        ${WildShapeMechanicCard("Hit Dice", overlay.hitDice, "Beast", combat.hitDice)}
+        ${WildShapeMechanicCard("Senses", overlay.senses, "Beast")}
+        ${WildShapeMechanicCard("Passive Perception", 10 + (overlay.skills?.perception ?? skillBonus(player, SKILLS.find((skill) => skill.key === "perception"))), "Merged", playerPassivePerception(player), { sourceVariant: "override" })}
+      </div>
+    </section>`;
 }
 
 function characterSheetMarkup(player) {
@@ -7971,7 +8168,7 @@ function characterSheetMarkup(player) {
     (player.toolProficiencies || []).length ? `Tools: ${(player.toolProficiencies || []).map(toolLabel).join(", ")}` : "",
   ].filter(hasText).join("\n");
   return `
-    <article class="character-sheet-paper">
+    <article class="character-sheet-paper ${overlay ? "is-wild-shape-active" : ""}">
       <header class="sheet-header-grid">
         ${sheetField("Character Name", player.characterName)}
         ${sheetField("Class & Level", classSummary || `${player.classRole || "—"}${player.level ? ` ${player.level}` : ""}`)}
@@ -7988,27 +8185,28 @@ function characterSheetMarkup(player) {
             ${ABILITIES.map((ability) => WildShapeAbilityBox(player, ability, wildShape)).join("")}
           </div>
           ${sheetSkillGroupsMarkup(player, wildShape)}
-          ${overlay ? WildShapeStatWidget("Passive Wisdom (Perception)", playerPassivePerception(player), 10 + (overlay.skills?.perception ?? skillBonus(player, SKILLS.find((skill) => skill.key === "perception")))) : sheetField("Passive Wisdom (Perception)", playerPassivePerception(player))}
+          ${overlay ? "" : sheetField("Passive Wisdom (Perception)", playerPassivePerception(player))}
           ${sheetTextBlock("Other Proficiencies & Languages", proficiencyText)}
         </aside>
 
         <section class="sheet-column">
+          ${overlay ? WildShapeMechanicsGrid(player, wildShape, combat) : `
           <div class="combat-sheet-grid">
-            ${overlay ? WildShapeStatWidget("Armor Class", combat.armorClass, overlay.armorClass) : sheetField("Armor Class", combat.armorClass)}
-            ${overlay ? WildShapeStatWidget("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))), signedModifier(abilityModifier(overlay.abilities.dexterity)), { compact: true }) : sheetField("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))))}
-            ${overlay ? WildShapeStatWidget("Speed", combat.speed ? `${combat.speed} ft.` : "", overlay.speed) : sheetField("Speed", combat.speed ? `${combat.speed} ft.` : "")}
+            ${sheetField("Armor Class", combat.armorClass)}
+            ${sheetField("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))))}
+            ${sheetField("Speed", combat.speed ? `${combat.speed} ft.` : "")}
           </div>
           <div class="hit-point-grid">
-            ${overlay ? WildShapeStatWidget("Hit Points", combat.hitPointMaximum, `${overlay.currentHp} / ${overlay.hitPointMaximum}`) : sheetField("Hit Points", combat.hitPointMaximum)}
-            ${overlay ? WildShapeStatWidget("Hit Dice", combat.hitDice, overlay.hitDice) : sheetField("Hit Dice", combat.hitDice)}
-          </div>
-          <section class="sheet-box">
-            <h3>Attacks &amp; Spellcasting</h3>
-            ${WildShapeAttackOverlay(player, wildShape)}
+            ${sheetField("Hit Points", combat.hitPointMaximum)}
+            ${sheetField("Hit Dice", combat.hitDice)}
+          </div>`}
+          <section class="sheet-box ${overlay ? "wild-shape-attacks-table" : ""}">
+            <h3>${overlay ? `<span>Beast Attacks</span>${WildShapeSourceChip("Actions", "beast")}` : "Attacks &amp; Spellcasting"}</h3>
             <table class="sheet-table">
               <thead><tr><th>Name</th><th>Atk Bonus</th><th>Damage / Type</th></tr></thead>
-              <tbody>${playerAttackRows(player)}</tbody>
+              <tbody>${playerAttackRows(player, wildShape)}</tbody>
             </table>
+            ${overlay ? `<p class="wild-shape-limited-note">These are parsed from the beast stat block. Character weapons and spell attacks are hidden while transformed.</p>` : ""}
           </section>
           ${sheetSpellcastingMarkup(player, wildShape)}
           ${sheetEquipmentItemsMarkup(player, equipmentText, wildShape)}
@@ -8019,7 +8217,7 @@ function characterSheetMarkup(player) {
           ${sheetTextBlock("Ideals", player.personality?.ideals, "personality.ideals")}
           ${sheetTextBlock("Bonds", player.personality?.bonds, "personality.bonds")}
           ${sheetTextBlock("Flaws", player.personality?.flaws, "personality.flaws")}
-          ${sheetTraitButtonsMarkup(player)}
+          ${sheetTraitButtonsMarkup(player, wildShape)}
           ${sheetTextBlock("Backstory / Notes", player.notes, "notes")}
         </section>
       </div>
