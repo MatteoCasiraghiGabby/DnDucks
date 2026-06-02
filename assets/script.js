@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   campaigns: "dnducks.campaigns",
   comics: "dnducks.comics",
   dmOnly: "dnducks.dmOnly",
+  combatEncounter: "dnducks.combatEncounter",
 };
 
 const USER_WIDGET_COLLECTIONS = new Set(["notes", "characters", "items", "encounters", "locations", "events", "comics"]);
@@ -508,6 +509,24 @@ const WEAPON_PROPERTY_OPTIONS = [
 ];
 
 const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder"];
+const COMBATANT_TYPES = ["player", "npc", "monster"];
+const COMBATANT_STATUSES = ["active", "defeated", "hidden"];
+const COMBAT_CONDITIONS = [
+  "blinded", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible",
+  "paralyzed", "poisoned", "prone", "restrained", "stunned", "unconscious",
+];
+
+const DEFAULT_COMBAT_ENCOUNTER = {
+  id: "active-combat",
+  name: "Active combat",
+  combatants: [],
+  currentRound: 1,
+  currentTurnIndex: 0,
+  activeCombatantId: "",
+  combatStarted: false,
+  skipDefeated: true,
+  manualOrder: false,
+};
 
 function normalizeCampaign(campaign = {}) {
   return {
@@ -2205,6 +2224,131 @@ function dashboardHref() {
   return "index.html#dashboard";
 }
 
+function combatHref() {
+  return "index.html#/combat";
+}
+
+function detailNumberFromText(value = "", patterns = []) {
+  const text = String(value || "");
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return Number(match[1]);
+  }
+  return "";
+}
+
+function monsterStatisticNumber(item = {}, keys = [], patterns = []) {
+  const stats = item.statistics || {};
+  for (const key of keys) {
+    const value = numberOrBlank(stats[key] ?? item[key]);
+    if (value !== "") return value;
+  }
+  return detailNumberFromText([item.description, stats.description, stats.notes].filter(Boolean).join(" "), patterns);
+}
+
+function repeatedCombatantName(encounter = {}, baseName = "", type = "monster", entityId = "") {
+  const name = String(baseName || "Combatant").trim();
+  if (type !== "monster") return name;
+  const normalizedName = normalizeRulesText(name);
+  const count = (encounter.combatants || []).filter((combatant) => (
+    (entityId && combatant.entityId === entityId) || normalizeRulesText(combatant.name).replace(/\s+\d+$/, "") === normalizedName
+  )).length;
+  return `${name} ${count + 1}`;
+}
+
+function combatantFromPlayer(player = {}, campaignId = DEFAULT_CAMPAIGN_ID, encounter = getCombatEncounter()) {
+  const combat = player.combat || {};
+  const name = playerDisplayName(player);
+  const maxHp = numberOrBlank(combat.hitPointMaximum);
+  return normalizeCombatant({
+    id: createId("combatant-player"),
+    entityId: player.id,
+    type: "player",
+    name,
+    avatarUrl: combatantAvatarUrl({ ...player, imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl }),
+    armorClass: numberOrBlank(combat.armorClass),
+    currentHp: numberOrBlank(combat.currentHitPoints) || maxHp,
+    maxHp,
+    initiativeModifier: Number.isFinite(Number(combat.initiative)) ? Number(combat.initiative) : abilityModifier(player.abilities?.dexterity),
+    status: "active",
+    conditions: [],
+    detailRoute: playerCharacterHref(campaignId, player.id),
+    sourceLabel: player.playerName || "Player character",
+  }, encounter.combatants?.length || 0);
+}
+
+function combatantFromNpc(npc = {}, encounter = getCombatEncounter()) {
+  const name = firstDisplayText([npc.name, npc.title], "NPC");
+  const ac = numberOrBlank(npc.armorClass ?? npc.ac) || detailNumberFromText(npc.notes, [/\bAC\s*(\d+)/i, /\barmor class\s*(\d+)/i]);
+  const maxHp = numberOrBlank(npc.maxHp ?? npc.hp ?? npc.hitPoints) || detailNumberFromText(npc.notes, [/\bHP\s*(\d+)/i, /\bhit points?\s*(\d+)/i]);
+  return normalizeCombatant({
+    id: createId("combatant-npc"),
+    entityId: npc.id,
+    type: "npc",
+    name,
+    avatarUrl: combatantAvatarUrl(npc),
+    armorClass: ac,
+    currentHp: numberOrBlank(npc.currentHp) || maxHp,
+    maxHp,
+    initiativeModifier: numberOrBlank(npc.initiativeModifier) || 0,
+    status: "active",
+    conditions: [],
+    sourceLabel: npc.role || npc.faction || "NPC",
+  }, encounter.combatants?.length || 0);
+}
+
+function combatantFromMonster(item = {}, encounter = getCombatEncounter()) {
+  const stats = item.statistics || {};
+  const baseName = firstDisplayText([item.name], "Monster");
+  const name = repeatedCombatantName(encounter, baseName, "monster", item.id);
+  const ac = monsterStatisticNumber(item, ["armorClass", "ac"], [/\bAC\s*(\d+)/i, /\barmor class\s*(\d+)/i]);
+  const maxHp = monsterStatisticNumber(item, ["maxHp", "hp", "hitPoints"], [/\bHP\s*(\d+)/i, /\bhit points?\s*(\d+)/i]);
+  const dexterity = numberOrBlank(stats.dexterity ?? item.dexterity);
+  return normalizeCombatant({
+    id: createId("combatant-monster"),
+    entityId: item.id,
+    type: "monster",
+    name,
+    avatarUrl: combatantAvatarUrl(item),
+    armorClass: ac,
+    currentHp: maxHp,
+    maxHp,
+    initiativeModifier: numberOrBlank(stats.initiativeModifier ?? item.initiativeModifier) || abilityModifier(dexterity),
+    status: "active",
+    conditions: [],
+    sourceLabel: item.type || "Monster",
+  }, encounter.combatants?.length || 0);
+}
+
+function combatantSources() {
+  const campaign = currentCampaign();
+  return {
+    players: (campaign.players || []).map((player) => ({
+      id: player.id,
+      label: playerDisplayName(player),
+      sublabel: [player.classRole, player.level ? `Level ${player.level}` : ""].filter(Boolean).join(" · "),
+      type: "player",
+      combatant: combatantFromPlayer(player, campaign.id, getCombatEncounter()),
+    })),
+    npcs: getStoredCollection("characters").map((npc) => ({
+      id: npc.id,
+      label: firstDisplayText([npc.name], "NPC"),
+      sublabel: [npc.role, npc.faction].filter(Boolean).join(" · "),
+      type: "npc",
+      combatant: combatantFromNpc(npc, getCombatEncounter()),
+    })),
+    monsters: getStoredCollection("items")
+      .filter((item) => String(item?.type || "").trim().toLowerCase() === "monster")
+      .map((monster) => ({
+        id: monster.id,
+        label: firstDisplayText([monster.name], "Monster"),
+        sublabel: monster.description || "Homebrew monster",
+        type: "monster",
+        combatant: combatantFromMonster(monster, getCombatEncounter()),
+      })),
+  };
+}
+
 function updateTopNavActivePage(page) {
   const nav = document.querySelector(".topnav");
   if (!nav) return;
@@ -2213,6 +2357,7 @@ function updateTopNavActivePage(page) {
     dashboard: "index.html",
     media: "index.html#/media",
     maps: "index.html#/maps",
+    combat: "index.html#/combat",
     comics: "index.html#/comics",
     spells: "spells.html",
     "beast-shapes": "beast-shapes.html",
@@ -2285,6 +2430,305 @@ function saveCollection(key, collection) {
     ? collection.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean)
     : collection;
   setStoredJson(STORAGE_KEYS[key], nextCollection);
+}
+
+function numberOrBlank(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : "";
+}
+
+function combatantAvatarUrl(source = {}) {
+  return source.avatarUrl || source.imageUrl || source.imageDataUrl || source.image?.url || "";
+}
+
+function combatantInitials(name = "") {
+  return String(name || "?")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "?";
+}
+
+function normalizeCombatant(combatant = {}, index = 0) {
+  const type = COMBATANT_TYPES.includes(combatant.type) ? combatant.type : "monster";
+  const maxHp = numberOrBlank(combatant.maxHp);
+  const currentHp = numberOrBlank(combatant.currentHp);
+  const initiativeModifier = Number(combatant.initiativeModifier) || 0;
+  const initiativeRoll = numberOrBlank(combatant.initiativeRoll);
+  const initiativeScore = numberOrBlank(combatant.initiativeScore);
+  const status = COMBATANT_STATUSES.includes(combatant.status) ? combatant.status : "active";
+  return {
+    id: String(combatant.id || createId("combatant")),
+    entityId: String(combatant.entityId || ""),
+    type,
+    name: String(combatant.name || `${type} ${index + 1}`).trim(),
+    avatarUrl: String(combatant.avatarUrl || ""),
+    armorClass: numberOrBlank(combatant.armorClass),
+    currentHp: currentHp === "" ? maxHp : currentHp,
+    maxHp,
+    initiativeModifier,
+    initiativeRoll,
+    initiativeScore,
+    status,
+    conditions: Array.isArray(combatant.conditions)
+      ? combatant.conditions.map((condition) => String(condition || "").trim().toLowerCase()).filter(Boolean)
+      : [],
+    isTemporary: Boolean(combatant.isTemporary),
+    detailRoute: String(combatant.detailRoute || ""),
+    sourceLabel: String(combatant.sourceLabel || ""),
+  };
+}
+
+function normalizeCombatEncounter(encounter = {}) {
+  const combatants = Array.isArray(encounter.combatants)
+    ? encounter.combatants.map(normalizeCombatant)
+    : [];
+  const requestedActiveIndex = combatants.findIndex((combatant) => combatant.id === encounter.activeCombatantId);
+  const currentTurnIndex = requestedActiveIndex >= 0
+    ? requestedActiveIndex
+    : Math.max(0, Math.min(combatants.length - 1, Number(encounter.currentTurnIndex) || 0));
+  const activeCombatantId = combatants[currentTurnIndex]?.id || "";
+  return {
+    ...DEFAULT_COMBAT_ENCOUNTER,
+    ...encounter,
+    id: String(encounter.id || DEFAULT_COMBAT_ENCOUNTER.id),
+    name: String(encounter.name || DEFAULT_COMBAT_ENCOUNTER.name),
+    combatants,
+    currentRound: Math.max(1, Number(encounter.currentRound) || 1),
+    currentTurnIndex,
+    activeCombatantId,
+    combatStarted: Boolean(encounter.combatStarted),
+    skipDefeated: encounter.skipDefeated !== false,
+    manualOrder: Boolean(encounter.manualOrder),
+  };
+}
+
+function getCombatEncounter() {
+  const raw = localStorage.getItem(STORAGE_KEYS.combatEncounter);
+  if (!raw) return normalizeCombatEncounter(DEFAULT_COMBAT_ENCOUNTER);
+  try {
+    return normalizeCombatEncounter(JSON.parse(raw));
+  } catch (error) {
+    console.warn("Could not parse combat encounter from localStorage", error);
+    return normalizeCombatEncounter(DEFAULT_COMBAT_ENCOUNTER);
+  }
+}
+
+function saveCombatEncounter(encounter) {
+  const normalized = normalizeCombatEncounter(encounter);
+  setStoredJson(STORAGE_KEYS.combatEncounter, normalized);
+  return normalized;
+}
+
+function resetCombatEncounter(name = "Active combat") {
+  return saveCombatEncounter({ ...DEFAULT_COMBAT_ENCOUNTER, name });
+}
+
+function rollD20() {
+  return Math.floor(Math.random() * 20) + 1;
+}
+
+function rollInitiativeForCombatant(combatant, roller = rollD20) {
+  const initiativeRoll = Math.max(1, Math.min(20, Number(roller(combatant)) || 1));
+  const initiativeModifier = Number(combatant.initiativeModifier) || 0;
+  return {
+    ...normalizeCombatant(combatant),
+    initiativeRoll,
+    initiativeModifier,
+    initiativeScore: initiativeRoll + initiativeModifier,
+  };
+}
+
+function sortCombatantsByInitiative(combatants = []) {
+  return combatants.map(normalizeCombatant).sort((left, right) => {
+    const leftScore = Number.isFinite(Number(left.initiativeScore)) ? Number(left.initiativeScore) : -999;
+    const rightScore = Number.isFinite(Number(right.initiativeScore)) ? Number(right.initiativeScore) : -999;
+    if (rightScore !== leftScore) return rightScore - leftScore;
+    if ((Number(right.initiativeModifier) || 0) !== (Number(left.initiativeModifier) || 0)) {
+      return (Number(right.initiativeModifier) || 0) - (Number(left.initiativeModifier) || 0);
+    }
+    return String(left.name).localeCompare(String(right.name)) || String(left.id).localeCompare(String(right.id));
+  });
+}
+
+function rollInitiativeForAll(encounter = getCombatEncounter(), roller = rollD20) {
+  const normalized = normalizeCombatEncounter(encounter);
+  const combatants = sortCombatantsByInitiative(normalized.combatants.map((combatant) => rollInitiativeForCombatant(combatant, roller)));
+  return normalizeCombatEncounter({
+    ...normalized,
+    combatants,
+    currentRound: normalized.combatStarted ? normalized.currentRound : 1,
+    currentTurnIndex: 0,
+    activeCombatantId: combatants[0]?.id || "",
+    manualOrder: false,
+  });
+}
+
+function combatantIsTurnEligible(combatant, skipDefeated = true) {
+  if (!combatant) return false;
+  if (!skipDefeated) return true;
+  return !["defeated", "hidden"].includes(combatant.status);
+}
+
+function nextTurnIndex(encounter = {}, direction = 1) {
+  const normalized = normalizeCombatEncounter(encounter);
+  const combatants = normalized.combatants;
+  if (!combatants.length) return { index: 0, round: normalized.currentRound };
+  if (!combatants.some((combatant) => combatantIsTurnEligible(combatant, normalized.skipDefeated))) {
+    return { index: normalized.currentTurnIndex, round: normalized.currentRound };
+  }
+
+  let index = normalized.currentTurnIndex;
+  let round = normalized.currentRound;
+  for (let attempts = 0; attempts < combatants.length; attempts += 1) {
+    index += direction;
+    if (index >= combatants.length) {
+      index = 0;
+      round += 1;
+    }
+    if (index < 0) {
+      if (round <= 1) {
+        index = 0;
+        round = 1;
+        break;
+      }
+      index = combatants.length - 1;
+      round -= 1;
+    }
+    if (combatantIsTurnEligible(combatants[index], normalized.skipDefeated)) break;
+  }
+  return { index, round: Math.max(1, round) };
+}
+
+function startCombatEncounter(encounter = getCombatEncounter(), roller = rollD20) {
+  const normalized = normalizeCombatEncounter(encounter);
+  if (!normalized.combatants.length) return normalized;
+  const hasInitiative = normalized.combatants.every((combatant) => Number.isFinite(Number(combatant.initiativeScore)));
+  const withInitiative = hasInitiative ? normalized : rollInitiativeForAll(normalized, roller);
+  const firstEligibleIndex = withInitiative.combatants.findIndex((combatant) => combatantIsTurnEligible(combatant, withInitiative.skipDefeated));
+  const currentTurnIndex = Math.max(0, firstEligibleIndex);
+  return normalizeCombatEncounter({
+    ...withInitiative,
+    currentRound: 1,
+    currentTurnIndex,
+    activeCombatantId: withInitiative.combatants[currentTurnIndex]?.id || "",
+    combatStarted: true,
+  });
+}
+
+function advanceCombatTurn(encounter = getCombatEncounter()) {
+  const normalized = normalizeCombatEncounter(encounter);
+  if (!normalized.combatStarted) return normalized;
+  const next = nextTurnIndex(normalized, 1);
+  return normalizeCombatEncounter({
+    ...normalized,
+    currentRound: next.round,
+    currentTurnIndex: next.index,
+    activeCombatantId: normalized.combatants[next.index]?.id || "",
+  });
+}
+
+function previousCombatTurn(encounter = getCombatEncounter()) {
+  const normalized = normalizeCombatEncounter(encounter);
+  if (!normalized.combatStarted) return normalized;
+  const previous = nextTurnIndex(normalized, -1);
+  return normalizeCombatEncounter({
+    ...normalized,
+    currentRound: previous.round,
+    currentTurnIndex: previous.index,
+    activeCombatantId: normalized.combatants[previous.index]?.id || "",
+  });
+}
+
+function moveCombatant(encounter = getCombatEncounter(), combatantId = "", delta = 0) {
+  const normalized = normalizeCombatEncounter(encounter);
+  const index = normalized.combatants.findIndex((combatant) => combatant.id === combatantId);
+  if (index < 0) return normalized;
+  const targetIndex = Math.max(0, Math.min(normalized.combatants.length - 1, index + delta));
+  if (targetIndex === index) return normalized;
+  const combatants = [...normalized.combatants];
+  const [combatant] = combatants.splice(index, 1);
+  combatants.splice(targetIndex, 0, combatant);
+  const activeCombatantId = normalized.activeCombatantId || normalized.combatants[normalized.currentTurnIndex]?.id;
+  const currentTurnIndex = Math.max(0, combatants.findIndex((item) => item.id === activeCombatantId));
+  return normalizeCombatEncounter({ ...normalized, combatants, currentTurnIndex, activeCombatantId, manualOrder: true });
+}
+
+function moveCombatantBefore(encounter = getCombatEncounter(), combatantId = "", beforeCombatantId = "") {
+  const normalized = normalizeCombatEncounter(encounter);
+  if (!combatantId || combatantId === beforeCombatantId) return normalized;
+  const combatants = [...normalized.combatants];
+  const fromIndex = combatants.findIndex((combatant) => combatant.id === combatantId);
+  const toIndex = combatants.findIndex((combatant) => combatant.id === beforeCombatantId);
+  if (fromIndex < 0 || toIndex < 0) return normalized;
+  const [combatant] = combatants.splice(fromIndex, 1);
+  combatants.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, combatant);
+  const activeCombatantId = normalized.activeCombatantId || normalized.combatants[normalized.currentTurnIndex]?.id;
+  const currentTurnIndex = Math.max(0, combatants.findIndex((item) => item.id === activeCombatantId));
+  return normalizeCombatEncounter({ ...normalized, combatants, currentTurnIndex, activeCombatantId, manualOrder: true });
+}
+
+function removeCombatantFromEncounter(encounter = getCombatEncounter(), combatantId = "") {
+  const normalized = normalizeCombatEncounter(encounter);
+  const combatants = normalized.combatants.filter((combatant) => combatant.id !== combatantId);
+  const currentTurnIndex = Math.max(0, Math.min(combatants.length - 1, normalized.currentTurnIndex));
+  return normalizeCombatEncounter({
+    ...normalized,
+    combatants,
+    currentTurnIndex,
+    activeCombatantId: combatants[currentTurnIndex]?.id || "",
+    combatStarted: combatants.length ? normalized.combatStarted : false,
+  });
+}
+
+function updateCombatantInEncounter(encounter = getCombatEncounter(), combatantId = "", updater = (combatant) => combatant) {
+  const normalized = normalizeCombatEncounter(encounter);
+  return normalizeCombatEncounter({
+    ...normalized,
+    combatants: normalized.combatants.map((combatant) => (
+      combatant.id === combatantId ? normalizeCombatant(updater(combatant)) : combatant
+    )),
+  });
+}
+
+function addCombatantToEncounter(encounter = getCombatEncounter(), combatant = {}) {
+  const normalized = normalizeCombatEncounter(encounter);
+  const nextCombatant = normalizeCombatant(combatant, normalized.combatants.length);
+  return normalizeCombatEncounter({
+    ...normalized,
+    combatants: [...normalized.combatants, nextCombatant],
+    activeCombatantId: normalized.activeCombatantId || nextCombatant.id,
+  });
+}
+
+function hpAdjustedCombatant(combatant = {}, amount = 0) {
+  const maxHp = numberOrBlank(combatant.maxHp);
+  const currentHp = numberOrBlank(combatant.currentHp);
+  const nextHp = Math.max(0, Math.min(maxHp === "" ? 9999 : maxHp, (Number(currentHp) || 0) + Number(amount || 0)));
+  return {
+    ...combatant,
+    currentHp: nextHp,
+    status: nextHp <= 0 ? "defeated" : (combatant.status === "defeated" ? "active" : combatant.status),
+  };
+}
+
+function setCombatantCondition(combatant = {}, condition = "", enabled = true) {
+  const normalizedCondition = String(condition || "").trim().toLowerCase();
+  if (!normalizedCondition) return combatant;
+  const conditions = new Set(combatant.conditions || []);
+  if (enabled) conditions.add(normalizedCondition);
+  else conditions.delete(normalizedCondition);
+  return { ...combatant, conditions: Array.from(conditions).sort() };
+}
+
+function combatantDetailTarget(combatant = {}) {
+  if (combatant.isTemporary || !combatant.entityId) return { kind: "temporary", combatantId: combatant.id };
+  if (combatant.detailRoute) return { kind: "navigate", route: combatant.detailRoute };
+  if (combatant.type === "npc") return { kind: "widget", collectionKey: "characters", entityId: combatant.entityId };
+  if (combatant.type === "monster") return { kind: "widget", collectionKey: "items", entityId: combatant.entityId };
+  return { kind: "temporary", combatantId: combatant.id };
 }
 
 function parseStoredJsonValue(value, fallback) {
@@ -7574,6 +8018,380 @@ function renderCampaignStartNotePage(campaignId) {
   });
 }
 
+function combatTypeLabel(type = "") {
+  return { player: "Player", npc: "NPC", monster: "Monster" }[type] || "Monster";
+}
+
+function combatantHpText(combatant = {}) {
+  const current = combatant.currentHp === "" ? "—" : combatant.currentHp;
+  const max = combatant.maxHp === "" ? "—" : combatant.maxHp;
+  return `${current}/${max}`;
+}
+
+function activeCombatant(encounter = getCombatEncounter()) {
+  const normalized = normalizeCombatEncounter(encounter);
+  return normalized.combatants[normalized.currentTurnIndex] || null;
+}
+
+function combatantAvatarMarkup(combatant = {}, options = {}) {
+  const imageUrl = resolveBackendUrl(combatant.avatarUrl);
+  const label = `${combatant.name} details`;
+  return `
+    <button class="combatant-avatar ${options.large ? "is-large" : ""}" type="button" data-combatant-detail="${escapeHtml(combatant.id)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}">
+      ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(combatant.name)}" />` : `<span>${escapeHtml(combatantInitials(combatant.name))}</span>`}
+    </button>`;
+}
+
+function combatantConditionMarkup(combatant = {}) {
+  const conditions = combatant.conditions || [];
+  return conditions.length
+    ? `<div class="combat-condition-row">${conditions.map((condition) => `<button type="button" data-remove-condition="${escapeHtml(condition)}">${escapeHtml(condition)}</button>`).join("")}</div>`
+    : `<span class="combat-empty-note">No conditions</span>`;
+}
+
+function initiativeTimelineMarkup(encounter = getCombatEncounter()) {
+  const activeId = encounter.activeCombatantId || encounter.combatants[encounter.currentTurnIndex]?.id;
+  if (!encounter.combatants.length) return `<div class="empty-state">No combatants yet. Add players, NPCs, or monsters to build the initiative line.</div>`;
+  return `<ol class="combat-timeline" aria-label="Initiative order">
+    ${encounter.combatants.map((combatant, index) => {
+      const isActive = combatant.id === activeId;
+      return `
+      <li class="combat-timeline-item ${isActive ? "is-active" : ""} is-${escapeHtml(combatant.status)}" draggable="true" data-combatant-id="${escapeHtml(combatant.id)}">
+        <div class="combat-timeline-position">${escapeHtml(index + 1)}</div>
+        ${combatantAvatarMarkup(combatant)}
+        <div class="combat-timeline-main">
+          <div><strong>${escapeHtml(combatant.name)}</strong><span>${escapeHtml(combatTypeLabel(combatant.type))}</span></div>
+          <small>Init ${escapeHtml(combatant.initiativeScore === "" ? "—" : combatant.initiativeScore)} · HP ${escapeHtml(combatantHpText(combatant))}</small>
+        </div>
+        <span class="status-badge ${combatant.status === "defeated" ? "status-completed" : combatant.status === "hidden" ? "status-hidden" : "status-active"}">${escapeHtml(combatant.status)}</span>
+        <div class="combat-order-actions">
+          <button type="button" class="btn btn-ghost" data-move-combatant="${escapeHtml(combatant.id)}" data-move-delta="-1" aria-label="Move ${escapeHtml(combatant.name)} up">↑</button>
+          <button type="button" class="btn btn-ghost" data-move-combatant="${escapeHtml(combatant.id)}" data-move-delta="1" aria-label="Move ${escapeHtml(combatant.name)} down">↓</button>
+        </div>
+      </li>`;
+    }).join("")}
+  </ol>`;
+}
+
+function activeCombatantPanelMarkup(encounter = getCombatEncounter()) {
+  const combatant = activeCombatant(encounter);
+  if (!combatant) return `<section class="panel combat-active-panel"><div class="empty-state">Add combatants to see the active turn controls.</div></section>`;
+  return `
+    <section class="panel combat-active-panel" aria-label="Active combatant controls">
+      <div class="combat-active-header">
+        ${combatantAvatarMarkup(combatant, { large: true })}
+        <div>
+          <p class="eyebrow">Active turn</p>
+          <h2>${escapeHtml(combatant.name)}</h2>
+          <div class="tag-row">
+            <span class="tag">${escapeHtml(combatTypeLabel(combatant.type))}</span>
+            <span class="tag">AC ${escapeHtml(combatant.armorClass || "—")}</span>
+            <span class="tag">HP ${escapeHtml(combatantHpText(combatant))}</span>
+            <span class="tag">Initiative ${escapeHtml(combatant.initiativeScore === "" ? "—" : combatant.initiativeScore)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="combat-hp-controls">
+        <label>Amount<input id="combat-hp-amount" type="number" step="1" min="0" value="1" /></label>
+        <button class="btn btn-danger" type="button" data-active-hp-action="damage">Damage</button>
+        <button class="btn btn-secondary" type="button" data-active-hp-action="heal">Heal</button>
+        <button class="btn btn-secondary" type="button" data-active-hp-action="set">Set HP</button>
+      </div>
+      <div class="combat-status-controls">
+        <label>Status<select id="combat-active-status">
+          ${COMBATANT_STATUSES.map((status) => `<option value="${escapeHtml(status)}" ${combatant.status === status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}
+        </select></label>
+        <label>Condition<select id="combat-condition-select">
+          ${COMBAT_CONDITIONS.map((condition) => `<option value="${escapeHtml(condition)}">${escapeHtml(condition)}</option>`).join("")}
+        </select></label>
+        <button class="btn btn-secondary" type="button" data-add-condition>Add condition</button>
+      </div>
+      ${combatantConditionMarkup(combatant)}
+    </section>`;
+}
+
+function combatantCardMarkup(combatant = {}, activeId = "") {
+  const isActive = combatant.id === activeId;
+  return `
+    <article class="combatant-card ${isActive ? "is-active" : ""} is-${escapeHtml(combatant.status)}" data-combatant-id="${escapeHtml(combatant.id)}">
+      ${combatantAvatarMarkup(combatant)}
+      <div>
+        <strong>${escapeHtml(combatant.name)}</strong>
+        <span>${escapeHtml(combatTypeLabel(combatant.type))} · Init ${escapeHtml(combatant.initiativeScore === "" ? "—" : combatant.initiativeScore)} · HP ${escapeHtml(combatantHpText(combatant))}</span>
+        ${combatant.conditions?.length ? `<small>${escapeHtml(combatant.conditions.join(", "))}</small>` : ""}
+      </div>
+      <div class="combatant-card-actions">
+        <button class="btn btn-ghost" type="button" data-select-active-combatant="${escapeHtml(combatant.id)}">Turn</button>
+        <button class="btn btn-danger" type="button" data-remove-combatant="${escapeHtml(combatant.id)}">Remove</button>
+      </div>
+    </article>`;
+}
+
+function sourceListMarkup(title = "", sources = [], emptyText = "") {
+  return `
+    <section class="combat-source-group">
+      <h3>${escapeHtml(title)}</h3>
+      ${sources.length ? sources.map((source) => `
+        <article class="combat-source-card">
+          <div><strong>${escapeHtml(source.label)}</strong><span>${escapeHtml(source.sublabel || combatTypeLabel(source.type))}</span></div>
+          <button class="btn btn-secondary" type="button" data-add-source-type="${escapeHtml(source.type)}" data-add-source-id="${escapeHtml(source.id)}">Add</button>
+        </article>`).join("") : `<div class="empty-state">${escapeHtml(emptyText)}</div>`}
+    </section>`;
+}
+
+function addCombatantPanelMarkup() {
+  const sources = combatantSources();
+  return `
+    <aside class="panel combat-add-panel">
+      <div class="section-heading"><div><p class="eyebrow">Roster</p><h2>Add combatants</h2></div></div>
+      ${sourceListMarkup("Players", sources.players, "No player characters saved yet.")}
+      ${sourceListMarkup("NPCs", sources.npcs, "No saved NPCs yet.")}
+      ${sourceListMarkup("Monsters", sources.monsters, "No homebrew monsters yet.")}
+      <form class="combat-temp-form" id="combat-temp-form">
+        <h3>Temporary combatant</h3>
+        <label>Name<input id="combat-temp-name" type="text" placeholder="Goblin, Bandit, Lair hazard..." required /></label>
+        <label>Type<select id="combat-temp-type"><option value="monster">Monster</option><option value="npc">NPC</option><option value="player">Player</option></select></label>
+        <label>Armor Class<input id="combat-temp-ac" type="number" min="0" step="1" placeholder="15" /></label>
+        <label>Max HP<input id="combat-temp-hp" type="number" min="0" step="1" placeholder="7" /></label>
+        <label>Initiative Mod<input id="combat-temp-init" type="number" step="1" placeholder="2" /></label>
+        <button class="btn btn-primary" type="submit">Add temporary</button>
+      </form>
+    </aside>`;
+}
+
+function combatantFromSource(type = "", entityId = "", encounter = getCombatEncounter()) {
+  if (type === "player") {
+    const campaign = currentCampaign();
+    const player = (campaign.players || []).find((item) => item.id === entityId);
+    return player ? combatantFromPlayer(player, campaign.id, encounter) : null;
+  }
+  if (type === "npc") {
+    const npc = getStoredCollection("characters").find((item) => item.id === entityId);
+    return npc ? combatantFromNpc(npc, encounter) : null;
+  }
+  if (type === "monster") {
+    const monster = getStoredCollection("items").find((item) => item.id === entityId);
+    return monster ? combatantFromMonster(monster, encounter) : null;
+  }
+  return null;
+}
+
+function temporaryCombatantFromForm(form, encounter = getCombatEncounter()) {
+  const type = formValue(form, "#combat-temp-type") || "monster";
+  const name = repeatedCombatantName(encounter, formValue(form, "#combat-temp-name") || combatTypeLabel(type), type);
+  const maxHp = numberFormValue(form, "#combat-temp-hp");
+  return normalizeCombatant({
+    id: createId("combatant-temp"),
+    type,
+    name,
+    armorClass: numberFormValue(form, "#combat-temp-ac"),
+    currentHp: maxHp,
+    maxHp,
+    initiativeModifier: numberFormValue(form, "#combat-temp-init") || 0,
+    status: "active",
+    conditions: [],
+    isTemporary: true,
+    sourceLabel: "Temporary",
+  }, encounter.combatants.length);
+}
+
+function renderTemporaryCombatantDetail(combatant = {}) {
+  const panel = document.getElementById("combat-temp-detail");
+  if (!panel) return;
+  panel.hidden = false;
+  panel.innerHTML = `
+    <div class="combat-detail-drawer">
+      <button class="widget-detail-close" type="button" data-close-temp-detail aria-label="Close temporary combatant detail">×</button>
+      <p class="eyebrow">Temporary combatant</p>
+      <h2>${escapeHtml(combatant.name)}</h2>
+      <dl class="widget-detail-meta">${widgetDetailRows([
+        ["Type", combatTypeLabel(combatant.type)],
+        ["Armor Class", combatant.armorClass],
+        ["Hit Points", combatantHpText(combatant)],
+        ["Initiative", combatant.initiativeScore === "" ? "Not rolled" : combatant.initiativeScore],
+        ["Status", combatant.status],
+        ["Conditions", (combatant.conditions || []).join(", ")],
+      ])}</dl>
+    </div>`;
+}
+
+function activateCombatantDetail(combatant = {}) {
+  const target = combatantDetailTarget(combatant);
+  if (target.kind === "navigate") {
+    window.location.href = target.route;
+    return target;
+  }
+  if (target.kind === "widget") {
+    openWidgetDetail(target.collectionKey, target.entityId);
+    return target;
+  }
+  renderTemporaryCombatantDetail(combatant);
+  return target;
+}
+
+function saveCombatAndRender(encounter) {
+  saveCombatEncounter(encounter);
+  renderCombatPage();
+}
+
+function renderCombatPage() {
+  updateTopNavActivePage("combat");
+  const encounter = getCombatEncounter();
+  const combatant = activeCombatant(encounter);
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell combat-page">
+      <div class="page-hero combat-hero">
+        <div>
+          <p class="eyebrow">Combat tracker</p>
+          <h1>${escapeHtml(encounter.name)}</h1>
+          <p>${escapeHtml(combatant ? `Active: ${combatant.name}` : "Build an initiative order, roll once, and run turns from one screen.")}</p>
+        </div>
+        <div class="combat-hero-stats">
+          <div><span>Round</span><strong>${escapeHtml(encounter.currentRound)}</strong></div>
+          <div><span>Turn</span><strong>${escapeHtml(encounter.combatants.length ? encounter.currentTurnIndex + 1 : 0)} / ${escapeHtml(encounter.combatants.length)}</strong></div>
+        </div>
+      </div>
+
+      <div class="combat-control-bar panel">
+        <label>Encounter name<input id="combat-encounter-name" type="text" value="${escapeHtml(encounter.name)}" /></label>
+        <label class="checkbox-row"><input id="combat-skip-defeated" type="checkbox" ${encounter.skipDefeated ? "checked" : ""} /><span>Skip defeated and hidden</span></label>
+        <button class="btn btn-secondary" type="button" id="combat-roll-all">Roll initiative</button>
+        <button class="btn btn-primary" type="button" id="combat-start" ${encounter.combatants.length ? "" : "disabled"}>${encounter.combatStarted ? "Restart" : "Start Combat"}</button>
+        <button class="btn btn-secondary" type="button" id="combat-prev" ${encounter.combatStarted ? "" : "disabled"}>Previous Turn</button>
+        <button class="btn btn-primary" type="button" id="combat-next" ${encounter.combatStarted ? "" : "disabled"}>Next Turn</button>
+        <button class="btn btn-danger" type="button" id="combat-reset">End / Reset</button>
+        <div class="form-message" id="combat-message" aria-live="polite"></div>
+      </div>
+
+      <div class="combat-layout">
+        <section class="combat-main">
+          <section class="panel combat-timeline-panel">
+            <div class="section-heading"><div><p class="eyebrow">Initiative</p><h2>Turn order</h2></div></div>
+            ${initiativeTimelineMarkup(encounter)}
+          </section>
+          ${activeCombatantPanelMarkup(encounter)}
+        </section>
+        ${addCombatantPanelMarkup()}
+      </div>
+
+      <section class="panel combat-roster-panel">
+        <div class="section-heading"><div><p class="eyebrow">Encounter roster</p><h2>All combatants</h2></div></div>
+        <div class="combatant-card-list">
+          ${encounter.combatants.length ? encounter.combatants.map((item) => combatantCardMarkup(item, encounter.activeCombatantId)).join("") : `<div class="empty-state">No combatants added yet.</div>`}
+        </div>
+      </section>
+      <aside class="combat-temp-detail" id="combat-temp-detail" hidden></aside>
+    </section>`;
+  bindCombatPageInteractions();
+}
+
+function bindCombatPageInteractions() {
+  const encounter = getCombatEncounter();
+  const message = document.getElementById("combat-message");
+  const save = (nextEncounter) => saveCombatAndRender(nextEncounter);
+
+  document.getElementById("combat-encounter-name")?.addEventListener("input", (event) => {
+    saveCombatEncounter({ ...getCombatEncounter(), name: event.target.value.trim() || "Active combat" });
+  });
+  document.getElementById("combat-skip-defeated")?.addEventListener("change", (event) => {
+    save({ ...getCombatEncounter(), skipDefeated: event.target.checked });
+  });
+  document.getElementById("combat-roll-all")?.addEventListener("click", () => save(rollInitiativeForAll(getCombatEncounter())));
+  document.getElementById("combat-start")?.addEventListener("click", () => {
+    const current = getCombatEncounter();
+    if (!current.combatants.length) {
+      if (message) {
+        message.textContent = "Add at least one combatant before starting combat.";
+        message.classList.add("error");
+      }
+      return;
+    }
+    save(startCombatEncounter(current));
+  });
+  document.getElementById("combat-next")?.addEventListener("click", () => save(advanceCombatTurn(getCombatEncounter())));
+  document.getElementById("combat-prev")?.addEventListener("click", () => save(previousCombatTurn(getCombatEncounter())));
+  document.getElementById("combat-reset")?.addEventListener("click", () => save(resetCombatEncounter(getCombatEncounter().name)));
+
+  document.querySelectorAll("[data-add-source-type][data-add-source-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const current = getCombatEncounter();
+      const combatant = combatantFromSource(button.dataset.addSourceType, button.dataset.addSourceId, current);
+      if (combatant) save(addCombatantToEncounter(current, combatant));
+    });
+  });
+
+  document.getElementById("combat-temp-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const current = getCombatEncounter();
+    const combatant = temporaryCombatantFromForm(event.currentTarget, current);
+    save(addCombatantToEncounter(current, combatant));
+  });
+
+  document.querySelectorAll("[data-move-combatant]").forEach((button) => {
+    button.addEventListener("click", () => save(moveCombatant(getCombatEncounter(), button.dataset.moveCombatant, Number(button.dataset.moveDelta))));
+  });
+  document.querySelectorAll("[data-remove-combatant]").forEach((button) => {
+    button.addEventListener("click", () => save(removeCombatantFromEncounter(getCombatEncounter(), button.dataset.removeCombatant)));
+  });
+  document.querySelectorAll("[data-select-active-combatant]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const current = getCombatEncounter();
+      const index = current.combatants.findIndex((combatant) => combatant.id === button.dataset.selectActiveCombatant);
+      if (index >= 0) save({ ...current, currentTurnIndex: index, activeCombatantId: current.combatants[index].id });
+    });
+  });
+
+  document.querySelectorAll("[data-combatant-detail]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const combatant = getCombatEncounter().combatants.find((item) => item.id === button.dataset.combatantDetail);
+      if (combatant) activateCombatantDetail(combatant);
+    });
+  });
+
+  document.querySelectorAll("[data-combatant-id][draggable='true']").forEach((item) => {
+    item.addEventListener("dragstart", (event) => {
+      event.dataTransfer?.setData("text/plain", item.dataset.combatantId);
+    });
+    item.addEventListener("dragover", (event) => event.preventDefault());
+    item.addEventListener("drop", (event) => {
+      event.preventDefault();
+      const draggedId = event.dataTransfer?.getData("text/plain");
+      if (draggedId) save(moveCombatantBefore(getCombatEncounter(), draggedId, item.dataset.combatantId));
+    });
+  });
+
+  document.querySelector("[data-active-hp-action]")?.closest(".combat-active-panel")?.addEventListener("click", (event) => {
+    const active = activeCombatant(getCombatEncounter());
+    if (!active) return;
+    const action = event.target?.dataset?.activeHpAction;
+    if (action) {
+      const amount = Number(document.getElementById("combat-hp-amount")?.value) || 0;
+      save(updateCombatantInEncounter(getCombatEncounter(), active.id, (combatant) => {
+        if (action === "damage") return hpAdjustedCombatant(combatant, -amount);
+        if (action === "heal") return hpAdjustedCombatant(combatant, amount);
+        return { ...combatant, currentHp: Math.max(0, amount), status: amount <= 0 ? "defeated" : combatant.status };
+      }));
+    }
+    if (event.target?.matches("[data-add-condition]")) {
+      const condition = document.getElementById("combat-condition-select")?.value || "";
+      save(updateCombatantInEncounter(getCombatEncounter(), active.id, (combatant) => setCombatantCondition(combatant, condition, true)));
+    }
+    if (event.target?.dataset?.removeCondition) {
+      save(updateCombatantInEncounter(getCombatEncounter(), active.id, (combatant) => setCombatantCondition(combatant, event.target.dataset.removeCondition, false)));
+    }
+  });
+  document.getElementById("combat-active-status")?.addEventListener("change", (event) => {
+    const active = activeCombatant(getCombatEncounter());
+    if (active) save(updateCombatantInEncounter(getCombatEncounter(), active.id, (combatant) => ({ ...combatant, status: event.target.value })));
+  });
+  document.getElementById("combat-temp-detail")?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-close-temp-detail]")) {
+      const panel = document.getElementById("combat-temp-detail");
+      if (panel) panel.hidden = true;
+    }
+  });
+}
+
 function sheetField(label, value) {
   const display = value === 0 ? 0 : (value || "—");
   return `<div class="sheet-field"><span>${escapeHtml(label)}</span><strong>${escapeHtml(display)}</strong></div>`;
@@ -9121,6 +9939,10 @@ function initAppRoutes() {
       return true;
     }
     renderMapsOverviewPage();
+    return true;
+  }
+  if (parts[0] === "combat") {
+    renderCombatPage();
     return true;
   }
   if (parts[0] === "comics") {

@@ -244,6 +244,111 @@ test("multiclass validation enforces class prerequisites", () => {
   assert.match(errors.join(" "), /Wizard requires Intelligence 13/);
 });
 
+test("combat initiative rolling sorts by score and modifier ties", () => {
+  const app = createFrontendSandbox();
+  const encounter = app.normalizeCombatEncounter({
+    combatants: [
+      { id: "slow", name: "Slow", type: "monster", initiativeModifier: 2 },
+      { id: "quick", name: "Quick", type: "monster", initiativeModifier: 4 },
+      { id: "high", name: "High", type: "player", initiativeModifier: 1 },
+    ],
+  });
+  const rolls = { slow: 10, quick: 8, high: 15 };
+  const rolled = app.rollInitiativeForAll(encounter, (combatant) => rolls[combatant.id]);
+
+  assert.deepEqual(Array.from(rolled.combatants.map((combatant) => combatant.id)), ["high", "quick", "slow"]);
+  assert.equal(rolled.combatants[1].initiativeScore, 12);
+  assert.equal(rolled.combatants[2].initiativeScore, 12);
+});
+
+test("combat turns advance rounds and can move backward", () => {
+  const app = createFrontendSandbox();
+  const started = app.startCombatEncounter({
+    combatants: [
+      { id: "a", name: "A", type: "player", initiativeScore: 18, initiativeModifier: 4 },
+      { id: "b", name: "B", type: "monster", initiativeScore: 12, initiativeModifier: 1 },
+    ],
+  });
+
+  const secondTurn = app.advanceCombatTurn(started);
+  const nextRound = app.advanceCombatTurn(secondTurn);
+  const previous = app.previousCombatTurn(nextRound);
+  const floor = app.previousCombatTurn(started);
+
+  assert.equal(started.currentRound, 1);
+  assert.equal(started.activeCombatantId, "a");
+  assert.equal(secondTurn.activeCombatantId, "b");
+  assert.equal(secondTurn.currentRound, 1);
+  assert.equal(nextRound.activeCombatantId, "a");
+  assert.equal(nextRound.currentRound, 2);
+  assert.equal(previous.activeCombatantId, "b");
+  assert.equal(previous.currentRound, 1);
+  assert.equal(floor.currentRound, 1);
+  assert.equal(floor.activeCombatantId, "a");
+});
+
+test("combat can skip defeated and hidden combatants", () => {
+  const app = createFrontendSandbox();
+  const encounter = app.startCombatEncounter({
+    skipDefeated: true,
+    combatants: [
+      { id: "active", name: "Active", type: "player", initiativeScore: 18 },
+      { id: "down", name: "Down", type: "monster", initiativeScore: 15, status: "defeated" },
+      { id: "hidden", name: "Hidden", type: "npc", initiativeScore: 12, status: "hidden" },
+      { id: "ready", name: "Ready", type: "monster", initiativeScore: 10 },
+    ],
+  });
+
+  const next = app.advanceCombatTurn(encounter);
+
+  assert.equal(next.activeCombatantId, "ready");
+  assert.equal(next.currentRound, 1);
+});
+
+test("combat manual reordering and removal preserve a usable active turn", () => {
+  const app = createFrontendSandbox();
+  const encounter = app.normalizeCombatEncounter({
+    combatStarted: true,
+    currentTurnIndex: 1,
+    activeCombatantId: "b",
+    combatants: [
+      { id: "a", name: "A", type: "player" },
+      { id: "b", name: "B", type: "monster" },
+      { id: "c", name: "C", type: "npc" },
+    ],
+  });
+  const moved = app.moveCombatant(encounter, "c", -2);
+  const removed = app.removeCombatantFromEncounter(moved, "b");
+
+  assert.deepEqual(Array.from(moved.combatants.map((combatant) => combatant.id)), ["c", "a", "b"]);
+  assert.equal(moved.manualOrder, true);
+  assert.equal(moved.activeCombatantId, "b");
+  assert.deepEqual(Array.from(removed.combatants.map((combatant) => combatant.id)), ["c", "a"]);
+  assert.equal(removed.activeCombatantId, "a");
+});
+
+test("combatant avatar actions route saved entities and keep temporary details local", () => {
+  const app = createFrontendSandbox();
+  const playerCombatant = {
+    id: "combatant-player",
+    entityId: "player-mira",
+    type: "player",
+    name: "Mira",
+    detailRoute: app.playerCharacterHref("local", "player-mira"),
+  };
+  const npcCombatant = { id: "combatant-npc", entityId: "npc-orwell", type: "npc", name: "Orwell" };
+  const monsterCombatant = { id: "combatant-monster", entityId: "item-goblin", type: "monster", name: "Goblin 1" };
+  const temporaryCombatant = { id: "combatant-temp", type: "monster", name: "Lair hazard", isTemporary: true };
+  const markup = app.initiativeTimelineMarkup(app.normalizeCombatEncounter({ combatants: [playerCombatant, temporaryCombatant] }));
+
+  assert.deepEqual(JSON.parse(JSON.stringify(app.combatantDetailTarget(playerCombatant))), { kind: "navigate", route: "index.html#/campaigns/local/players/player-mira" });
+  assert.deepEqual(JSON.parse(JSON.stringify(app.combatantDetailTarget(npcCombatant))), { kind: "widget", collectionKey: "characters", entityId: "npc-orwell" });
+  assert.deepEqual(JSON.parse(JSON.stringify(app.combatantDetailTarget(monsterCombatant))), { kind: "widget", collectionKey: "items", entityId: "item-goblin" });
+  assert.deepEqual(JSON.parse(JSON.stringify(app.combatantDetailTarget(temporaryCombatant))), { kind: "temporary", combatantId: "combatant-temp" });
+  assert.match(markup, /data-combatant-detail="combatant-player"/);
+  assert.match(markup, /data-combatant-detail="combatant-temp"/);
+});
+
 test("saving players persists them on the local campaign", () => {
   const app = createFrontendSandbox();
   const player = app.buildPlayerCharacter(mockPlayerForm({
