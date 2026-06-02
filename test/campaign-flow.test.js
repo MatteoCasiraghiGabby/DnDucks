@@ -509,12 +509,15 @@ test("campaign setup links use hash routes that static servers can serve", () =>
 
   assert.equal(app.campaignSetupHref("local"), "index.html#/campaigns/local/setup");
   assert.equal(app.campaignStartNoteHref("local"), "index.html#/campaigns/local/start-note");
+  assert.equal(app.playerSpellbookHref("local", "player-mira"), "index.html#/campaigns/local/players/player-mira/spells");
   assert.equal(app.dashboardHref(), "index.html#dashboard");
   assert.match(app.playerCharacterFormMarkup({ saveLabel: "ADD PLAYER", continueLabel: "BACK TO CAMPAIGN" }), /ADD PLAYER[\s\S]*BACK TO CAMPAIGN/);
   app.window.location.hash = "#/campaigns/local/setup";
   assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "setup"]);
   app.window.location.hash = "#/campaigns/local/start-note";
   assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "start-note"]);
+  app.window.location.hash = "#/campaigns/local/players/player-mira/spells";
+  assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "players", "player-mira", "spells"]);
 
   const html = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf8");
   const script = fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8");
@@ -1275,10 +1278,94 @@ test("spellcasting classes choose starting spells and render slot tracking", () 
   assert.deepEqual(player.spellcasting.spells, ["0-fire-bolt", "1-magic-missile"]);
   assert.deepEqual(Array.from(runtime.normalSlots), [2]);
   assert.match(sheetMarkup, /Spellcasting/);
-  assert.match(sheetMarkup, /Magic Missile/);
+  assert.match(sheetMarkup, /sheet-spellbook-page/);
+  assert.match(sheetMarkup, /href="index\.html#\/campaigns\/local\/players\/[^"]+\/spells"/);
+  assert.match(sheetMarkup, />Spells</);
+  assert.match(sheetMarkup, /Cantrips/);
+  assert.doesNotMatch(sheetMarkup, /Magic Missile/);
   assert.match(sheetMarkup, /Normal spell slots recover when you finish a long rest/);
   assert.match(sheetMarkup, /data-spell-slot-kind="normal"/);
   assert.match(sheetMarkup, /id="sheet-spell-modal"/);
+  const spellbookMarkup = app.playerSpellbookMarkup(player);
+  assert.match(spellbookMarkup, /Cantrips/);
+  assert.match(spellbookMarkup, /1st Level/);
+  assert.match(spellbookMarkup, /Magic Missile/);
+  assert.match(spellbookMarkup, /spell-badge/);
+  assert.match(app.spellDetailMarkup(app.DNDUCKS_SPELLS[1]), /Description/);
+  assert.match(app.spellDetailMarkup(app.DNDUCKS_SPELLS[1]), /Classes/);
+});
+
+test("spell picker renders grouped summaries for cantrips and leveled spells", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_SPELLS = [
+    { id: "0-fire-bolt", name: "Fire Bolt", level: 0, levelName: "Cantrip", school: "Evocation", castingTime: "1 Action", range: "120 feet", duration: "Instantaneous", components: "V, S", description: "A ranged spell attack.", classes: ["Wizard"] },
+    { id: "1-magic-missile", name: "Magic Missile", level: 1, levelName: "1st Level", school: "Evocation", castingTime: "1 Action", range: "120 feet", duration: "Instantaneous", components: "V, S", description: "Force darts hit automatically.", classes: ["Wizard"] },
+  ];
+  const classLevels = [{ className: "Wizard", level: 1 }];
+  const summary = app.spellcastingSummaryForClassLevels(classLevels, { intelligence: 16 });
+  const selectedIds = ["0-fire-bolt", "1-magic-missile"];
+  const selectionSummary = app.spellPickerSelectionSummaryMarkup(summary, classLevels, { intelligence: 16 }, selectedIds);
+  const groups = app.spellsGroupedByLevel(app.availableSpellsForClassLevels(classLevels));
+  const groupMarkup = groups.map((group) => app.spellPickerLevelGroupMarkup(group, new Set(selectedIds), app.selectedSpellIdsByLevel(selectedIds))).join("");
+
+  assert.match(selectionSummary, /Cantrips selected/);
+  assert.match(selectionSummary, /Spellbook spells/);
+  assert.match(selectionSummary, /Spell slots/);
+  assert.match(groupMarkup, /Cantrips/);
+  assert.match(groupMarkup, /Level 1 Spells/);
+  assert.match(groupMarkup, /spell-picker-card is-selected/);
+  assert.match(groupMarkup, /Details/);
+});
+
+test("spell selection validates class cantrip limits", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_SPELLS = [
+    { id: "0-fire-bolt", name: "Fire Bolt", level: 0, levelName: "Cantrip", school: "Evocation", castingTime: "1 Action", range: "120 feet", duration: "Instantaneous", description: "A ranged spell attack.", classes: ["Wizard"] },
+    { id: "0-light", name: "Light", level: 0, levelName: "Cantrip", school: "Evocation", castingTime: "1 Action", range: "Touch", duration: "1 hour", description: "Light from an object.", classes: ["Wizard"] },
+    { id: "0-mage-hand", name: "Mage Hand", level: 0, levelName: "Cantrip", school: "Conjuration", castingTime: "1 Action", range: "30 feet", duration: "1 minute", description: "A spectral hand.", classes: ["Wizard"] },
+    { id: "0-message", name: "Message", level: 0, levelName: "Cantrip", school: "Transmutation", castingTime: "1 Action", range: "120 feet", duration: "1 round", description: "A whispered message.", classes: ["Wizard"] },
+  ];
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Wizard",
+    "#player-level": "1",
+    "#player-intelligence": "16",
+    "player-spells": ["0-fire-bolt", "0-light", "0-mage-hand", "0-message"],
+  }));
+
+  assert.match(app.validatePlayerCharacter(player).join(" "), /Choose no more than 3 cantrips/);
+});
+
+test("artificer spellcasting uses prepared limits and first-level slots", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_SPELLS = [
+    { id: "0-mending", name: "Mending", level: 0, levelName: "Cantrip", school: "Transmutation", castingTime: "1 Minute", range: "Touch", duration: "Instantaneous", description: "Repairs an object.", classes: ["Artificer"] },
+    { id: "1-cure-wounds", name: "Cure Wounds", level: 1, levelName: "1st Level", school: "Evocation", castingTime: "1 Action", range: "Touch", duration: "Instantaneous", description: "Restores hit points.", classes: ["Artificer"] },
+    { id: "1-faerie-fire", name: "Faerie Fire", level: 1, levelName: "1st Level", school: "Evocation", castingTime: "1 Action", range: "60 feet", duration: "Concentration, up to 1 minute", description: "Outlines creatures.", classes: ["Artificer"] },
+    { id: "1-feather-fall", name: "Feather Fall", level: 1, levelName: "1st Level", school: "Transmutation", castingTime: "1 Reaction", range: "60 feet", duration: "1 minute", description: "Slows falling.", classes: ["Artificer"] },
+    { id: "1-grease", name: "Grease", level: 1, levelName: "1st Level", school: "Conjuration", castingTime: "1 Action", range: "60 feet", duration: "1 minute", description: "Creates slick grease.", classes: ["Artificer"] },
+  ];
+  const valid = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Artificer",
+    "#player-level": "1",
+    "#player-intelligence": "16",
+    "player-spells": ["0-mending", "1-cure-wounds", "1-faerie-fire", "1-feather-fall"],
+  }));
+  const invalid = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Artificer",
+    "#player-level": "1",
+    "#player-intelligence": "16",
+    "player-spells": ["1-cure-wounds", "1-faerie-fire", "1-feather-fall", "1-grease"],
+  }));
+
+  assert.deepEqual(Array.from(app.spellcastingRuntimeForPlayer(valid).normalSlots), [2]);
+  assert.deepEqual(Array.from(app.validatePlayerCharacter(valid)), []);
+  assert.match(app.validatePlayerCharacter(invalid).join(" "), /Choose no more than 3 leveled spells/);
 });
 
 test("warlock pact slots are tracked separately and recover on short rest", () => {

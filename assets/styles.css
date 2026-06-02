@@ -1106,6 +1106,22 @@ textarea { resize: vertical; }
   .quick-link-grid { grid-template-columns: 1fr; }
   .bottom-nav { display: grid; }
 }
+
+@media (max-width: 720px) {
+  .spell-picker-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .spell-picker-level-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .spell-picker-level-heading > strong {
+    align-self: flex-start;
+  }
+  .spell-slot-row {
+    grid-template-columns: 1fr;
+  }
+}
 .materials-grid { align-items: start; }
 .material-card { overflow: hidden; }
 .material-preview {
@@ -2573,68 +2589,228 @@ code { color: var(--ember-2); }
 .compact-checkbox-grid { grid-template-columns: 1fr; }
 .spellcasting-form-summary {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 .spellcasting-form-summary p {
   margin: 0;
   color: var(--muted-2);
+}
+.spell-picker-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.spell-picker-summary-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid rgba(126, 71, 43, 0.18);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.spell-picker-summary-card span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+.spell-picker-summary-card strong {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+.spell-picker-summary-card.is-warning strong,
+.spell-picker-summary-card.is-warning span {
+  color: var(--crimson);
+}
+.spell-picker-slot-card {
+  grid-column: span 1;
+}
+.spell-picker-guidance .tag-row {
+  margin-top: 0;
 }
 .spell-picker-count {
   color: var(--muted);
   font-size: 0.84rem;
   font-weight: 850;
 }
+.spell-picker-count.is-warning {
+  color: var(--crimson);
+}
 .spell-picker-list {
   display: grid;
-  gap: 14px;
-  max-height: 520px;
+  gap: 16px;
+  max-height: 620px;
   overflow: auto;
   border: 1px solid rgba(126, 71, 43, 0.18);
-  border-radius: 16px;
-  padding: 12px;
-  background: rgba(255, 250, 236, 0.34);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(255, 250, 236, 0.42);
 }
 .spell-picker-level-group {
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  border: 1px solid rgba(126, 71, 43, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.38);
 }
-.spell-picker-level-group h3 {
+.spell-picker-level-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.spell-picker-level-heading h3 {
   margin: 0;
   color: var(--ember);
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 950;
   text-transform: uppercase;
 }
+.spell-picker-level-heading p {
+  margin: 3px 0 0;
+  color: var(--muted-2);
+  font-size: 0.78rem;
+}
+.spell-picker-level-heading > strong {
+  flex: 0 0 auto;
+  border: 1px solid rgba(126, 71, 43, 0.2);
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--text);
+  background: rgba(255, 250, 236, 0.72);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
 .spell-picker-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 8px;
 }
 .spell-picker-card {
   display: grid;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid rgba(126, 71, 43, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.62);
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+.spell-picker-card.is-selected {
+  border-color: rgba(127, 29, 29, 0.42);
+  background: rgba(255, 246, 229, 0.84);
+  box-shadow: inset 0 0 0 1px rgba(127, 29, 29, 0.14);
+}
+.spell-picker-card.is-disabled {
+  opacity: 0.55;
+}
+.spell-picker-card-main {
+  display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 8px;
   align-items: start;
-  border: 1px solid rgba(126, 71, 43, 0.2);
-  border-radius: 12px;
-  padding: 9px;
-  background: rgba(255, 255, 255, 0.5);
+  min-height: 0;
 }
-.spell-picker-card input { margin-top: 4px; accent-color: var(--crimson); }
-.spell-picker-card span {
+.spell-picker-card input { margin-top: 3px; accent-color: var(--crimson); }
+.spell-picker-card-copy {
   display: grid;
   min-width: 0;
   gap: 3px;
 }
+.spell-picker-card-title {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
 .spell-picker-card strong {
   color: var(--text);
   line-height: 1.2;
+}
+.spell-picker-card-title em {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+.spell-picker-card.is-selected .spell-picker-card-title em {
+  color: var(--crimson);
 }
 .spell-picker-card small {
   color: var(--muted-2);
   font-size: 0.74rem;
   font-weight: 750;
   line-height: 1.3;
+}
+.spell-picker-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.spell-picker-card-meta span {
+  border: 1px solid rgba(126, 71, 43, 0.15);
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: var(--muted-2);
+  background: rgba(255, 250, 236, 0.5);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+.spell-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.spell-badge {
+  border: 1px solid rgba(126, 71, 43, 0.16);
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.58);
+  font-size: 0.66rem;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.spell-badge.is-concentration {
+  border-color: rgba(127, 29, 29, 0.28);
+  color: var(--crimson);
+}
+.spell-badge.is-ritual {
+  border-color: rgba(95, 143, 134, 0.32);
+  color: var(--arcane);
+}
+.spell-badge.is-instantaneous {
+  color: var(--ember);
+}
+.spell-unavailable-reason {
+  margin: 0;
+  color: var(--crimson);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+.spell-picker-details {
+  border-top: 1px solid rgba(126, 71, 43, 0.12);
+  padding-top: 6px;
+}
+.spell-picker-details summary {
+  cursor: pointer;
+  color: var(--ember);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+.spell-picker-details p {
+  margin: 6px 0 0;
+  color: var(--muted-2);
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 .checkbox-row {
   display: flex;
@@ -3760,6 +3936,37 @@ code { color: var(--ember-2); }
   text-align: right;
   text-transform: uppercase;
 }
+.sheet-spellcasting-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+.sheet-spellcasting-summary-grid article {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border: 1px solid rgba(126, 71, 43, 0.18);
+  border-radius: 8px;
+  padding: 9px;
+  background: rgba(255, 255, 255, 0.48);
+}
+.sheet-spellcasting-summary-grid span {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+.sheet-spellcasting-summary-grid strong {
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+.sheet-spellcasting-summary-grid small {
+  color: var(--muted-2);
+  font-size: 0.7rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
 .spell-slot-panel,
 .sheet-spell-list {
   display: grid;
@@ -3818,42 +4025,137 @@ code { color: var(--ember-2); }
   gap: 8px;
   margin-top: 8px;
 }
-.sheet-spell-list section {
-  display: grid;
-  gap: 7px;
+.sheet-spellbook-page {
+  gap: 12px;
 }
-.sheet-spell-list h4 {
+.sheet-spellbook-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.sheet-spellbook-page h3 small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.character-spellbook-panel {
+  gap: 14px;
+}
+.character-spellbook-panel > .sheet-spell-list {
+  margin-top: 6px;
+}
+.character-spellbook-page .sheet-spell-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.sheet-spell-level-group {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(126, 71, 43, 0.18);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 246, 229, 0.42);
+}
+.sheet-spell-level-group header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sheet-spell-level-group h4 {
   margin: 0;
   color: var(--ember);
   font-size: 0.78rem;
   font-weight: 950;
   text-transform: uppercase;
 }
+.sheet-spell-level-group header span {
+  border: 1px solid rgba(126, 71, 43, 0.17);
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.48);
+  font-size: 0.68rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
 .sheet-spell-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 8px;
 }
 .sheet-spell-card {
   display: grid;
-  gap: 4px;
+  gap: 6px;
+  min-width: 0;
   border: 1px solid rgba(126, 71, 43, 0.22);
-  border-radius: 12px;
-  padding: 9px;
+  border-radius: 8px;
+  padding: 10px;
   color: var(--text);
   background: rgba(255, 255, 255, 0.48);
   font: inherit;
   text-align: left;
+}
+.sheet-spell-card:hover,
+.sheet-spell-card:focus-visible {
+  border-color: rgba(127, 29, 29, 0.38);
+  background: rgba(255, 250, 236, 0.82);
+}
+.sheet-spell-card-top {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
 }
 .sheet-spell-card strong {
   font-size: 0.86rem;
   line-height: 1.15;
 }
 .sheet-spell-card span,
-.sheet-spell-card small {
+.sheet-spell-card small,
+.sheet-spell-card em {
   color: var(--muted-2);
   font-size: 0.72rem;
   line-height: 1.25;
+}
+.sheet-spell-card-top small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-weight: 950;
+  text-transform: uppercase;
+}
+.sheet-spell-fast-line {
+  display: block;
+}
+.sheet-spell-card em {
+  display: -webkit-box;
+  overflow: hidden;
+  font-style: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.sheet-spell-detail-body {
+  display: grid;
+  gap: 14px;
+}
+.sheet-spell-detail-body section {
+  display: grid;
+  gap: 6px;
+}
+.sheet-spell-detail-body section h3 {
+  margin: 0;
+  color: var(--ember);
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+.sheet-spell-detail-body p {
+  margin: 0;
+  white-space: pre-line;
+}
+.sheet-spell-detail-badges {
+  margin-top: 2px;
 }
 .sheet-gold-widget {
   display: flex;

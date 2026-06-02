@@ -163,6 +163,7 @@ async function redirectToCanonicalLocalOrigin() {
 }
 
 const PLAYER_CLASSES = [
+  { name: "Artificer", hitDie: "d8", primary: "Intelligence", saves: ["constitution", "intelligence"], skillLimit: 2, skillChoices: ["arcana", "history", "investigation", "medicine", "nature", "perception", "sleightOfHand"], fixedTools: ["thievesTools", "tinkersTools"], toolLimit: 1, toolChoices: "artisan" },
   { name: "Barbarian", hitDie: "d12", primary: "Strength", saves: ["strength", "constitution"], skillLimit: 2, skillChoices: ["animalHandling", "athletics", "intimidation", "nature", "perception", "survival"], fixedTools: [], toolLimit: 0, toolChoices: [] },
   { name: "Bard", hitDie: "d8", primary: "Charisma", saves: ["dexterity", "charisma"], skillLimit: 3, skillChoices: "any", fixedTools: [], toolLimit: 3, toolChoices: "musical" },
   { name: "Cleric", hitDie: "d8", primary: "Wisdom", saves: ["wisdom", "charisma"], skillLimit: 2, skillChoices: ["history", "insight", "medicine", "persuasion", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
@@ -178,14 +179,15 @@ const PLAYER_CLASSES = [
 ];
 
 const SPELLCASTING_CLASS_RULES = {
+  Artificer: { kind: "artificer", ability: "Intelligence", recovery: "long", cantrips: { 1: 2, 10: 3, 14: 4 }, prepared: { abilityKey: "intelligence", levelMultiplier: 0.5, minimum: 1, label: "Intelligence modifier + half Artificer level" } },
   Bard: { kind: "full", ability: "Charisma", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, known: { 1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14, 11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22 } },
-  Cleric: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 3, 4: 4, 10: 5 }, prepared: "Wisdom modifier + Cleric level" },
-  Druid: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, prepared: "Wisdom modifier + Druid level" },
-  Paladin: { kind: "half", ability: "Charisma", recovery: "long", cantrips: {}, prepared: "Charisma modifier + half Paladin level", startsAt: 2 },
+  Cleric: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 3, 4: 4, 10: 5 }, prepared: { abilityKey: "wisdom", levelMultiplier: 1, minimum: 1, label: "Wisdom modifier + Cleric level" } },
+  Druid: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, prepared: { abilityKey: "wisdom", levelMultiplier: 1, minimum: 1, label: "Wisdom modifier + Druid level" } },
+  Paladin: { kind: "half", ability: "Charisma", recovery: "long", cantrips: {}, prepared: { abilityKey: "charisma", levelMultiplier: 0.5, minimum: 1, label: "Charisma modifier + half Paladin level" }, startsAt: 2 },
   Ranger: { kind: "half", ability: "Wisdom", recovery: "long", cantrips: {}, known: { 2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5, 8: 5, 9: 6, 10: 6, 11: 7, 12: 7, 13: 8, 14: 8, 15: 9, 16: 9, 17: 10, 18: 10, 19: 11, 20: 11 }, startsAt: 2 },
   Sorcerer: { kind: "full", ability: "Charisma", recovery: "long", cantrips: { 1: 4, 4: 5, 10: 6 }, known: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 12, 13: 13, 14: 13, 15: 14, 16: 14, 17: 15, 18: 15, 19: 15, 20: 15 } },
   Warlock: { kind: "pact", ability: "Charisma", recovery: "short", cantrips: { 1: 2, 4: 3, 10: 4 }, known: { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10, 11: 11, 12: 11, 13: 12, 14: 12, 15: 13, 16: 13, 17: 14, 18: 14, 19: 15, 20: 15 } },
-  Wizard: { kind: "full", ability: "Intelligence", recovery: "long", cantrips: { 1: 3, 4: 4, 10: 5 }, prepared: "Intelligence modifier + Wizard level", spellbook: (level) => 6 + Math.max(0, Number(level) - 1) * 2 },
+  Wizard: { kind: "full", ability: "Intelligence", recovery: "long", cantrips: { 1: 3, 4: 4, 10: 5 }, prepared: { abilityKey: "intelligence", levelMultiplier: 1, minimum: 1, label: "Intelligence modifier + Wizard level" }, spellbook: (level) => 6 + Math.max(0, Number(level) - 1) * 2 },
 };
 
 const FULL_CASTER_SLOTS = {
@@ -204,6 +206,13 @@ const HALF_CASTER_SLOTS = {
   18: [4, 3, 3, 3, 1], 19: [4, 3, 3, 3, 2], 20: [4, 3, 3, 3, 2],
 };
 
+const ARTIFICER_SLOTS = {
+  1: [2], 2: [2], 3: [3], 4: [3], 5: [4, 2], 6: [4, 2], 7: [4, 3], 8: [4, 3],
+  9: [4, 3, 2], 10: [4, 3, 2], 11: [4, 3, 3], 12: [4, 3, 3], 13: [4, 3, 3, 1],
+  14: [4, 3, 3, 1], 15: [4, 3, 3, 2], 16: [4, 3, 3, 2], 17: [4, 3, 3, 3, 1],
+  18: [4, 3, 3, 3, 1], 19: [4, 3, 3, 3, 2], 20: [4, 3, 3, 3, 2],
+};
+
 const WARLOCK_PACT_SLOTS = {
   1: { slots: 1, level: 1 }, 2: { slots: 2, level: 1 }, 3: { slots: 2, level: 2 }, 4: { slots: 2, level: 2 },
   5: { slots: 2, level: 3 }, 6: { slots: 2, level: 3 }, 7: { slots: 2, level: 4 }, 8: { slots: 2, level: 4 },
@@ -213,6 +222,7 @@ const WARLOCK_PACT_SLOTS = {
 };
 
 const MULTICLASS_CLASS_RULES = {
+  Artificer: { prerequisites: [["intelligence"]], multiclassProficiencies: ["Thieves' Tools", "Tinker's Tools", "Light armor", "Medium armor", "Shields"], multiclassTools: ["Thieves' Tools", "Tinker's Tools"] },
   Barbarian: { prerequisites: [["strength"]], multiclassProficiencies: ["Martial weapons", "Shields"], extraAttackLevel: 5 },
   Bard: { prerequisites: [["charisma"]], multiclassProficiencies: ["One skill of your choice", "One musical instrument", "Light armor"], multiclassSkillLimit: 1, multiclassTools: ["1 musical instrument"] },
   Cleric: { prerequisites: [["wisdom"]], multiclassProficiencies: ["Light armor", "Medium armor", "Shields"] },
@@ -717,6 +727,7 @@ function spellSlotsForClassEntry(entry = {}) {
   const level = Math.max(1, Math.min(20, Math.floor(Number(entry.level) || 1)));
   if (entry.rule?.kind === "full") return FULL_CASTER_SLOTS[level] || [];
   if (entry.rule?.kind === "half") return HALF_CASTER_SLOTS[level] || [];
+  if (entry.rule?.kind === "artificer") return ARTIFICER_SLOTS[level] || [];
   if (entry.rule?.kind === "pact") return [];
   return [];
 }
@@ -728,6 +739,7 @@ function normalSpellSlotsForClassLevels(classLevels = []) {
   const casterLevel = entries.reduce((total, entry) => {
     if (entry.rule.kind === "full") return total + Number(entry.level);
     if (entry.rule.kind === "half") return total + Math.floor(Number(entry.level) / 2);
+    if (entry.rule.kind === "artificer") return total + Math.ceil(Number(entry.level) / 2);
     return total;
   }, 0);
   return FULL_CASTER_SLOTS[Math.max(1, Math.min(20, casterLevel))] || [];
@@ -779,33 +791,112 @@ function selectedSpellsForPlayer(player = {}) {
   return uniqueTextList(player.spellcasting?.spells || []).map(spellById).filter(Boolean);
 }
 
-function spellcastingGuidanceLine(entry = {}) {
+function abilityScoresFromForm(form) {
+  const baseScores = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
+  return applyBackgroundBonusesToScores(
+    baseScores,
+    combineAbilityBonuses(lineageAbilityBonusesFromForm(form), backgroundAbilityBonusesFromForm(form))
+  );
+}
+
+function preparedSpellLabel(prepared) {
+  if (!prepared) return "";
+  return typeof prepared === "string" ? prepared : prepared.label || "";
+}
+
+function preparedSpellLimitForEntry(entry = {}, abilities = {}) {
+  const prepared = entry.rule?.prepared;
+  if (!prepared || typeof prepared === "string") return 0;
+  const level = Math.max(1, Math.min(20, Math.floor(Number(entry.level) || 1)));
+  const multiplier = Number(prepared.levelMultiplier);
+  const levelPart = multiplier === 0.5 ? Math.floor(level / 2) : Math.floor(level * (Number.isFinite(multiplier) ? multiplier : 1));
+  const modifier = abilityModifier(abilities[prepared.abilityKey]);
+  return Math.max(Number(prepared.minimum) || 1, levelPart + modifier);
+}
+
+function spellSelectionBudgetForClassLevels(classLevels = [], abilities = {}) {
+  const entries = spellcastingClassEntries(classLevels);
+  return entries.reduce((budget, entry) => {
+    const cantrips = Number(progressionValueAtLevel(entry.rule?.cantrips || {}, entry.level)) || 0;
+    const known = Number(progressionValueAtLevel(entry.rule?.known || {}, entry.level)) || 0;
+    const prepared = preparedSpellLimitForEntry(entry, abilities);
+    const spellbook = typeof entry.rule?.spellbook === "function" ? Number(entry.rule.spellbook(entry.level)) || 0 : 0;
+    const leveled = spellbook || known || prepared;
+    budget.cantrips += cantrips;
+    budget.leveled += leveled;
+    budget.lines.push([
+      `${entry.className} ${entry.level}`,
+      cantrips ? `${cantrips} cantrip${cantrips === 1 ? "" : "s"}` : "",
+      known ? `${known} known spell${known === 1 ? "" : "s"}` : "",
+      spellbook ? `${spellbook} spellbook spell${spellbook === 1 ? "" : "s"}` : "",
+      prepared && !spellbook ? `${prepared} prepared spell${prepared === 1 ? "" : "s"}` : "",
+    ].filter(Boolean).join(": "));
+    return budget;
+  }, { cantrips: 0, leveled: 0, lines: [] });
+}
+
+function spellSelectionModeLabel(classLevels = [], abilities = {}) {
+  const entries = spellcastingClassEntries(classLevels);
+  const hasSpellbook = entries.some((entry) => typeof entry.rule?.spellbook === "function");
+  const hasPrepared = entries.some((entry) => preparedSpellLimitForEntry(entry, abilities) > 0);
+  const hasKnown = entries.some((entry) => Number(progressionValueAtLevel(entry.rule?.known || {}, entry.level)) > 0);
+  if (hasSpellbook && entries.length === 1) return "Spellbook spells";
+  if (hasPrepared && !hasKnown && !hasSpellbook) return "Prepared spells";
+  if (hasKnown && !hasPrepared && !hasSpellbook) return "Known spells";
+  return "Leveled spells";
+}
+
+function selectedSpellCounts(spellIds = []) {
+  return uniqueTextList(spellIds).reduce((counts, spellId) => {
+    const spell = spellById(spellId);
+    if (!spell) return counts;
+    if (Number(spell.level) === 0) counts.cantrips += 1;
+    else counts.leveled += 1;
+    return counts;
+  }, { cantrips: 0, leveled: 0 });
+}
+
+function spellSelectionErrors(spellIds = [], classLevels = [], abilities = {}) {
+  const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
+  if (!summary) return spellIds.length ? ["This character class does not have spellcasting."] : [];
+  const budget = spellSelectionBudgetForClassLevels(classLevels, abilities);
+  const counts = selectedSpellCounts(spellIds);
+  const availableIds = new Set(availableSpellsForClassLevels(classLevels).map((spell) => spell.id));
+  const errors = [];
+  if (counts.cantrips > budget.cantrips) errors.push(`Choose no more than ${budget.cantrips} cantrip${budget.cantrips === 1 ? "" : "s"}.`);
+  if (counts.leveled > budget.leveled) errors.push(`Choose no more than ${budget.leveled} leveled spell${budget.leveled === 1 ? "" : "s"} for this class and level.`);
+  if (spellIds.some((spellId) => !availableIds.has(spellId))) errors.push("Remove spells that are not available to this character's class and level.");
+  return errors;
+}
+
+function spellcastingGuidanceLine(entry = {}, abilities = {}) {
   const cantrips = progressionValueAtLevel(entry.rule?.cantrips || {}, entry.level);
   const known = progressionValueAtLevel(entry.rule?.known || {}, entry.level);
-  const prepared = entry.rule?.prepared || "";
+  const prepared = preparedSpellLabel(entry.rule?.prepared);
+  const preparedLimit = preparedSpellLimitForEntry(entry, abilities);
   const spellbook = typeof entry.rule?.spellbook === "function" ? entry.rule.spellbook(entry.level) : 0;
   return [
     `${entry.className} ${entry.level}`,
     cantrips ? `${cantrips} cantrip${cantrips === 1 ? "" : "s"}` : "",
     known ? `${known} known spell${known === 1 ? "" : "s"}` : "",
-    prepared ? `prepare ${prepared}` : "",
+    prepared ? `prepare ${preparedLimit ? `${preparedLimit} spell${preparedLimit === 1 ? "" : "s"}` : prepared}` : "",
     spellbook ? `${spellbook} spellbook spell${spellbook === 1 ? "" : "s"}` : "",
   ].filter(Boolean).join(": ");
 }
 
-function spellcastingSummaryForClassLevels(classLevels = []) {
+function spellcastingSummaryForClassLevels(classLevels = [], abilities = {}) {
   const entries = spellcastingClassEntries(classLevels);
   if (!entries.length) return null;
   return {
     entries,
     normalSlots: normalSpellSlotsForClassLevels(classLevels),
     pact: pactMagicForClassLevels(classLevels),
-    guidance: entries.map(spellcastingGuidanceLine),
+    guidance: entries.map((entry) => spellcastingGuidanceLine(entry, abilities)),
   };
 }
 
-function buildSpellcastingFromForm(form, classLevels = []) {
-  const summary = spellcastingSummaryForClassLevels(classLevels);
+function buildSpellcastingFromForm(form, classLevels = [], abilities = {}) {
+  const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
   const spells = selectedSpellIdsFromForm(form);
   if (!summary && !spells.length) return null;
   return {
@@ -825,7 +916,7 @@ function clampSlotUsage(value, maximum) {
 }
 
 function spellcastingRuntimeForPlayer(player = {}) {
-  const summary = spellcastingSummaryForClassLevels(classLevelEntriesForPlayer(player));
+  const summary = spellcastingSummaryForClassLevels(classLevelEntriesForPlayer(player), player.abilities || {});
   if (!summary && !selectedSpellsForPlayer(player).length) return null;
   const usage = player.spellcasting?.slotUsage || {};
   const normalUsage = {};
@@ -838,6 +929,83 @@ function spellcastingRuntimeForPlayer(player = {}) {
     spells: selectedSpellsForPlayer(player),
     slotUsage: { normal: normalUsage, pact: pactUsage },
   };
+}
+
+function abilityKeyForLabel(label = "") {
+  const normalized = normalizeRulesText(label);
+  return ABILITIES.find((ability) => normalizeRulesText(ability.label) === normalized || normalizeRulesText(ability.short) === normalized)?.key || normalized;
+}
+
+function spellcastingAbilityRows(player = {}, runtime = null) {
+  const proficiencyBonus = player.proficiencyBonus || proficiencyBonusForLevel(player.level || 1);
+  return (runtime?.entries || []).map((entry) => {
+    const abilityKey = abilityKeyForLabel(entry.rule?.ability || "");
+    const modifier = abilityModifier(player.abilities?.[abilityKey]);
+    return {
+      className: entry.className,
+      ability: entry.rule?.ability || "",
+      saveDc: 8 + proficiencyBonus + modifier,
+      attackBonus: proficiencyBonus + modifier,
+    };
+  });
+}
+
+function spellMetadata(spell = {}) {
+  const castingTime = String(spell.castingTime || "");
+  const duration = String(spell.duration || "");
+  const components = String(spell.components || "");
+  const materialMatch = components.match(/M\s*\(([^)]+)\)/i);
+  return {
+    level: Number(spell.level) || 0,
+    levelLabel: spell.levelName || spellLevelLabel(spell.level),
+    concentration: /concentration/i.test(duration),
+    ritual: /ritual/i.test(castingTime),
+    instantaneous: /^instantaneous$/i.test(duration.trim()),
+    verbal: /\bV\b/i.test(components),
+    somatic: /\bS\b/i.test(components),
+    material: /\bM\b/i.test(components),
+    materialText: spell.material || spell.materialComponent || spell.materials || materialMatch?.[1] || "",
+  };
+}
+
+function spellFeatureBadgesMarkup(spell = {}, options = {}) {
+  const meta = spellMetadata(spell);
+  const badges = [
+    meta.concentration ? { label: "Concentration", className: "is-concentration" } : null,
+    meta.ritual ? { label: "Ritual", className: "is-ritual" } : null,
+    meta.instantaneous ? { label: "Instantaneous", className: "is-instantaneous" } : null,
+    meta.verbal ? { label: "V", title: "Verbal component" } : null,
+    meta.somatic ? { label: "S", title: "Somatic component" } : null,
+    meta.material ? { label: "M", title: meta.materialText ? `Material: ${meta.materialText}` : "Material component" } : null,
+  ].filter(Boolean);
+  const limit = Number(options.limit) || badges.length;
+  return badges.slice(0, limit).map((badge) => (
+    `<span class="spell-badge ${escapeHtml(badge.className || "")}" ${badge.title ? `title="${escapeHtml(badge.title)}"` : ""}>${escapeHtml(badge.label)}</span>`
+  )).join("");
+}
+
+function spellSlotSummaryParts(summary = null) {
+  if (!summary) return [];
+  return [
+    ...(summary.normalSlots || []).map((amount, index) => `Level ${index + 1}: ${amount}`),
+    summary.pact ? [`Pact level ${summary.pact.level}: ${summary.pact.slots}`] : [],
+  ].flat();
+}
+
+function spellsGroupedByLevel(spells = []) {
+  return Array.from({ length: 10 }, (_, level) => ({
+    level,
+    label: level === 0 ? "Cantrips" : `Level ${level} Spells`,
+    spells: spells.filter((spell) => Number(spell.level) === level),
+  })).filter((group) => group.spells.length);
+}
+
+function selectedSpellIdsByLevel(spellIds = []) {
+  return uniqueTextList(spellIds).reduce((counts, spellId) => {
+    const level = Number(spellById(spellId)?.level) || 0;
+    counts[level] = (counts[level] || 0) + 1;
+    return counts;
+  }, {});
 }
 
 function abilityModifier(score) {
@@ -1260,6 +1428,7 @@ function derivedToolProficienciesForClass(classRole = "") {
   if (!info) return [];
   const tools = (info.fixedTools || []).map(toolLabel);
   if (info.toolChoices === "musical" && info.toolLimit) tools.push(`${info.toolLimit} musical instruments`);
+  else if (info.toolChoices === "artisan" && info.toolLimit) tools.push(`${info.toolLimit} artisan's tools`);
   else if (info.toolChoices === "artisanOrMusical" && info.toolLimit) tools.push(`${info.toolLimit} artisan's tools or musical instrument`);
   return tools;
 }
@@ -2052,7 +2221,7 @@ function buildPlayerCharacter(form) {
     ),
     homebrewFeatureTextForEquipment(equipment)
   );
-  const spellcasting = buildSpellcastingFromForm(form, classLevels);
+  const spellcasting = buildSpellcastingFromForm(form, classLevels, abilities);
   return {
     id: createId("player"),
     campaignId: DEFAULT_CAMPAIGN_ID,
@@ -2113,6 +2282,9 @@ function validatePlayerCharacter(player, requireData = true) {
     if (totalLevelForClassLevels(classLevels) > 20) errors.push("Multiclass total level cannot exceed 20.");
     const failedPrerequisites = multiclassPrerequisiteFailures(classLevels, player.abilities || {});
     if (failedPrerequisites.length) errors.push(`Multiclass prerequisites not met: ${failedPrerequisites.join("; ")}.`);
+  }
+  if (player.spellcasting?.spells?.length) {
+    errors.push(...spellSelectionErrors(player.spellcasting.spells, classLevels, player.abilities || {}));
   }
   return errors;
 }
@@ -2218,6 +2390,10 @@ function campaignStartNoteHref(campaignId) {
 
 function playerCharacterHref(campaignId, playerId) {
   return `index.html#/campaigns/${encodeURIComponent(campaignId)}/players/${encodeURIComponent(playerId)}`;
+}
+
+function playerSpellbookHref(campaignId, playerId) {
+  return `index.html#/campaigns/${encodeURIComponent(campaignId)}/players/${encodeURIComponent(playerId)}/spells`;
 }
 
 function dashboardHref() {
@@ -7123,33 +7299,141 @@ function playerSpellcastingFormMarkup() {
 
 function spellPickerCardMarkup(spell, selectedSet) {
   const searchText = [spell.name, spell.levelName, spell.school, spell.castingTime, spell.range, spell.duration, (spell.classes || []).join(" ")].join(" ");
+  const meta = spellMetadata(spell);
+  const selected = selectedSet.has(spell.id);
   return `
-    <label class="spell-picker-card" data-spell-picker-card data-searchable="${escapeHtml(normalizeRulesText(searchText))}">
-      <input type="checkbox" name="player-spells" value="${escapeHtml(spell.id)}" ${selectedSet.has(spell.id) ? "checked" : ""} />
-      <span>
-        <strong>${escapeHtml(spell.name)}</strong>
-        <small>${escapeHtml(spell.levelName || spellLevelLabel(spell.level))} · ${escapeHtml(spell.school)} · ${escapeHtml(spell.castingTime)}</small>
-      </span>
-    </label>`;
+    <article class="spell-picker-card ${selected ? "is-selected" : ""}" data-spell-picker-card data-spell-level="${escapeHtml(meta.level)}" data-searchable="${escapeHtml(normalizeRulesText(searchText))}">
+      <label class="spell-picker-card-main">
+        <input type="checkbox" name="player-spells" value="${escapeHtml(spell.id)}" ${selected ? "checked" : ""} />
+        <span class="spell-picker-card-copy">
+          <span class="spell-picker-card-title">
+            <strong>${escapeHtml(spell.name)}</strong>
+            <em>${selected ? "Selected" : "Choose"}</em>
+          </span>
+          <small>${escapeHtml(meta.levelLabel)} · ${escapeHtml(spell.school || "Unknown school")}</small>
+        </span>
+      </label>
+      <div class="spell-picker-card-meta">
+        <span>${escapeHtml(spell.castingTime || "Unknown time")}</span>
+        <span>${escapeHtml(spell.range || "Unknown range")}</span>
+        <span>${escapeHtml(spell.components || "No components listed")}</span>
+      </div>
+      <div class="spell-badge-row">${spellFeatureBadgesMarkup(spell)}</div>
+      <p class="spell-unavailable-reason" data-spell-unavailable-reason hidden></p>
+      <details class="spell-picker-details">
+        <summary>Details</summary>
+        <p>${escapeHtml(spell.description || "No spell summary available.")}</p>
+      </details>
+    </article>`;
 }
 
-function spellPickerLevelGroupMarkup(level, spells, selectedSet) {
+function spellPickerSelectionSummaryMarkup(summary = null, classLevels = [], abilities = {}, selectedIds = []) {
+  if (!summary) return "";
+  const budget = spellSelectionBudgetForClassLevels(classLevels, abilities);
+  const counts = selectedSpellCounts(selectedIds);
+  const modeLabel = spellSelectionModeLabel(classLevels, abilities);
+  const slotParts = spellSlotSummaryParts(summary);
   return `
-    <section class="spell-picker-level-group" data-spell-picker-level-group>
-      <h3>${escapeHtml(spellLevelLabel(level))}</h3>
+    <div class="spell-picker-summary-grid">
+      <div class="spell-picker-summary-card ${counts.cantrips > budget.cantrips ? "is-warning" : ""}">
+        <span>Cantrips selected</span>
+        <strong>${escapeHtml(counts.cantrips)} / ${escapeHtml(budget.cantrips)}</strong>
+      </div>
+      <div class="spell-picker-summary-card ${counts.leveled > budget.leveled ? "is-warning" : ""}">
+        <span>${escapeHtml(modeLabel)}</span>
+        <strong>${escapeHtml(counts.leveled)} / ${escapeHtml(budget.leveled)}</strong>
+      </div>
+      <div class="spell-picker-summary-card spell-picker-slot-card">
+        <span>Spell slots</span>
+        <strong>${slotParts.length ? escapeHtml(slotParts.join(", ")) : "None"}</strong>
+      </div>
+    </div>
+    <div class="spell-picker-guidance">${widgetTagsMarkup(summary.entries.map((entry) => `${entry.className} spellcasting (${entry.rule.ability})`))}</div>`;
+}
+
+function spellPickerLevelGroupMarkup(group, selectedSet, selectedCountsByLevel) {
+  const selectedCount = selectedCountsByLevel[group.level] || 0;
+  return `
+    <section class="spell-picker-level-group ${group.level === 0 ? "is-cantrip-group" : ""}" data-spell-picker-level-group data-spell-picker-level="${escapeHtml(group.level)}">
+      <header class="spell-picker-level-heading">
+        <div>
+          <h3>${escapeHtml(group.label)}</h3>
+          <p>${escapeHtml(group.level === 0 ? "No spell slots required." : `${group.spells.length} available at this spell level.`)}</p>
+        </div>
+        <strong>${escapeHtml(selectedCount)} selected</strong>
+      </header>
       <div class="spell-picker-grid">
-        ${spells.map((spell) => spellPickerCardMarkup(spell, selectedSet)).join("")}
+        ${group.spells.map((spell) => spellPickerCardMarkup(spell, selectedSet)).join("")}
       </div>
     </section>`;
+}
+
+function spellPickerEmptyStateMarkup(summary = null) {
+  return `
+    <div class="empty-state spell-picker-empty-state">
+      ${summary
+        ? "This class and level does not have selectable starting spells yet."
+        : "Choose a spellcasting class and level to unlock the spell menu."}
+    </div>`;
+}
+
+function inactiveSpellcastingClassNotice(classLevels = []) {
+  const inactive = classLevelEntriesFromParts(classLevels)
+    .map((entry) => ({ ...entry, rule: spellcastingRule(entry.className) }))
+    .filter((entry) => entry.rule && Number(entry.level) < (entry.rule.startsAt || 1));
+  if (!inactive.length) return "";
+  return inactive.map((entry) => `${entry.className} starts spellcasting at level ${entry.rule.startsAt || 1}.`).join(" ");
+}
+
+function updateSpellPickerGroupCounters(form) {
+  const selectedCountsByLevel = selectedSpellIdsByLevel(selectedSpellIdsFromForm(form));
+  form.querySelectorAll?.("[data-spell-picker-level-group]").forEach((group) => {
+    const level = Number(group.dataset.spellPickerLevel) || 0;
+    const count = selectedCountsByLevel[level] || 0;
+    const output = group.querySelector(".spell-picker-level-heading strong");
+    if (output) output.textContent = `${count} selected`;
+  });
+}
+
+function selectedSpellLimitReason(spell = {}, budget = {}, counts = {}) {
+  const isCantrip = Number(spell.level) === 0;
+  if (isCantrip && counts.cantrips >= budget.cantrips) return "Cantrip limit reached";
+  if (!isCantrip && counts.leveled >= budget.leveled) return `${budget.modeLabel || "Spell"} limit reached`;
+  return "";
+}
+
+function setSpellPickerCardState(input, spell = {}, selectedSet, budget = {}, counts = {}) {
+  const card = input.closest("[data-spell-picker-card]");
+  const selected = selectedSet.has(input.value);
+  const reason = selected ? "" : selectedSpellLimitReason(spell, budget, counts);
+  const reasonTarget = card?.querySelector("[data-spell-unavailable-reason]");
+  input.checked = selected;
+  input.disabled = Boolean(reason);
+  card?.classList.toggle("is-selected", selected);
+  card?.classList.toggle("is-disabled", Boolean(reason));
+  card?.setAttribute("title", reason || "");
+  if (reasonTarget) {
+    reasonTarget.textContent = reason;
+    reasonTarget.hidden = !reason;
+  }
 }
 
 function updateSpellPickerCount(form) {
   const count = form.querySelector("#player-spell-picker-count");
   if (!count) return;
-  const selected = selectedSpellIdsFromForm(form).length;
-  const summary = spellcastingSummaryForClassLevels(classLevelEntriesFromForm(form));
-  const guide = summary?.guidance?.join(" · ") || "";
-  count.textContent = `${selected} selected${guide ? ` · ${guide}` : ""}`;
+  const selectedSpellIds = selectedSpellIdsFromForm(form);
+  const classLevels = classLevelEntriesFromForm(form);
+  const abilities = abilityScoresFromForm(form);
+  const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
+  const budget = spellSelectionBudgetForClassLevels(classLevels, abilities);
+  const counts = selectedSpellCounts(selectedSpellIds);
+  const modeLabel = spellSelectionModeLabel(classLevels, abilities);
+  const cantripText = budget.cantrips ? `${counts.cantrips}/${budget.cantrips} cantrips` : "";
+  const leveledText = budget.leveled ? `${counts.leveled}/${budget.leveled} ${modeLabel.toLowerCase()}` : "";
+  const overLimit = counts.cantrips > budget.cantrips || counts.leveled > budget.leveled;
+  count.textContent = [cantripText, leveledText, spellSlotSummaryParts(summary).length ? `Spell slots: ${spellSlotSummaryParts(summary).join(", ")}` : ""].filter(Boolean).join(" | ");
+  count.classList.toggle("is-warning", overLimit);
+  updateSpellPickerGroupCounters(form);
 }
 
 function filterSpellPicker(form) {
@@ -7163,46 +7447,52 @@ function filterSpellPicker(form) {
   });
 }
 
+function enforceSpellSelectionLimits(form) {
+  const classLevels = classLevelEntriesFromForm(form);
+  const abilities = abilityScoresFromForm(form);
+  const budget = {
+    ...spellSelectionBudgetForClassLevels(classLevels, abilities),
+    modeLabel: spellSelectionModeLabel(classLevels, abilities),
+  };
+  const counts = selectedSpellCounts(selectedSpellIdsFromForm(form));
+  const selectedSet = new Set(selectedSpellIdsFromForm(form));
+  form.querySelectorAll?.('input[name="player-spells"]').forEach((input) => {
+    setSpellPickerCardState(input, spellById(input.value), selectedSet, budget, counts);
+  });
+}
+
 function updatePlayerSpellPicker(form) {
   const section = form.querySelector("#player-spellcasting-section");
   const summaryTarget = form.querySelector("#player-spellcasting-summary");
   const list = form.querySelector("#player-spell-picker-list");
   if (!section || !summaryTarget || !list) return;
   const classLevels = classLevelEntriesFromForm(form);
-  const summary = spellcastingSummaryForClassLevels(classLevels);
+  const abilities = abilityScoresFromForm(form);
+  const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
+  const inactiveNotice = inactiveSpellcastingClassNotice(classLevels);
   const selectedSet = new Set(selectedSpellIdsFromForm(form));
   const spells = availableSpellsForClassLevels(classLevels);
-  section.hidden = !summary;
+  section.hidden = !summary && !inactiveNotice;
   if (!summary) {
     summaryTarget.innerHTML = "";
-    list.innerHTML = "";
+    list.innerHTML = inactiveNotice
+      ? `<div class="empty-state spell-picker-empty-state">${escapeHtml(inactiveNotice)}</div>`
+      : spellPickerEmptyStateMarkup(null);
     return;
   }
-  const normalSlots = summary.normalSlots.length
-    ? summary.normalSlots.map((amount, index) => `${spellLevelLabel(index + 1)}: ${amount}`).join(" · ")
-    : "";
-  const pactSlots = summary.pact ? `Pact Magic: ${summary.pact.slots} ${spellLevelLabel(summary.pact.level)} slot${summary.pact.slots === 1 ? "" : "s"}` : "";
-  summaryTarget.innerHTML = `
-    ${widgetTagsMarkup([
-      ...summary.entries.map((entry) => `${entry.className} spellcasting (${entry.rule.ability})`),
-      normalSlots,
-      pactSlots,
-    ].filter(Boolean))}
-    <p>${escapeHtml(summary.guidance.join(" · "))}</p>
-    <p>Normal spell slots recover on a long rest. Warlock Pact Magic slots recover on a short or long rest.</p>`;
+  summaryTarget.innerHTML = spellPickerSelectionSummaryMarkup(summary, classLevels, abilities, selectedSpellIdsFromForm(form));
   if (!spellCollection().length) {
     list.innerHTML = `<div class="empty-state">Spell data is still loading. Save the character after the compendium finishes loading.</div>`;
     return;
   }
   if (!spells.length) {
-    list.innerHTML = `<div class="empty-state">This class and level does not have selectable starting spells yet.</div>`;
+    list.innerHTML = spellPickerEmptyStateMarkup(summary);
     return;
   }
-  const grouped = Array.from({ length: 10 }, (_, level) => spells.filter((spell) => Number(spell.level) === level));
-  list.innerHTML = grouped.map((levelSpells, level) => (
-    levelSpells.length ? spellPickerLevelGroupMarkup(level, levelSpells, selectedSet) : ""
-  )).join("");
+  const selectedCountsByLevel = selectedSpellIdsByLevel(selectedSpellIdsFromForm(form));
+  list.innerHTML = spellsGroupedByLevel(spells).map((group) => spellPickerLevelGroupMarkup(group, selectedSet, selectedCountsByLevel)).join("");
   filterSpellPicker(form);
+  enforceSpellSelectionLimits(form);
   updateSpellPickerCount(form);
 }
 
@@ -8793,12 +9083,114 @@ function spellSlotButtonsMarkup({ kind, level, total, used }) {
 }
 
 function sheetSpellCardMarkup(spell) {
+  const meta = spellMetadata(spell);
+  const materialLine = meta.materialText ? `<em title="${escapeHtml(meta.materialText)}">Material: ${escapeHtml(meta.materialText)}</em>` : "";
   return `
-    <button class="sheet-spell-card" type="button" data-sheet-spell-id="${escapeHtml(spell.id)}" data-spell-title="${escapeHtml(spell.name)}" data-spell-level="${escapeHtml(spell.levelName || spellLevelLabel(spell.level))}" data-spell-details="${escapeHtml(spell.description || "")}">
-      <strong>${escapeHtml(spell.name)}</strong>
-      <span>${escapeHtml(spell.levelName || spellLevelLabel(spell.level))} · ${escapeHtml(spell.school)}</span>
-      <small>${escapeHtml(spell.castingTime)} · ${escapeHtml(spell.range)} · ${escapeHtml(spell.duration)}</small>
+    <button class="sheet-spell-card" type="button" data-sheet-spell-id="${escapeHtml(spell.id)}">
+      <span class="sheet-spell-card-top">
+        <strong>${escapeHtml(spell.name)}</strong>
+        <small>${escapeHtml(meta.levelLabel)}</small>
+      </span>
+      <span>${escapeHtml(spell.school || "Unknown school")}</span>
+      <span class="sheet-spell-fast-line">${escapeHtml(spell.castingTime || "Unknown time")} · ${escapeHtml(spell.range || "Unknown range")}</span>
+      <span class="sheet-spell-fast-line">${escapeHtml(spell.duration || "Unknown duration")}</span>
+      <span class="spell-badge-row">${spellFeatureBadgesMarkup(spell)}</span>
+      ${materialLine}
     </button>`;
+}
+
+function sheetSpellLevelGroupMarkup(group) {
+  return `
+    <section class="sheet-spell-level-group ${group.level === 0 ? "is-cantrip-group" : ""}">
+      <header>
+        <h4>${escapeHtml(group.label)}</h4>
+        <span>${escapeHtml(group.spells.length)} selected</span>
+      </header>
+      <div class="sheet-spell-grid">${group.spells.map(sheetSpellCardMarkup).join("")}</div>
+    </section>`;
+}
+
+function sheetSpellcastingSummaryMarkup(player = {}, runtime = null) {
+  const classRows = spellcastingAbilityRows(player, runtime);
+  const budget = spellSelectionBudgetForClassLevels(classLevelEntriesForPlayer(player), player.abilities || {});
+  const counts = selectedSpellCounts(player.spellcasting?.spells || []);
+  const modeLabel = spellSelectionModeLabel(classLevelEntriesForPlayer(player), player.abilities || {});
+  return `
+    <div class="sheet-spellcasting-summary-grid">
+      ${classRows.map((row) => `
+        <article>
+          <span>${escapeHtml(row.className)}</span>
+          <strong>${escapeHtml(row.ability)}</strong>
+          <small>Save DC ${escapeHtml(row.saveDc)} · Attack ${escapeHtml(signedModifier(row.attackBonus))}</small>
+        </article>`).join("")}
+      <article>
+        <span>Cantrips</span>
+        <strong>${escapeHtml(counts.cantrips)} / ${escapeHtml(budget.cantrips)}</strong>
+        <small>Known at this level</small>
+      </article>
+      <article>
+        <span>${escapeHtml(modeLabel)}</span>
+        <strong>${escapeHtml(counts.leveled)} / ${escapeHtml(budget.leveled)}</strong>
+        <small>Chosen for this sheet</small>
+      </article>
+    </div>`;
+}
+
+function sheetSpellbookMarkup(player, wildShape = useWildShape(player), campaignId = DEFAULT_CAMPAIGN_ID, playerId = player?.id) {
+  const runtime = spellcastingRuntimeForPlayer(player);
+  if (!runtime || wildShape.overlay) return "";
+  return `
+    <section class="sheet-box sheet-widget sheet-spellbook-page" data-sheet-widget="spellcasting">
+      <h3><span>Spellbook</span><small>${escapeHtml(runtime.spells.length)} chosen</small></h3>
+      <div class="sheet-spellbook-actions">
+        <a class="btn btn-primary" href="${escapeHtml(playerSpellbookHref(campaignId, playerId || ""))}">Spells</a>
+      </div>
+    </section>`;
+}
+
+function playerSpellbookMarkup(player = {}) {
+  const runtime = spellcastingRuntimeForPlayer(player);
+  if (!runtime) {
+    return `
+      <section class="sheet-box sheet-widget sheet-spellbook-page character-spellbook-panel" data-sheet-widget="spellcasting">
+        <h3><span>Chosen Spells</span><small>0 available</small></h3>
+        <div class="empty-state">No spellcasting is available for this character.</div>
+      </section>`;
+  }
+  const grouped = spellsGroupedByLevel(runtime.spells);
+  return `
+    <section class="sheet-box sheet-widget sheet-spellbook-page character-spellbook-panel" data-sheet-widget="spellcasting">
+      <h3><span>Chosen Spells</span><small>${escapeHtml(runtime.spells.length)} available</small></h3>
+      ${sheetSpellcastingSummaryMarkup(player, runtime)}
+      <div class="sheet-spell-list">
+        ${grouped.length ? grouped.map(sheetSpellLevelGroupMarkup).join("") : `<p>No starting spells selected.</p>`}
+      </div>
+    </section>`;
+}
+
+function spellDetailMarkup(spell = {}) {
+  const meta = spellMetadata(spell);
+  const rows = [
+    ["Level", meta.levelLabel],
+    ["School", spell.school],
+    ["Casting time", spell.castingTime],
+    ["Range", spell.range],
+    ["Duration", spell.duration],
+    ["Components", spell.components],
+    ["Classes", spellClasses(spell).join(", ")],
+  ].filter(([, value]) => hasText(value));
+  const higherLevel = spell.higherLevel || spell.higherLevels || spell.atHigherLevels || spell.upcast || "";
+  return `
+    <div class="sheet-spell-detail-body">
+      <div class="spell-badge-row sheet-spell-detail-badges">${spellFeatureBadgesMarkup(spell)}</div>
+      <dl class="widget-detail-meta spell-detail-meta">
+        ${rows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}
+      </dl>
+      ${meta.materialText ? `<section><h3>Material</h3><p>${escapeHtml(meta.materialText)}</p></section>` : ""}
+      <section><h3>Description</h3><p>${escapeHtml(spell.description || "No spell details available.")}</p></section>
+      ${higherLevel ? `<section><h3>At Higher Levels</h3><p>${escapeHtml(higherLevel)}</p></section>` : ""}
+      ${spell.sourceUrl ? `<div class="tag-row spell-detail-actions"><a class="btn btn-secondary" href="${escapeHtml(spell.sourceUrl)}" target="_blank" rel="noreferrer">Open Source Page</a></div>` : ""}
+    </div>`;
 }
 
 function sheetSpellcastingMarkup(player, wildShape = useWildShape(player)) {
@@ -8811,7 +9203,6 @@ function sheetSpellcastingMarkup(player, wildShape = useWildShape(player)) {
         <p>Wild Shape prevents casting spells in beast form. Existing concentration is retained, and spell slots are not changed by this temporary state.</p>
       </section>`;
   }
-  const spellsByLevel = Array.from({ length: 10 }, (_, level) => runtime.spells.filter((spell) => Number(spell.level) === level));
   const normalSlotRows = runtime.normalSlots.map((total, index) => spellSlotButtonsMarkup({
     kind: "normal",
     level: index + 1,
@@ -8827,6 +9218,7 @@ function sheetSpellcastingMarkup(player, wildShape = useWildShape(player)) {
   return `
     <section class="sheet-box sheet-widget sheet-spellcasting-widget" data-sheet-widget="spellcasting">
       <h3><span>Spellcasting</span><small>${escapeHtml(runtime.entries.map((entry) => `${entry.className} ${entry.rule.ability}`).join(" / "))}</small></h3>
+      ${sheetSpellcastingSummaryMarkup(player, runtime)}
       <div class="spell-slot-panel">
         ${normalSlotRows || pactSlotRows ? `
           ${normalSlotRows}
@@ -8839,13 +9231,6 @@ function sheetSpellcastingMarkup(player, wildShape = useWildShape(player)) {
           <button class="btn btn-secondary" type="button" data-spell-rest="short">Short rest</button>
           <button class="btn btn-secondary" type="button" data-spell-rest="long">Long rest</button>
         </div>
-      </div>
-      <div class="sheet-spell-list">
-        ${runtime.spells.length ? spellsByLevel.map((spells, level) => spells.length ? `
-          <section>
-            <h4>${escapeHtml(spellLevelLabel(level))}</h4>
-            <div class="sheet-spell-grid">${spells.map(sheetSpellCardMarkup).join("")}</div>
-          </section>` : "").join("") : `<p>No starting spells selected.</p>`}
       </div>
     </section>`;
 }
@@ -8890,7 +9275,7 @@ function characterSheetOverlays(player = {}) {
         <button class="sheet-modal-close" type="button" data-close-sheet-spell aria-label="Close">&times;</button>
         <p class="eyebrow" id="sheet-spell-level">Spell</p>
         <h2 id="sheet-spell-title"></h2>
-        <p id="sheet-spell-details"></p>
+        <div id="sheet-spell-details"></div>
       </article>
     </div>`;
 }
@@ -8971,12 +9356,14 @@ function WildShapeMechanicsGrid(player = {}, wildShape = useWildShape(player), c
     </section>`;
 }
 
-function characterSheetMarkup(player) {
+function characterSheetMarkup(player, options = {}) {
   const combat = player.combat || {};
   const classLevels = classLevelEntriesForPlayer(player);
   const classSummary = classLevelSummary(classLevels);
   const wildShape = useWildShape(player);
   const overlay = wildShape.overlay;
+  const campaignId = options.campaignId || DEFAULT_CAMPAIGN_ID;
+  const playerId = options.playerId || player.id || "";
   const equipmentText = [
     player.equipment,
     Number(player.gold) > 0 ? `Gold: ${player.gold} GP` : "",
@@ -9027,6 +9414,7 @@ function characterSheetMarkup(player) {
             ${overlay ? `<p class="wild-shape-limited-note">These are parsed from the beast stat block. Character weapons and spell attacks are hidden while transformed.</p>` : ""}
           </section>
           ${sheetSpellcastingMarkup(player, wildShape)}
+          ${sheetSpellbookMarkup(player, wildShape, campaignId, playerId)}
           ${sheetEquipmentItemsMarkup(player, equipmentText, wildShape)}
         </section>
 
@@ -9215,9 +9603,11 @@ function bindCharacterSheetInteractions(campaignId, playerId) {
 
   sheet.querySelectorAll("[data-sheet-spell-id]").forEach((button) => {
     button.addEventListener("click", () => {
-      spellTitle.textContent = button.dataset.spellTitle || "Spell";
-      spellLevel.textContent = button.dataset.spellLevel || "Spell";
-      spellDetails.textContent = button.dataset.spellDetails || "No spell details available.";
+      const spell = spellById(button.dataset.sheetSpellId) || {};
+      const meta = spellMetadata(spell);
+      spellTitle.textContent = spell.name || "Spell";
+      spellLevel.textContent = [meta.levelLabel, spell.school].filter(Boolean).join(" · ") || "Spell";
+      spellDetails.innerHTML = spellDetailMarkup(spell);
       spellModal.hidden = false;
     });
   });
@@ -9269,6 +9659,30 @@ function bindCharacterSheetInteractions(campaignId, playerId) {
   });
 }
 
+function bindPlayerSpellbookInteractions() {
+  const page = document.querySelector(".character-spellbook-page");
+  if (!page) return;
+  const spellModal = page.querySelector("#sheet-spell-modal");
+  const spellTitle = page.querySelector("#sheet-spell-title");
+  const spellLevel = page.querySelector("#sheet-spell-level");
+  const spellDetails = page.querySelector("#sheet-spell-details");
+
+  page.querySelectorAll("[data-sheet-spell-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const spell = spellById(button.dataset.sheetSpellId) || {};
+      const meta = spellMetadata(spell);
+      spellTitle.textContent = spell.name || "Spell";
+      spellLevel.textContent = [meta.levelLabel, spell.school].filter(Boolean).join(" · ") || "Spell";
+      spellDetails.innerHTML = spellDetailMarkup(spell);
+      spellModal.hidden = false;
+    });
+  });
+
+  page.querySelectorAll("[data-close-sheet-spell]").forEach((button) => {
+    button.addEventListener("click", () => { spellModal.hidden = true; });
+  });
+}
+
 function renderPlayerCharacterPage(campaignId, playerId) {
   const campaign = getCampaign(campaignId);
   if (!campaign) {
@@ -9291,10 +9705,47 @@ function renderPlayerCharacterPage(campaignId, playerId) {
         </div>
         ${player.avatarUrl ? `<img class="character-avatar" src="${escapeHtml(player.avatarUrl)}" alt="${escapeHtml(player.characterName)} avatar" />` : `<div class="card-visual character-avatar-placeholder" aria-hidden="true"><span>${cardVisualLabel(player.characterName)}</span></div>`}
       </div>
-      ${characterSheetMarkup(player)}
+      ${characterSheetMarkup(player, { campaignId, playerId })}
     </section>`;
   document.getElementById("back-to-dashboard-button").addEventListener("click", goToDashboard);
   bindCharacterSheetInteractions(campaignId, playerId);
+}
+
+function renderPlayerSpellbookPage(campaignId, playerId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) {
+    renderNotFoundPage("The requested campaign does not exist in local storage.");
+    return;
+  }
+  const player = (campaign.players || []).find((item) => item.id === playerId);
+  if (!player) {
+    renderNotFoundPage("That player character is not saved in this campaign.");
+    return;
+  }
+  const runtime = spellcastingRuntimeForPlayer(player);
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell character-page character-spellbook-page">
+      <div class="page-hero character-hero">
+        <div>
+          <p class="eyebrow">Spellbook</p>
+          <h1>${escapeHtml(player.characterName)} Spells</h1>
+          <p>${escapeHtml(runtime?.spells.length || 0)} chosen spell widgets in ${escapeHtml(campaign.name)}.</p>
+          <a class="btn btn-secondary" href="${escapeHtml(playerCharacterHref(campaignId, playerId))}">Back to character sheet</a>
+        </div>
+        ${player.avatarUrl ? `<img class="character-avatar" src="${escapeHtml(player.avatarUrl)}" alt="${escapeHtml(player.characterName)} avatar" />` : `<div class="card-visual character-avatar-placeholder" aria-hidden="true"><span>${cardVisualLabel(player.characterName)}</span></div>`}
+      </div>
+      ${playerSpellbookMarkup(player)}
+      <div class="sheet-modal" id="sheet-spell-modal" hidden>
+        <button class="sheet-modal-backdrop" type="button" data-close-sheet-spell aria-label="Close spell details"></button>
+        <article class="sheet-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="sheet-spell-title">
+          <button class="sheet-modal-close" type="button" data-close-sheet-spell aria-label="Close">&times;</button>
+          <p class="eyebrow" id="sheet-spell-level">Spell</p>
+          <h2 id="sheet-spell-title"></h2>
+          <div id="sheet-spell-details"></div>
+        </article>
+      </div>
+    </section>`;
+  bindPlayerSpellbookInteractions();
 }
 
 function initCampaignRoutes() {
@@ -9308,6 +9759,10 @@ function initCampaignRoutes() {
   }
   if (parts[2] === "start-note") {
     renderCampaignStartNotePage(campaignId);
+    return true;
+  }
+  if (parts[2] === "players" && parts[3] && parts[4] === "spells") {
+    renderPlayerSpellbookPage(campaignId, parts[3]);
     return true;
   }
   if (parts[2] === "players" && parts[3]) {
