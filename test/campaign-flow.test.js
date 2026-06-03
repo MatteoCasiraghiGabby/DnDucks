@@ -1231,6 +1231,114 @@ test("character sheet renders trait icons with overlay data", () => {
   assert.match(sheetMarkup, /data-edit-sheet-field="features"/);
 });
 
+test("player widgets expose a level up action", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-class-role": "Fighter",
+    "#player-level": "4",
+  }));
+  const markup = app.playerCharacterCard({ ...player, campaignId: "local" });
+
+  assert.match(markup, /Level up/);
+  assert.match(markup, /href="index\.html#\/campaigns\/local\/players\/[^"]+\/level-up"/);
+});
+
+test("level up applies class level, hit points, proficiency, abilities, and feature notes", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-class-role": "Fighter",
+    "#player-level": "4",
+    "#player-race": "Human",
+    "#player-strength": "16",
+    "#player-dexterity": "12",
+    "#player-constitution": "14",
+    "#player-equipment": "Longsword",
+    "#player-hp-max": "32",
+  }));
+  const result = app.applyPlayerLevelUp(player, {
+    className: "Fighter",
+    hitPointGain: 7,
+    abilityDeltas: { strength: 2 },
+    notes: "Extra Attack",
+  });
+
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.player.level, 5);
+  assert.equal(result.player.classLevels.length, 1);
+  assert.equal(result.player.classLevels[0].className, "Fighter");
+  assert.equal(result.player.classLevels[0].level, 5);
+  assert.equal(result.player.proficiencyBonus, 3);
+  assert.equal(result.player.abilities.strength, 18);
+  assert.equal(result.player.combat.hitPointMaximum, 39);
+  assert.equal(result.player.combat.hitDice, "5d10");
+  assert.match(result.player.features, /Level 5 Advancement/);
+  assert.match(result.player.features, /Extra Attack/);
+  assert.match(result.player.attacks.find((attack) => attack.name === "Longsword").attackBonus, /\+7/);
+});
+
+test("level up handles constitution increases with retroactive hit points", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-class-role": "Fighter",
+    "#player-level": "7",
+    "#player-strength": "16",
+    "#player-constitution": "17",
+    "#player-hp-max": "60",
+  }));
+  const result = app.applyPlayerLevelUp(player, {
+    className: "Fighter",
+    hitPointGain: 9,
+    abilityDeltas: { constitution: 1 },
+  });
+
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.player.level, 8);
+  assert.equal(result.player.abilities.constitution, 18);
+  assert.equal(result.advancement.constitutionRetroactiveHitPoints, 8);
+  assert.equal(result.player.combat.hitPointMaximum, 77);
+});
+
+test("level up validates new multiclass prerequisites", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Bramble",
+    "#player-class-role": "Fighter",
+    "#player-level": "4",
+    "#player-strength": "16",
+    "#player-dexterity": "12",
+    "#player-charisma": "8",
+  }));
+  const result = app.applyPlayerLevelUp(player, { className: "Sorcerer", hitPointGain: 4 });
+
+  assert.match(result.errors.join(" "), /Sorcerer requires Charisma 13/);
+});
+
+test("level up page markup previews advancement and spell slots", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Wizard",
+    "#player-level": "4",
+    "#player-intelligence": "16",
+    "#player-constitution": "12",
+  }));
+  const markup = app.playerLevelUpMarkup(player, "local");
+
+  assert.match(markup, /Advancement Preview/);
+  assert.match(markup, /4 -&gt; 5/);
+  assert.match(markup, /Spell slots/);
+  assert.match(markup, /Level 1: 4, Level 2: 3, Level 3: 2/);
+  assert.match(markup, /Apply level up/);
+});
+
 test("character sheet divides equipment into item widgets with homebrew detail links", () => {
   const app = createFrontendSandbox();
   app.localStorage.setItem("dnducks.items", JSON.stringify([{

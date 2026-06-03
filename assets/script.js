@@ -178,6 +178,29 @@ const PLAYER_CLASSES = [
   { name: "Wizard", hitDie: "d6", primary: "Intelligence", saves: ["intelligence", "wisdom"], skillLimit: 2, skillChoices: ["arcana", "history", "insight", "investigation", "medicine", "religion"], fixedTools: [], toolLimit: 0, toolChoices: [] },
 ];
 
+const CHARACTER_ADVANCEMENT_LEVELS = {
+  1: { proficiencyBonus: 2 },
+  2: { proficiencyBonus: 2 },
+  3: { proficiencyBonus: 2 },
+  4: { proficiencyBonus: 2 },
+  5: { proficiencyBonus: 3 },
+  6: { proficiencyBonus: 3 },
+  7: { proficiencyBonus: 3 },
+  8: { proficiencyBonus: 3 },
+  9: { proficiencyBonus: 4 },
+  10: { proficiencyBonus: 4 },
+  11: { proficiencyBonus: 4 },
+  12: { proficiencyBonus: 4 },
+  13: { proficiencyBonus: 5 },
+  14: { proficiencyBonus: 5 },
+  15: { proficiencyBonus: 5 },
+  16: { proficiencyBonus: 5 },
+  17: { proficiencyBonus: 6 },
+  18: { proficiencyBonus: 6 },
+  19: { proficiencyBonus: 6 },
+  20: { proficiencyBonus: 6 },
+};
+
 const SPELLCASTING_CLASS_RULES = {
   Artificer: { kind: "artificer", ability: "Intelligence", recovery: "long", cantrips: { 1: 2, 10: 3, 14: 4 }, prepared: { abilityKey: "intelligence", levelMultiplier: 0.5, minimum: 1, label: "Intelligence modifier + half Artificer level" } },
   Bard: { kind: "full", ability: "Charisma", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, known: { 1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14, 11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22 } },
@@ -1021,12 +1044,204 @@ function signedModifier(value) {
 }
 
 function proficiencyBonusForLevel(level) {
-  const value = Math.max(1, Math.min(20, Number(level) || 1));
-  return Math.ceil(value / 4) + 1;
+  const value = Math.max(1, Math.min(20, Math.floor(Number(level) || 1)));
+  return CHARACTER_ADVANCEMENT_LEVELS[value]?.proficiencyBonus || 2;
 }
 
 function abilityScore(player, key) {
   return player?.abilities?.[key] ?? "";
+}
+
+function levelUpClassLevelOptions(player = {}) {
+  const currentEntries = classLevelEntriesForPlayer(player);
+  const primaryClass = currentEntries[0]?.className || player.classRole || PLAYER_CLASSES[0].name;
+  const currentNames = new Set(currentEntries.map((entry) => normalizeRulesText(entry.className)));
+  return PLAYER_CLASSES.map((item) => {
+    const existingLevel = currentEntries.find((entry) => normalizeRulesText(entry.className) === normalizeRulesText(item.name))?.level || 0;
+    return {
+      className: item.name,
+      existingLevel,
+      isCurrentClass: currentNames.has(normalizeRulesText(item.name)),
+      isPrimary: normalizeRulesText(item.name) === normalizeRulesText(primaryClass),
+      hitDieSides: hitDieSidesForClassName(item.name),
+    };
+  }).sort((a, b) => {
+    if (a.isPrimary !== b.isPrimary) return a.isPrimary ? -1 : 1;
+    if (a.isCurrentClass !== b.isCurrentClass) return a.isCurrentClass ? -1 : 1;
+    return a.className.localeCompare(b.className);
+  });
+}
+
+function nextClassLevelsForLevelUp(player = {}, className = "") {
+  const selectedClass = classNameForValue(className || classLevelEntriesForPlayer(player)[0]?.className || player.classRole);
+  const entries = classLevelEntriesForPlayer(player);
+  const nextEntries = entries.map((entry) => (
+    normalizeRulesText(entry.className) === normalizeRulesText(selectedClass)
+      ? { ...entry, level: (Number(entry.level) || 0) + 1 }
+      : entry
+  ));
+  if (!nextEntries.some((entry) => normalizeRulesText(entry.className) === normalizeRulesText(selectedClass))) {
+    nextEntries.push({ className: selectedClass, level: 1 });
+  }
+  return classLevelEntriesFromParts(nextEntries);
+}
+
+function fixedLevelUpHitPoints(className = "", constitutionScore = "") {
+  const sides = hitDieSidesForClassName(className);
+  return Math.max(1, Math.floor(sides / 2) + 1 + abilityModifier(constitutionScore));
+}
+
+function levelUpPreviewForPlayer(player = {}, className = "") {
+  const currentClassLevels = classLevelEntriesForPlayer(player);
+  const currentLevel = Math.max(1, totalLevelForClassLevels(currentClassLevels) || Number(player.level) || 1);
+  const selectedClass = classNameForValue(className || currentClassLevels[0]?.className || player.classRole);
+  const nextClassLevels = currentLevel >= 20 ? currentClassLevels : nextClassLevelsForLevelUp(player, selectedClass);
+  const nextLevel = totalLevelForClassLevels(nextClassLevels) || Math.min(20, currentLevel + 1);
+  const nextSpellcasting = spellcastingSummaryForClassLevels(nextClassLevels, player.abilities || {});
+  return {
+    selectedClass,
+    currentLevel,
+    nextLevel,
+    currentClassLevels,
+    nextClassLevels,
+    hitDieSides: hitDieSidesForClassName(selectedClass),
+    fixedHitPoints: fixedLevelUpHitPoints(selectedClass, player.abilities?.constitution),
+    currentProficiencyBonus: proficiencyBonusForLevel(currentLevel),
+    nextProficiencyBonus: proficiencyBonusForLevel(nextLevel),
+    nextHitDice: classHitDiceFromClassLevels(nextClassLevels),
+    nextSpellcasting,
+  };
+}
+
+function abilityDeltasFromLevelUpOptions(options = {}) {
+  return Object.fromEntries(ABILITIES.map((ability) => {
+    const raw = options.abilityDeltas?.[ability.key] ?? options[`ability-${ability.key}`] ?? 0;
+    return [ability.key, Math.max(0, Math.floor(Number(raw) || 0))];
+  }));
+}
+
+function applyAbilityDeltasForLevelUp(scores = {}, deltas = {}) {
+  return Object.fromEntries(ABILITIES.map((ability) => {
+    const current = numberOrBlank(scores?.[ability.key]);
+    const delta = Number(deltas?.[ability.key]) || 0;
+    if (current === "") return [ability.key, delta > 0 ? Math.min(20, delta) : ""];
+    return [ability.key, delta > 0 ? Math.min(20, current + delta) : current];
+  }));
+}
+
+function levelUpSpellcastingForPlayer(player = {}, classLevels = [], abilities = {}) {
+  const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
+  const spells = uniqueTextList(player.spellcasting?.spells || []);
+  if (!summary && !spells.length) return null;
+  return {
+    classes: (summary?.entries || []).map((entry) => ({
+      className: entry.className,
+      level: entry.level,
+      ability: entry.rule.ability,
+      kind: entry.rule.kind,
+    })),
+    spells,
+    slotUsage: player.spellcasting?.slotUsage || { normal: {}, pact: 0 },
+  };
+}
+
+function levelUpFeatureBlock(details = {}) {
+  const abilityLines = ABILITIES
+    .map((ability) => {
+      const delta = Number(details.abilityDeltas?.[ability.key]) || 0;
+      return delta ? `${ability.short} +${delta}` : "";
+    })
+    .filter(Boolean);
+  const lines = [
+    `Level ${details.nextLevel} Advancement`,
+    `Advanced ${details.className} to character level ${details.nextLevel}.`,
+    `Hit points +${details.totalHitPointGain}. Hit Dice ${details.nextHitDice}. Proficiency bonus ${signedModifier(details.nextProficiencyBonus)}.`,
+    abilityLines.length ? `Ability score increases: ${abilityLines.join(", ")}.` : "",
+    details.notes ? `Notes: ${details.notes}` : "",
+  ];
+  return lines.filter(Boolean).join("\n");
+}
+
+function applyPlayerLevelUp(player = {}, options = {}) {
+  const preview = levelUpPreviewForPlayer(player, options.className);
+  if (preview.currentLevel >= 20) return { player, errors: ["This character is already level 20."] };
+  const abilityDeltas = abilityDeltasFromLevelUpOptions(options);
+  const currentAbilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberOrBlank(player.abilities?.[ability.key])]));
+  const nextAbilities = applyAbilityDeltasForLevelUp(currentAbilities, abilityDeltas);
+  const prerequisiteFailures = multiclassPrerequisiteFailures(preview.nextClassLevels, nextAbilities);
+  if (prerequisiteFailures.length) return { player, errors: [`Multiclass prerequisites not met: ${prerequisiteFailures.join("; ")}.`] };
+  const currentConMod = abilityModifier(currentAbilities.constitution);
+  const nextConMod = abilityModifier(nextAbilities.constitution);
+  const defaultHpGain = fixedLevelUpHitPoints(preview.selectedClass, currentAbilities.constitution);
+  const requestedHpGain = Math.floor(Number(options.hitPointGain) || 0);
+  const hpGain = Math.max(1, requestedHpGain || defaultHpGain);
+  const constitutionRetroactiveHitPoints = Math.max(0, nextConMod - currentConMod) * preview.nextLevel;
+  const totalHitPointGain = hpGain + constitutionRetroactiveHitPoints;
+  const currentHitPointMaximum = numberOrBlank(player.combat?.hitPointMaximum) || fixedHitPointsForClassLevels(preview.currentClassLevels, currentAbilities.constitution);
+  const nextHitPointMaximum = currentHitPointMaximum + totalHitPointGain;
+  const nextClassRole = classRoleSummary(preview.nextClassLevels, player.classRole);
+  const nextProficiencyBonus = proficiencyBonusForLevel(preview.nextLevel);
+  const nextCombat = {
+    ...(player.combat || {}),
+    ...derivedCombatStats({
+      level: preview.nextLevel,
+      classRole: nextClassRole,
+      race: player.race,
+      abilities: nextAbilities,
+      equipment: player.equipment,
+      hitPointMaximum: nextHitPointMaximum,
+      classLevels: preview.nextClassLevels,
+    }),
+    hitPointsRolled: true,
+  };
+  const currentHitPoints = numberOrBlank(player.combat?.currentHitPoints);
+  nextCombat.currentHitPoints = currentHitPoints === "" ? nextHitPointMaximum : Math.min(nextHitPointMaximum, currentHitPoints + totalHitPointGain);
+  const nextBaseAbilities = {
+    ...(player.baseAbilities || currentAbilities),
+  };
+  ABILITIES.forEach((ability) => {
+    const delta = Number(abilityDeltas[ability.key]) || 0;
+    if (delta > 0) nextBaseAbilities[ability.key] = Math.min(20, (Number(nextBaseAbilities[ability.key]) || currentAbilities[ability.key] || 0) + delta);
+  });
+  const generatedAttacks = derivedWeaponAttacks({
+    equipment: player.equipment,
+    abilities: nextAbilities,
+    level: preview.nextLevel,
+  });
+  const manualAttacks = (player.attacks || []).filter((attack) => !attack.generatedFromEquipment);
+  const advancement = {
+    id: createId("level-up"),
+    advancedAt: readableDate(),
+    className: preview.selectedClass,
+    fromLevel: preview.currentLevel,
+    toLevel: preview.nextLevel,
+    hitPointGain: hpGain,
+    constitutionRetroactiveHitPoints,
+    totalHitPointGain,
+    abilityDeltas,
+    notes: String(options.notes || "").trim(),
+  };
+  const nextPlayer = {
+    ...player,
+    classRole: nextClassRole,
+    classLevels: preview.nextClassLevels,
+    level: preview.nextLevel,
+    abilities: nextAbilities,
+    baseAbilities: nextBaseAbilities,
+    proficiencyBonus: nextProficiencyBonus,
+    combat: nextCombat,
+    attacks: [...generatedAttacks, ...manualAttacks],
+    spellcasting: levelUpSpellcastingForPlayer(player, preview.nextClassLevels, nextAbilities),
+    features: appendUniqueTextBlock(player.features, levelUpFeatureBlock({
+      ...advancement,
+      nextLevel: preview.nextLevel,
+      nextHitDice: classHitDiceFromClassLevels(preview.nextClassLevels),
+      nextProficiencyBonus,
+    })),
+    levelHistory: [...(Array.isArray(player.levelHistory) ? player.levelHistory : []), advancement],
+    updatedAt: readableDate(),
+  };
+  return { player: nextPlayer, errors: [], advancement };
 }
 
 function savingThrowBonus(player, abilityKey) {
@@ -2317,6 +2532,20 @@ function deletePlayerFromCampaign(campaignId, playerId) {
   return upsertCampaign({ ...campaign, players: campaign.players.filter((player) => player.id !== playerId) });
 }
 
+function updatePlayerInCampaign(campaignId, playerId, transform) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  let updatedPlayer = null;
+  const players = (campaign.players || []).map((player) => {
+    if (player.id !== playerId) return player;
+    updatedPlayer = typeof transform === "function" ? transform(player) : player;
+    return updatedPlayer;
+  });
+  if (!updatedPlayer) return null;
+  const nextCampaign = upsertCampaign({ ...campaign, players });
+  return { campaign: nextCampaign, player: updatedPlayer };
+}
+
 function updatePlayerImage(campaignId, playerId, image) {
   const campaign = getCampaign(campaignId);
   if (!campaign) return null;
@@ -2394,6 +2623,10 @@ function playerCharacterHref(campaignId, playerId) {
 
 function playerSpellbookHref(campaignId, playerId) {
   return `index.html#/campaigns/${encodeURIComponent(campaignId)}/players/${encodeURIComponent(playerId)}/spells`;
+}
+
+function playerLevelUpHref(campaignId, playerId) {
+  return `index.html#/campaigns/${encodeURIComponent(campaignId)}/players/${encodeURIComponent(playerId)}/level-up`;
 }
 
 function dashboardHref() {
@@ -5254,6 +5487,7 @@ function playerCharacterCard(player) {
   const hitPoints = player.combat?.hitPointMaximum || "HP";
   const passive = playerPassivePerception(player);
   const sheetHref = playerCharacterHref(campaignId, player.id);
+  const levelUpHref = playerLevelUpHref(campaignId, player.id);
   return `
     <article class="content-card entry-card widget-card player-card player-preview-card" ${widgetDmAttribute("players", player)} data-searchable="${escapeHtml(searchable)}" data-status="active">
       <div class="player-preview-details">
@@ -5268,6 +5502,7 @@ function playerCharacterCard(player) {
         </dl>
         ${widgetTagsMarkup([`Player: ${player.playerName}`, player.race, player.background])}
         <div class="entry-actions">
+          <a class="btn btn-primary" href="${escapeHtml(levelUpHref)}">Level up</a>
           <a class="btn btn-secondary" href="${escapeHtml(sheetHref)}">Open sheet</a>
           <button class="btn btn-danger" type="button" data-delete-player-id="${escapeHtml(player.id)}" data-campaign-id="${escapeHtml(campaignId)}">Delete player</button>
         </div>
@@ -9683,6 +9918,162 @@ function bindPlayerSpellbookInteractions() {
   });
 }
 
+function levelUpSummaryCard(label, value, detail = "") {
+  return `
+    <article class="level-up-summary-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+      ${detail ? `<small>${escapeHtml(detail)}</small>` : ""}
+    </article>`;
+}
+
+function levelUpClassSelectMarkup(player = {}) {
+  const preview = levelUpPreviewForPlayer(player);
+  return `
+    <label>Class gaining this level
+      <select id="level-up-class" name="className">
+        ${levelUpClassLevelOptions(player).map((option) => {
+          const label = option.existingLevel
+            ? `${option.className} - currently level ${option.existingLevel}`
+            : `${option.className} - new multiclass`;
+          return `<option value="${escapeHtml(option.className)}" ${normalizeRulesText(option.className) === normalizeRulesText(preview.selectedClass) ? "selected" : ""}>${escapeHtml(label)}</option>`;
+        }).join("")}
+      </select>
+    </label>`;
+}
+
+function levelUpAbilityInputsMarkup(player = {}) {
+  return `
+    <div class="level-up-ability-grid">
+      ${ABILITIES.map((ability) => `
+        <label>
+          <span>${escapeHtml(ability.short)} <small>${escapeHtml(abilityScore(player, ability.key) || 0)}</small></span>
+          <input type="number" min="0" max="2" step="1" value="0" id="level-up-ability-${escapeHtml(ability.key)}" name="ability-${escapeHtml(ability.key)}" />
+        </label>`).join("")}
+    </div>`;
+}
+
+function levelUpPreviewMarkup(player = {}, selectedClass = "") {
+  const preview = levelUpPreviewForPlayer(player, selectedClass);
+  const slots = spellSlotSummaryParts(preview.nextSpellcasting).join(", ") || "No spell slots";
+  const spellGuidance = preview.nextSpellcasting?.guidance?.join(" | ") || "No class spellcasting at this level.";
+  return `
+    <div class="level-up-summary-grid" id="level-up-preview">
+      ${levelUpSummaryCard("Level", `${preview.currentLevel} -> ${preview.nextLevel}`, classLevelSummary(preview.nextClassLevels))}
+      ${levelUpSummaryCard("Proficiency", `${signedModifier(preview.currentProficiencyBonus)} -> ${signedModifier(preview.nextProficiencyBonus)}`, "Based on total character level")}
+      ${levelUpSummaryCard("Hit Die", `d${preview.hitDieSides}`, `${preview.selectedClass} level gained`)}
+      ${levelUpSummaryCard("Hit Dice", preview.nextHitDice, "After this level")}
+      ${levelUpSummaryCard("Fixed HP", `+${preview.fixedHitPoints}`, "Class average plus current CON modifier")}
+      ${levelUpSummaryCard("Spell slots", slots, spellGuidance)}
+    </div>`;
+}
+
+function playerLevelUpMarkup(player = {}, campaignId = DEFAULT_CAMPAIGN_ID) {
+  const preview = levelUpPreviewForPlayer(player);
+  if (preview.currentLevel >= 20) {
+    return `
+      <section class="level-up-panel sheet-box">
+        <h3><span>Level Cap</span><small>20 / 20</small></h3>
+        <div class="empty-state">This character is already level 20.</div>
+        <a class="btn btn-secondary" href="${escapeHtml(playerCharacterHref(campaignId, player.id || ""))}">Back to character sheet</a>
+      </section>`;
+  }
+  return `
+    <form class="level-up-form" id="level-up-form">
+      <section class="level-up-panel sheet-box">
+        <h3><span>Advancement Preview</span><small>XP ignored</small></h3>
+        ${levelUpPreviewMarkup(player)}
+      </section>
+
+      <section class="level-up-grid">
+        <fieldset class="level-up-panel">
+          <legend>Class Level</legend>
+          ${levelUpClassSelectMarkup(player)}
+          <p class="level-up-help">Advancing a new class uses multiclass rules and will be validated against ability prerequisites before saving.</p>
+        </fieldset>
+
+        <fieldset class="level-up-panel">
+          <legend>Hit Points</legend>
+          <div class="level-up-hp-row">
+            <label>HP gained
+              <input type="number" min="1" step="1" id="level-up-hp-gain" name="hitPointGain" value="${escapeHtml(preview.fixedHitPoints)}" />
+            </label>
+            <button class="btn btn-secondary" type="button" id="level-up-roll-hp">Roll d${escapeHtml(preview.hitDieSides)}</button>
+          </div>
+          <p class="level-up-help">Default is the fixed class average plus current Constitution modifier. If Constitution increases below, the retroactive HP adjustment is added automatically.</p>
+        </fieldset>
+
+        <fieldset class="level-up-panel full-width">
+          <legend>Ability Score Increase</legend>
+          ${levelUpAbilityInputsMarkup(player)}
+          <p class="level-up-help">Use these fields for an ASI gained at this level. Scores are capped at 20.</p>
+        </fieldset>
+
+        <fieldset class="level-up-panel full-width">
+          <legend>Features and Notes</legend>
+          <textarea id="level-up-notes" name="notes" rows="5" placeholder="Subclass feature, feat choice, spell changes, class feature reminders..."></textarea>
+        </fieldset>
+      </section>
+
+      <div class="form-message" id="level-up-message" aria-live="polite"></div>
+      <div class="setup-actions">
+        <a class="btn btn-secondary" href="${escapeHtml(playerCharacterHref(campaignId, player.id || ""))}">Cancel</a>
+        <button class="btn btn-primary" type="submit">Apply level up</button>
+      </div>
+    </form>`;
+}
+
+function levelUpPayloadFromForm(form) {
+  return {
+    className: formValue(form, "#level-up-class"),
+    hitPointGain: numberFormValue(form, "#level-up-hp-gain"),
+    notes: formValue(form, "#level-up-notes"),
+    abilityDeltas: Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#level-up-ability-${ability.key}`) || 0])),
+  };
+}
+
+function bindPlayerLevelUpInteractions(campaignId, playerId, player) {
+  const form = document.getElementById("level-up-form");
+  if (!form) return;
+  const classSelect = form.querySelector("#level-up-class");
+  const hpInput = form.querySelector("#level-up-hp-gain");
+  const rollButton = form.querySelector("#level-up-roll-hp");
+  const message = form.querySelector("#level-up-message");
+
+  const refreshPreview = () => {
+    const preview = levelUpPreviewForPlayer(player, classSelect?.value);
+    const previewContainer = form.querySelector("#level-up-preview");
+    if (previewContainer) previewContainer.outerHTML = levelUpPreviewMarkup(player, classSelect?.value);
+    if (hpInput && hpInput.dataset.touched !== "true") hpInput.value = String(preview.fixedHitPoints);
+    if (rollButton) rollButton.textContent = `Roll d${preview.hitDieSides}`;
+  };
+
+  classSelect?.addEventListener("change", () => {
+    if (hpInput) hpInput.dataset.touched = "";
+    refreshPreview();
+  });
+  hpInput?.addEventListener("input", () => { hpInput.dataset.touched = "true"; });
+  rollButton?.addEventListener("click", () => {
+    const preview = levelUpPreviewForPlayer(player, classSelect?.value);
+    const roll = Math.floor(Math.random() * preview.hitDieSides) + 1;
+    if (hpInput) {
+      hpInput.value = String(Math.max(1, roll + abilityModifier(player.abilities?.constitution)));
+      hpInput.dataset.touched = "true";
+    }
+  });
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const result = applyPlayerLevelUp(player, levelUpPayloadFromForm(form));
+    if (result.errors?.length) {
+      if (message) message.textContent = result.errors.join(" ");
+      return;
+    }
+    updatePlayerInCampaign(campaignId, playerId, () => result.player);
+    window.location.href = playerCharacterHref(campaignId, playerId);
+  });
+}
+
 function renderPlayerCharacterPage(campaignId, playerId) {
   const campaign = getCampaign(campaignId);
   if (!campaign) {
@@ -9748,6 +10139,34 @@ function renderPlayerSpellbookPage(campaignId, playerId) {
   bindPlayerSpellbookInteractions();
 }
 
+function renderPlayerLevelUpPage(campaignId, playerId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) {
+    renderNotFoundPage("The requested campaign does not exist in local storage.");
+    return;
+  }
+  const player = (campaign.players || []).find((item) => item.id === playerId);
+  if (!player) {
+    renderNotFoundPage("That player character is not saved in this campaign.");
+    return;
+  }
+  const preview = levelUpPreviewForPlayer(player);
+  document.querySelector("main").innerHTML = `
+    <section class="page-layout section-shell character-page character-level-up-page">
+      <div class="page-hero character-hero">
+        <div>
+          <p class="eyebrow">Character advancement</p>
+          <h1>Level Up ${escapeHtml(player.characterName || playerDisplayName(player))}</h1>
+          <p>${escapeHtml(classLevelSummary(preview.currentClassLevels) || player.classRole || "Adventurer")} in ${escapeHtml(campaign.name)}. Experience points are not used in this flow.</p>
+          <a class="btn btn-secondary" href="${escapeHtml(playerCharacterHref(campaignId, playerId))}">Back to character sheet</a>
+        </div>
+        ${player.avatarUrl ? `<img class="character-avatar" src="${escapeHtml(player.avatarUrl)}" alt="${escapeHtml(player.characterName)} avatar" />` : `<div class="card-visual character-avatar-placeholder" aria-hidden="true"><span>${cardVisualLabel(player.characterName)}</span></div>`}
+      </div>
+      ${playerLevelUpMarkup(player, campaignId)}
+    </section>`;
+  bindPlayerLevelUpInteractions(campaignId, playerId, player);
+}
+
 function initCampaignRoutes() {
   const parts = routeParts();
   if (parts[0] !== "campaigns") return false;
@@ -9763,6 +10182,10 @@ function initCampaignRoutes() {
   }
   if (parts[2] === "players" && parts[3] && parts[4] === "spells") {
     renderPlayerSpellbookPage(campaignId, parts[3]);
+    return true;
+  }
+  if (parts[2] === "players" && parts[3] && parts[4] === "level-up") {
+    renderPlayerLevelUpPage(campaignId, parts[3]);
     return true;
   }
   if (parts[2] === "players" && parts[3]) {
