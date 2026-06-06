@@ -111,6 +111,7 @@ function canonicalLocalPath(pathname = "/") {
   const filename = decodeURIComponent(cleanPath.split("/").filter(Boolean).pop() || "index.html").toLowerCase();
   if (filename === "calendar.html") return "/calendar.html";
   if (filename === "about.html") return "/about.html";
+  if (filename === "items.html") return "/items.html";
   if (filename === "spells.html") return "/spells.html";
   if (filename === "beast-shapes.html") return "/beast-shapes.html";
   return "/index.html";
@@ -203,7 +204,7 @@ const CHARACTER_ADVANCEMENT_LEVELS = {
 
 const SPELLCASTING_CLASS_RULES = {
   Artificer: { kind: "artificer", ability: "Intelligence", recovery: "long", cantrips: { 1: 2, 10: 3, 14: 4 }, prepared: { abilityKey: "intelligence", levelMultiplier: 0.5, minimum: 1, label: "Intelligence modifier + half Artificer level" } },
-  Bard: { kind: "full", ability: "Charisma", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, known: { 1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 14, 11: 15, 12: 15, 13: 16, 14: 18, 15: 19, 16: 19, 17: 20, 18: 22, 19: 22, 20: 22 } },
+  Bard: { kind: "full", ability: "Charisma", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, known: { 1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15, 11: 16, 12: 16, 13: 17, 14: 17, 15: 18, 16: 18, 17: 19, 18: 20, 19: 21, 20: 22 }, modeLabel: "Prepared spells" },
   Cleric: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 3, 4: 4, 10: 5 }, prepared: { abilityKey: "wisdom", levelMultiplier: 1, minimum: 1, label: "Wisdom modifier + Cleric level" } },
   Druid: { kind: "full", ability: "Wisdom", recovery: "long", cantrips: { 1: 2, 4: 3, 10: 4 }, prepared: { abilityKey: "wisdom", levelMultiplier: 1, minimum: 1, label: "Wisdom modifier + Druid level" } },
   Paladin: { kind: "half", ability: "Charisma", recovery: "long", cantrips: {}, prepared: { abilityKey: "charisma", levelMultiplier: 0.5, minimum: 1, label: "Charisma modifier + half Paladin level" }, startsAt: 2 },
@@ -243,6 +244,76 @@ const WARLOCK_PACT_SLOTS = {
   13: { slots: 3, level: 5 }, 14: { slots: 3, level: 5 }, 15: { slots: 3, level: 5 }, 16: { slots: 3, level: 5 },
   17: { slots: 4, level: 5 }, 18: { slots: 4, level: 5 }, 19: { slots: 4, level: 5 }, 20: { slots: 4, level: 5 },
 };
+
+const BARD_FEATURE_PROGRESSION = [
+  { id: "bardic-inspiration", level: 1, title: "Bardic Inspiration", summary: "As a Bonus Action, inspire one creature within 60 feet. It can add your Bardic die after failing a d20 test within the next hour.", usage: { key: "bardic-inspiration", label: "Bardic Inspiration", max: "charismaModifierMinimumOne", recovery: "longUntilBard5ThenShort" }, dynamic: "bardicDie" },
+  { id: "bard-spellcasting", level: 1, title: "Spellcasting", summary: "Charisma powers your Bard spells. Prepared spells and spell slots follow the Bard progression table.", dynamic: "spellcasting" },
+  { id: "bard-expertise-2", level: 2, title: "Expertise", summary: "Choose two proficient skills and double your Proficiency Bonus for checks with them.", choice: "Choose 2 skills" },
+  { id: "jack-of-all-trades", level: 2, title: "Jack of All Trades", summary: "Add half your Proficiency Bonus to ability checks that do not already include your Proficiency Bonus." },
+  { id: "bard-subclass", level: 3, title: "Bard Subclass", summary: "Choose a Bard College. You gain its features for your Bard level or lower.", choice: "Choose a Bard College" },
+  { id: "bard-asi-4", level: 4, title: "Ability Score Improvement", summary: "Gain an Ability Score Improvement feat or another qualifying feat.", choice: "ASI or feat" },
+  { id: "font-of-inspiration", level: 5, title: "Font of Inspiration", summary: "Bardic Inspiration returns on a Short or Long Rest. You can also spend a spell slot to regain one expended Bardic Inspiration use." },
+  { id: "countercharm", level: 7, title: "Countercharm", summary: "As a Reaction, let yourself or a creature within 30 feet reroll a failed save against being Charmed or Frightened, with Advantage." },
+  { id: "bard-asi-8", level: 8, title: "Ability Score Improvement", summary: "Gain another Ability Score Improvement feat or another qualifying feat.", choice: "ASI or feat" },
+  { id: "bard-expertise-9", level: 9, title: "Expertise", summary: "Choose two more proficient skills for Expertise.", choice: "Choose 2 more skills" },
+  { id: "magical-secrets", level: 10, title: "Magical Secrets", summary: "New and replaced Bard prepared spells can come from the Bard, Cleric, Druid, or Wizard lists." },
+  { id: "bard-asi-12", level: 12, title: "Ability Score Improvement", summary: "Gain another Ability Score Improvement feat or another qualifying feat.", choice: "ASI or feat" },
+  { id: "bard-asi-16", level: 16, title: "Ability Score Improvement", summary: "Gain another Ability Score Improvement feat or another qualifying feat.", choice: "ASI or feat" },
+  { id: "superior-inspiration", level: 18, title: "Superior Inspiration", summary: "When you roll Initiative, regain Bardic Inspiration uses until you have two if you had fewer than two." },
+  { id: "epic-boon", level: 19, title: "Epic Boon", summary: "Gain an Epic Boon feat or another qualifying feat.", choice: "Epic Boon or feat" },
+  { id: "words-of-creation", level: 20, title: "Words of Creation", summary: "Power Word Heal and Power Word Kill are always prepared, and each can affect a second nearby target when cast." },
+];
+
+const BARD_SUBCLASSES = [
+  {
+    id: "college-of-dance",
+    name: "College of Dance",
+    source: "Player's Handbook 2024",
+    theme: "Mobile skirmisher and battlefield movement",
+    features: [
+      { id: "dance-dazzling-footwork", level: 3, title: "Dazzling Footwork", summary: "Your dancing style improves performance, unarmed strikes, and defense while you move without armor or a shield. Your Bardic die supports the damage scaling." },
+      { id: "dance-inspiring-movement", level: 6, title: "Inspiring Movement", summary: "Spend Bardic Inspiration to help yourself and an ally move through danger without provoking opportunity attacks.", cost: "Bardic Inspiration" },
+      { id: "dance-tandem-footwork", level: 6, title: "Tandem Footwork", summary: "Your performance helps the party move first, improving group initiative." },
+      { id: "dance-leading-evasion", level: 14, title: "Leading Evasion", summary: "Your reflexive movement helps you and nearby allies avoid area effects more reliably." },
+    ],
+  },
+  {
+    id: "college-of-glamour",
+    name: "College of Glamour",
+    source: "Player's Handbook 2024",
+    theme: "Fey enchantment, charm, and ally support",
+    features: [
+      { id: "glamour-beguiling-magic", level: 3, title: "Beguiling Magic", summary: "Charm Person and Mirror Image are always prepared. After casting an Enchantment or Illusion spell with a slot, you can try to charm or frighten a creature that saw you cast it.", usage: { key: "glamour-beguiling-magic", label: "Beguiling Magic", max: 1, recovery: "long" } },
+      { id: "glamour-mantle-of-inspiration", level: 3, title: "Mantle of Inspiration", summary: "Spend Bardic Inspiration as a Bonus Action to grant nearby allies Temporary Hit Points and let them move as a Reaction without opportunity attacks.", cost: "Bardic Inspiration" },
+      { id: "glamour-mantle-of-majesty", level: 6, title: "Mantle of Majesty", summary: "Wrap yourself in commanding fey magic to direct enemies with magically forceful words.", usage: { key: "glamour-mantle-of-majesty", label: "Mantle of Majesty", max: 1, recovery: "long" } },
+      { id: "glamour-unbreakable-majesty", level: 14, title: "Unbreakable Majesty", summary: "Your presence makes it difficult for enemies to attack you, and failed attempts can leave them vulnerable to your magic." },
+    ],
+  },
+  {
+    id: "college-of-lore",
+    name: "College of Lore",
+    source: "D&D Beyond Bard class page",
+    theme: "Skill mastery and magical secrets",
+    features: [
+      { id: "lore-bonus-proficiencies", level: 3, title: "Bonus Proficiencies", summary: "Gain proficiency with three skills of your choice.", choice: "Choose 3 skills" },
+      { id: "lore-cutting-words", level: 3, title: "Cutting Words", summary: "As a Reaction, spend Bardic Inspiration to subtract your Bardic die from a visible creature's successful attack roll, ability check, or damage roll.", cost: "Bardic Inspiration" },
+      { id: "lore-magical-discoveries", level: 6, title: "Magical Discoveries", summary: "Learn two extra prepared spells from the Cleric, Druid, or Wizard lists. They can be cantrips or spells you have slots for.", choice: "Choose 2 spells" },
+      { id: "lore-peerless-skill", level: 14, title: "Peerless Skill", summary: "When you fail an ability check or attack roll, spend Bardic Inspiration to add your Bardic die. If the roll still fails, the use is not spent.", cost: "Bardic Inspiration" },
+    ],
+  },
+  {
+    id: "college-of-valor",
+    name: "College of Valor",
+    source: "Player's Handbook 2024",
+    theme: "Battlefield support and weapon casting",
+    features: [
+      { id: "valor-martial-training", level: 3, title: "Martial Training", summary: "Gain sturdier combat training, including martial weapons, medium armor, and shields. You can use a weapon as a Bard spellcasting focus." },
+      { id: "valor-combat-inspiration", level: 3, title: "Combat Inspiration", summary: "A creature with your Bardic Inspiration can improve combat results, such as defense or damage, with your Bardic die.", cost: "Bardic Inspiration" },
+      { id: "valor-extra-attack", level: 6, title: "Extra Attack", summary: "Attack twice when you take the Attack action, and one attack can be replaced with a Bard cantrip that has an action casting time." },
+      { id: "valor-battle-magic", level: 14, title: "Battle Magic", summary: "Blend weapon attacks and spellcasting more fluidly, keeping martial pressure while using Bard magic." },
+    ],
+  },
+];
 
 const MULTICLASS_CLASS_RULES = {
   Artificer: { prerequisites: [["intelligence"]], multiclassProficiencies: ["Thieves' Tools", "Tinker's Tools", "Light armor", "Medium armor", "Shields"], multiclassTools: ["Thieves' Tools", "Tinker's Tools"] },
@@ -697,6 +768,291 @@ function classLevelFor(player = {}, className = "") {
   return classLevelEntriesForPlayer(player).find((entry) => normalizeRulesText(entry.className) === normalized)?.level || 0;
 }
 
+function bardLevelForClassLevels(classLevels = []) {
+  return classLevelEntriesFromParts(classLevels)
+    .filter((entry) => classNameForValue(entry.className) === "Bard")
+    .reduce((total, entry) => total + Number(entry.level || 0), 0);
+}
+
+function bardLevelForPlayer(player = {}) {
+  return bardLevelForClassLevels(classLevelEntriesForPlayer(player));
+}
+
+function bardSubclassById(id = "") {
+  const normalized = normalizeRulesText(id);
+  return BARD_SUBCLASSES.find((subclass) => normalizeRulesText(subclass.id) === normalized || normalizeRulesText(subclass.name) === normalized) || null;
+}
+
+function bardSubclassIdFromForm(form) {
+  return formValue(form, "#player-bard-subclass");
+}
+
+function bardSubclassIdForPlayer(player = {}) {
+  const saved = player.subclasses?.Bard || player.subclasses?.bard || player.bardSubclass || player.subclass || "";
+  return bardSubclassById(saved)?.id || "";
+}
+
+function classSubclassMapFromForm(form, classLevels = classLevelEntriesFromForm(form)) {
+  const subclasses = {};
+  if (bardLevelForClassLevels(classLevels) >= 3) {
+    const bardSubclass = bardSubclassById(bardSubclassIdFromForm(form));
+    if (bardSubclass) subclasses.Bard = bardSubclass.id;
+  }
+  return subclasses;
+}
+
+function bardSubclassRequiredForClassLevels(classLevels = []) {
+  return bardLevelForClassLevels(classLevels) >= 3;
+}
+
+function bardSubclassValidationError(classLevels = [], subclasses = {}) {
+  if (!bardSubclassRequiredForClassLevels(classLevels)) return "";
+  return bardSubclassById(subclasses.Bard || subclasses.bard) ? "" : "Choose a Bard College for Bard level 3 or higher.";
+}
+
+function bardicInspirationDie(level = 1) {
+  const bardLevel = Math.max(1, Math.min(20, Math.floor(Number(level) || 1)));
+  if (bardLevel >= 15) return "d12";
+  if (bardLevel >= 10) return "d10";
+  if (bardLevel >= 5) return "d8";
+  return "d6";
+}
+
+function bardPreparedSpellsAtLevel(level = 1) {
+  return Number(progressionValueAtLevel(SPELLCASTING_CLASS_RULES.Bard.known, level)) || 0;
+}
+
+function bardFeatureDynamicDetails(feature = {}, player = {}) {
+  const bardLevel = bardLevelForPlayer(player);
+  const runtime = spellcastingRuntimeForPlayer(player);
+  if (feature.dynamic === "bardicDie") {
+    return [
+      `Bardic die: ${bardicInspirationDie(bardLevel)}.`,
+      `Uses: ${classFeatureUsageMaximum(feature, player)} per ${bardLevel >= 5 ? "short or long rest" : "long rest"}.`,
+    ];
+  }
+  if (feature.dynamic === "spellcasting") {
+    return [
+      "Spellcasting ability: Charisma.",
+      `Prepared spells: ${bardPreparedSpellsAtLevel(bardLevel)}.`,
+      `Spell slots: ${spellSlotSummaryParts(runtime).join(", ") || "none"}.`,
+    ];
+  }
+  return [];
+}
+
+function bardBaseFeaturesForLevel(level = 1) {
+  const bardLevel = Math.max(0, Math.min(20, Math.floor(Number(level) || 0)));
+  return BARD_FEATURE_PROGRESSION.filter((feature) => feature.level <= bardLevel);
+}
+
+function bardSubclassFeaturesForPlayer(player = {}) {
+  const bardLevel = bardLevelForPlayer(player);
+  const subclass = bardSubclassById(bardSubclassIdForPlayer(player));
+  if (!subclass || bardLevel < 3) return [];
+  return subclass.features
+    .filter((feature) => feature.level <= bardLevel)
+    .map((feature) => ({ ...feature, subclassName: subclass.name, source: feature.source || subclass.source }));
+}
+
+function classFeaturesForPlayer(player = {}) {
+  const bardLevel = bardLevelForPlayer(player);
+  const bardSubclass = bardSubclassById(bardSubclassIdForPlayer(player));
+  const bardBase = bardLevel
+    ? bardBaseFeaturesForLevel(bardLevel).map((feature) => ({
+      ...feature,
+      className: "Bard",
+      source: "D&D Beyond Bard class page",
+    }))
+    : [];
+  return [
+    ...bardBase,
+    ...(bardSubclass ? [{ id: `bard-subclass-${bardSubclass.id}`, level: 3, title: bardSubclass.name, summary: bardSubclass.theme, className: "Bard", source: bardSubclass.source }] : []),
+    ...bardSubclassFeaturesForPlayer(player).map((feature) => ({ ...feature, className: "Bard" })),
+  ].sort((a, b) => (Number(a.level) - Number(b.level)) || String(a.title).localeCompare(String(b.title)));
+}
+
+function classFeatureUsageMaximum(feature = {}, player = {}) {
+  const max = feature.usage?.max;
+  if (max === "charismaModifierMinimumOne") return Math.max(1, abilityModifier(player.abilities?.charisma));
+  return Number(max) || 0;
+}
+
+function classFeatureUsageRecovery(feature = {}, player = {}) {
+  const recovery = feature.usage?.recovery || "";
+  if (recovery === "longUntilBard5ThenShort") return bardLevelForPlayer(player) >= 5 ? "Short or Long Rest" : "Long Rest";
+  if (recovery === "long") return "Long Rest";
+  if (recovery === "short") return "Short Rest";
+  return "";
+}
+
+function classFeatureUsageKey(feature = {}) {
+  return feature.usage?.key || feature.id || "";
+}
+
+function classFeatureUsageUsed(player = {}, feature = {}) {
+  const key = classFeatureUsageKey(feature);
+  return Math.max(0, Math.floor(Number(player.featureUsage?.[key]) || 0));
+}
+
+function setPlayerFeatureUsage(player = {}, featureKey = "", used = 0) {
+  return {
+    ...player,
+    featureUsage: {
+      ...(player.featureUsage || {}),
+      [featureKey]: Math.max(0, Math.floor(Number(used) || 0)),
+    },
+  };
+}
+
+function recoverPlayerClassFeatures(player = {}, restType = "long") {
+  const nextUsage = { ...(player.featureUsage || {}) };
+  classFeaturesForPlayer(player).forEach((feature) => {
+    if (!feature.usage) return;
+    const recovery = classFeatureUsageRecovery(feature, player).toLowerCase();
+    if (restType === "long" || (restType === "short" && recovery.includes("short"))) {
+      nextUsage[classFeatureUsageKey(feature)] = 0;
+    }
+  });
+  return { ...player, featureUsage: nextUsage };
+}
+
+function bardSubclassSelectMarkup({ id = "player-bard-subclass", value = "", required = false } = {}) {
+  const normalizedValue = bardSubclassById(value)?.id || "";
+  return `
+    <label>Bard College
+      <select id="${escapeHtml(id)}" name="${escapeHtml(id)}" ${required ? "required" : ""}>
+        <option value="">Choose Bard College</option>
+        ${BARD_SUBCLASSES.map((subclass) => `<option value="${escapeHtml(subclass.id)}" ${subclass.id === normalizedValue ? "selected" : ""}>${escapeHtml(subclass.name)}</option>`).join("")}
+      </select>
+    </label>`;
+}
+
+function bardSubclassChoiceSummary(id = "") {
+  const subclass = bardSubclassById(id);
+  if (!subclass) return "Choose a Bard College when Bard reaches level 3.";
+  return `${subclass.name}: ${subclass.theme}`;
+}
+
+function bardFeaturesUnlockedBetween(fromLevel = 0, toLevel = 0, subclassId = "") {
+  const subclass = bardSubclassById(subclassId);
+  const base = BARD_FEATURE_PROGRESSION
+    .filter((feature) => feature.level > fromLevel && feature.level <= toLevel)
+    .map((feature) => feature.title);
+  const subclassFeatures = subclass?.features
+    ?.filter((feature) => feature.level > fromLevel && feature.level <= toLevel)
+    .map((feature) => `${subclass.name}: ${feature.title}`) || [];
+  return [...base, ...subclassFeatures];
+}
+
+function bardExpertiseRequiredCount(level = 0) {
+  const bardLevel = Math.max(0, Math.min(20, Math.floor(Number(level) || 0)));
+  if (bardLevel >= 9) return 4;
+  if (bardLevel >= 2) return 2;
+  return 0;
+}
+
+function bardChoiceList(value) {
+  return uniqueTextList(Array.isArray(value) ? value : splitListInput(value));
+}
+
+function bardChoicesForPlayer(player = {}) {
+  const choices = player.classChoices?.Bard || player.classChoices?.bard || {};
+  return {
+    expertise: bardChoiceList(choices.expertise),
+    loreBonusProficiencies: bardChoiceList(choices.loreBonusProficiencies),
+    loreMagicalDiscoveries: bardChoiceList(choices.loreMagicalDiscoveries),
+    magicalSecrets: bardChoiceList(choices.magicalSecrets),
+    asiNotes: String(choices.asiNotes || "").trim(),
+  };
+}
+
+function bardChoicesFromForm(form, classLevels = classLevelEntriesFromForm(form)) {
+  if (!bardLevelForClassLevels(classLevels)) return null;
+  const choices = {
+    expertise: checkedFormValues(form, "player-bard-expertise"),
+    loreBonusProficiencies: checkedFormValues(form, "player-bard-lore-bonus-skills"),
+    loreMagicalDiscoveries: splitListInput(formValue(form, "#player-bard-lore-magical-discoveries")),
+    magicalSecrets: splitListInput(formValue(form, "#player-bard-magical-secrets")),
+    asiNotes: formValue(form, "#player-bard-asi-notes"),
+  };
+  return choices;
+}
+
+function bardChoicesFromLevelUpForm(form) {
+  return {
+    expertise: checkedFormValues(form, "level-up-bard-expertise"),
+    loreBonusProficiencies: checkedFormValues(form, "level-up-bard-lore-bonus-skills"),
+    loreMagicalDiscoveries: splitListInput(formValue(form, "#level-up-bard-lore-magical-discoveries")),
+    magicalSecrets: splitListInput(formValue(form, "#level-up-bard-magical-secrets")),
+    asiNotes: formValue(form, "#level-up-bard-asi-notes"),
+  };
+}
+
+function mergeBardChoices(existing = {}, incoming = {}) {
+  return {
+    expertise: uniqueTextList([...(existing.expertise || []), ...(incoming.expertise || [])]),
+    loreBonusProficiencies: uniqueTextList([...(existing.loreBonusProficiencies || []), ...(incoming.loreBonusProficiencies || [])]),
+    loreMagicalDiscoveries: uniqueTextList([...(existing.loreMagicalDiscoveries || []), ...(incoming.loreMagicalDiscoveries || [])]),
+    magicalSecrets: uniqueTextList([...(existing.magicalSecrets || []), ...(incoming.magicalSecrets || [])]),
+    asiNotes: [existing.asiNotes, incoming.asiNotes].filter(hasText).join("\n"),
+  };
+}
+
+function classChoicesFromForm(form, classLevels = classLevelEntriesFromForm(form)) {
+  const choices = {};
+  const bardChoices = bardChoicesFromForm(form, classLevels);
+  if (bardChoices) choices.Bard = bardChoices;
+  return choices;
+}
+
+function classChoicesForLevelUp(player = {}, options = {}) {
+  const current = { ...(player.classChoices || {}) };
+  const existingBard = bardChoicesForPlayer(player);
+  const incomingBard = options.bardChoices || {};
+  const mergedBard = mergeBardChoices(existingBard, incomingBard);
+  if (bardLevelForPlayer(player) || classNameForValue(options.className) === "Bard") {
+    current.Bard = mergedBard;
+  }
+  return current;
+}
+
+function selectedSkillProficienciesWithBardChoices(skillProficiencies = [], bardChoices = {}) {
+  return uniqueTextList([
+    ...(skillProficiencies || []),
+    ...(bardChoices.loreBonusProficiencies || []),
+  ]);
+}
+
+function expertiseSkillKeysForPlayer(player = {}) {
+  const proficient = new Set(player.skillProficiencies || []);
+  return bardChoicesForPlayer(player).expertise.filter((skillKey) => proficient.has(skillKey));
+}
+
+function bardChoiceValidationErrors(player = {}) {
+  const errors = [];
+  const bardLevel = bardLevelForPlayer(player);
+  if (!bardLevel) return errors;
+  const choices = bardChoicesForPlayer(player);
+  const proficient = new Set(player.skillProficiencies || []);
+  const expertiseRequired = bardExpertiseRequiredCount(bardLevel);
+  if (expertiseRequired && choices.expertise.length !== expertiseRequired) {
+    errors.push(`Choose exactly ${expertiseRequired} Bard Expertise skill${expertiseRequired === 1 ? "" : "s"}.`);
+  }
+  const invalidExpertise = choices.expertise.filter((skillKey) => !proficient.has(skillKey));
+  if (invalidExpertise.length) errors.push(`Bard Expertise must use proficient skills: ${invalidExpertise.map(skillLabel).join(", ")}.`);
+  const subclass = bardSubclassById(bardSubclassIdForPlayer(player));
+  if (subclass?.id === "college-of-lore" && bardLevel >= 3) {
+    if (choices.loreBonusProficiencies.length !== 3) errors.push("Choose exactly 3 College of Lore bonus skill proficiencies.");
+    const duplicated = choices.loreBonusProficiencies.filter((skillKey, index, list) => list.indexOf(skillKey) !== index);
+    if (duplicated.length) errors.push("College of Lore bonus skill proficiencies cannot be duplicated.");
+  }
+  if (subclass?.id === "college-of-lore" && bardLevel >= 6 && choices.loreMagicalDiscoveries.length !== 2) {
+    errors.push("Choose exactly 2 College of Lore Magical Discoveries spells.");
+  }
+  return errors;
+}
+
 function classLevelSummary(classLevels = []) {
   const entries = classLevels.filter((entry) => entry.className && Number(entry.level) > 0);
   return entries.map((entry) => `${entry.className} ${entry.level}`).join(" / ");
@@ -847,10 +1203,11 @@ function spellSelectionBudgetForClassLevels(classLevels = [], abilities = {}) {
     const leveled = spellbook || known || prepared;
     budget.cantrips += cantrips;
     budget.leveled += leveled;
+    const knownLabel = entry.rule.modeLabel || "Known spells";
     budget.lines.push([
       `${entry.className} ${entry.level}`,
       cantrips ? `${cantrips} cantrip${cantrips === 1 ? "" : "s"}` : "",
-      known ? `${known} known spell${known === 1 ? "" : "s"}` : "",
+      known ? `${known} ${knownLabel.toLowerCase()}` : "",
       spellbook ? `${spellbook} spellbook spell${spellbook === 1 ? "" : "s"}` : "",
       prepared && !spellbook ? `${prepared} prepared spell${prepared === 1 ? "" : "s"}` : "",
     ].filter(Boolean).join(": "));
@@ -863,6 +1220,8 @@ function spellSelectionModeLabel(classLevels = [], abilities = {}) {
   const hasSpellbook = entries.some((entry) => typeof entry.rule?.spellbook === "function");
   const hasPrepared = entries.some((entry) => preparedSpellLimitForEntry(entry, abilities) > 0);
   const hasKnown = entries.some((entry) => Number(progressionValueAtLevel(entry.rule?.known || {}, entry.level)) > 0);
+  const explicitLabels = uniqueTextList(entries.map((entry) => entry.rule?.modeLabel).filter(Boolean));
+  if (explicitLabels.length === 1 && !hasPrepared && !hasSpellbook) return explicitLabels[0];
   if (hasSpellbook && entries.length === 1) return "Spellbook spells";
   if (hasPrepared && !hasKnown && !hasSpellbook) return "Prepared spells";
   if (hasKnown && !hasPrepared && !hasSpellbook) return "Known spells";
@@ -898,10 +1257,11 @@ function spellcastingGuidanceLine(entry = {}, abilities = {}) {
   const prepared = preparedSpellLabel(entry.rule?.prepared);
   const preparedLimit = preparedSpellLimitForEntry(entry, abilities);
   const spellbook = typeof entry.rule?.spellbook === "function" ? entry.rule.spellbook(entry.level) : 0;
+  const knownLabel = entry.rule?.modeLabel || "known spells";
   return [
     `${entry.className} ${entry.level}`,
     cantrips ? `${cantrips} cantrip${cantrips === 1 ? "" : "s"}` : "",
-    known ? `${known} known spell${known === 1 ? "" : "s"}` : "",
+    known ? `${known} ${knownLabel.toLowerCase()}` : "",
     prepared ? `prepare ${preparedLimit ? `${preparedLimit} spell${preparedLimit === 1 ? "" : "s"}` : prepared}` : "",
     spellbook ? `${spellbook} spellbook spell${spellbook === 1 ? "" : "s"}` : "",
   ].filter(Boolean).join(": ");
@@ -1156,10 +1516,22 @@ function levelUpFeatureBlock(details = {}) {
     `Level ${details.nextLevel} Advancement`,
     `Advanced ${details.className} to character level ${details.nextLevel}.`,
     `Hit points +${details.totalHitPointGain}. Hit Dice ${details.nextHitDice}. Proficiency bonus ${signedModifier(details.nextProficiencyBonus)}.`,
+    details.subclassName ? `Subclass: ${details.subclassName}.` : "",
+    details.unlockedFeatures?.length ? `Unlocked features: ${details.unlockedFeatures.join(", ")}.` : "",
     abilityLines.length ? `Ability score increases: ${abilityLines.join(", ")}.` : "",
     details.notes ? `Notes: ${details.notes}` : "",
   ];
   return lines.filter(Boolean).join("\n");
+}
+
+function subclassesForLevelUp(player = {}, preview = levelUpPreviewForPlayer(player), options = {}) {
+  const current = { ...(player.subclasses || {}) };
+  const next = { ...current };
+  const selectedBardSubclass = bardSubclassById(options.bardSubclass || options.subclasses?.Bard || current.Bard || current.bard);
+  if (bardSubclassRequiredForClassLevels(preview.nextClassLevels) && selectedBardSubclass) {
+    next.Bard = selectedBardSubclass.id;
+  }
+  return next;
 }
 
 function applyPlayerLevelUp(player = {}, options = {}) {
@@ -1170,6 +1542,19 @@ function applyPlayerLevelUp(player = {}, options = {}) {
   const nextAbilities = applyAbilityDeltasForLevelUp(currentAbilities, abilityDeltas);
   const prerequisiteFailures = multiclassPrerequisiteFailures(preview.nextClassLevels, nextAbilities);
   if (prerequisiteFailures.length) return { player, errors: [`Multiclass prerequisites not met: ${prerequisiteFailures.join("; ")}.`] };
+  const nextSubclasses = subclassesForLevelUp(player, preview, options);
+  const subclassError = bardSubclassValidationError(preview.nextClassLevels, nextSubclasses);
+  if (subclassError) return { player, errors: [subclassError] };
+  const nextClassChoices = classChoicesForLevelUp(player, { ...options, className: preview.selectedClass });
+  const nextSkillProficiencies = selectedSkillProficienciesWithBardChoices(player.skillProficiencies || [], nextClassChoices.Bard || {});
+  const choiceErrors = bardChoiceValidationErrors({
+    ...player,
+    classLevels: preview.nextClassLevels,
+    subclasses: nextSubclasses,
+    classChoices: nextClassChoices,
+    skillProficiencies: nextSkillProficiencies,
+  });
+  if (choiceErrors.length) return { player, errors: choiceErrors };
   const currentConMod = abilityModifier(currentAbilities.constitution);
   const nextConMod = abilityModifier(nextAbilities.constitution);
   const defaultHpGain = fixedLevelUpHitPoints(preview.selectedClass, currentAbilities.constitution);
@@ -1209,6 +1594,12 @@ function applyPlayerLevelUp(player = {}, options = {}) {
     level: preview.nextLevel,
   });
   const manualAttacks = (player.attacks || []).filter((attack) => !attack.generatedFromEquipment);
+  const previousBardLevel = bardLevelForClassLevels(preview.currentClassLevels);
+  const nextBardLevel = bardLevelForClassLevels(preview.nextClassLevels);
+  const bardSubclass = bardSubclassById(nextSubclasses.Bard);
+  const unlockedFeatures = nextBardLevel > previousBardLevel
+    ? bardFeaturesUnlockedBetween(previousBardLevel, nextBardLevel, bardSubclass?.id)
+    : [];
   const advancement = {
     id: createId("level-up"),
     advancedAt: readableDate(),
@@ -1219,16 +1610,21 @@ function applyPlayerLevelUp(player = {}, options = {}) {
     constitutionRetroactiveHitPoints,
     totalHitPointGain,
     abilityDeltas,
+    subclassName: bardSubclass?.name || "",
+    unlockedFeatures,
     notes: String(options.notes || "").trim(),
   };
   const nextPlayer = {
     ...player,
     classRole: nextClassRole,
     classLevels: preview.nextClassLevels,
+    subclasses: nextSubclasses,
+    classChoices: nextClassChoices,
     level: preview.nextLevel,
     abilities: nextAbilities,
     baseAbilities: nextBaseAbilities,
     proficiencyBonus: nextProficiencyBonus,
+    skillProficiencies: nextSkillProficiencies,
     combat: nextCombat,
     attacks: [...generatedAttacks, ...manualAttacks],
     spellcasting: levelUpSpellcastingForPlayer(player, preview.nextClassLevels, nextAbilities),
@@ -1251,7 +1647,10 @@ function savingThrowBonus(player, abilityKey) {
 
 function skillBonus(player, skill) {
   const bonus = abilityModifier(abilityScore(player, skill.ability));
-  return bonus + ((player.skillProficiencies || []).includes(skill.key) ? proficiencyBonusForLevel(player.level) : 0);
+  const proficient = (player.skillProficiencies || []).includes(skill.key);
+  const expertise = expertiseSkillKeysForPlayer(player).includes(skill.key);
+  const proficiency = proficiencyBonusForLevel(player.level);
+  return bonus + (proficient ? proficiency : 0) + (expertise ? proficiency : 0);
 }
 
 function playerPassivePerception(player) {
@@ -1521,6 +1920,10 @@ function languageLabel(key) {
 
 function toolLabel(key) {
   return TOOLS.find((tool) => tool.key === key)?.label || key;
+}
+
+function skillLabel(key) {
+  return SKILLS.find((skill) => skill.key === key)?.label || key;
 }
 
 function normalizeRulesText(value = "") {
@@ -2396,16 +2799,19 @@ function buildPlayerCharacter(form) {
   const multiclassEnabled = checkedFormValue(form, "#player-multiclass-enabled") && isMulticlassClassLevelSet(classLevels);
   const level = multiclassEnabled ? totalLevelForClassLevels(classLevels) : numberFormValue(form, "#player-level");
   const classRole = multiclassEnabled ? classRoleSummary(classLevels, formValue(form, "#player-class-role")) : formValue(form, "#player-class-role");
+  const subclasses = classSubclassMapFromForm(form, classLevels);
   const baseAbilities = Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#player-${ability.key}`)]));
   const lineageAbilityBonuses = lineageAbilityBonusesFromForm(form);
   const backgroundAbilityBonuses = backgroundAbilityBonusesFromForm(form);
   const abilities = applyBackgroundBonusesToScores(baseAbilities, combineAbilityBonuses(lineageAbilityBonuses, backgroundAbilityBonuses));
   const proficiencyBonus = proficiencyBonusForLevel(level || 1);
   const backgroundSkillProficiencies = splitListInput(formValue(form, "#player-background-skills"));
-  const skillProficiencies = uniqueTextList([
+  const baseSkillProficiencies = uniqueTextList([
     ...checkedFormValues(form, "player-skill-proficiencies"),
     ...backgroundSkillProficiencies,
   ]);
+  const classChoices = classChoicesFromForm(form, classLevels);
+  const skillProficiencies = selectedSkillProficienciesWithBardChoices(baseSkillProficiencies, classChoices.Bard || {});
   const passivePerception = numberFormValue(form, "#player-passive-perception") || (10 + abilityModifier(abilities.wisdom) + (skillProficiencies.includes("perception") ? proficiencyBonus : 0));
   const race = formValue(form, "#player-race");
   const equipment = formValue(form, "#player-equipment");
@@ -2444,6 +2850,8 @@ function buildPlayerCharacter(form) {
     characterName,
     classRole,
     classLevels,
+    subclasses,
+    classChoices,
     level,
     race,
     background: formValue(form, "#player-background"),
@@ -2498,6 +2906,9 @@ function validatePlayerCharacter(player, requireData = true) {
     const failedPrerequisites = multiclassPrerequisiteFailures(classLevels, player.abilities || {});
     if (failedPrerequisites.length) errors.push(`Multiclass prerequisites not met: ${failedPrerequisites.join("; ")}.`);
   }
+  const subclassError = bardSubclassValidationError(classLevels, player.subclasses || {});
+  if (subclassError) errors.push(subclassError);
+  errors.push(...bardChoiceValidationErrors(player));
   if (player.spellcasting?.spells?.length) {
     errors.push(...spellSelectionErrors(player.spellcasting.spells, classLevels, player.abilities || {}));
   }
@@ -2768,6 +3179,7 @@ function updateTopNavActivePage(page) {
     maps: "index.html#/maps",
     combat: "index.html#/combat",
     comics: "index.html#/comics",
+    items: "items.html",
     spells: "spells.html",
     "beast-shapes": "beast-shapes.html",
     calendar: "calendar.html",
@@ -7770,6 +8182,12 @@ function playerCharacterFormMarkup(options = {}) {
         <textarea id="player-lineage-traits" hidden aria-hidden="true"></textarea>
       </fieldset>
 
+      <fieldset class="sheet-form-section bard-subclass-section" id="player-bard-subclass-section" hidden>
+        <legend>Bard College</legend>
+        ${bardSubclassSelectMarkup({ id: "player-bard-subclass" })}
+        <div class="class-feature-preview" id="player-bard-subclass-summary"></div>
+      </fieldset>
+
       <fieldset class="sheet-form-section">
         <legend>Personality and story</legend>
         <label class="full-width">Short description<textarea id="player-description" rows="3" placeholder="What should the table know about this hero?"></textarea></label>
@@ -7822,6 +8240,11 @@ function playerCharacterFormMarkup(options = {}) {
             </div>
           </div>
         </div>
+      </fieldset>
+
+      <fieldset class="sheet-form-section bard-feature-choice-section" id="player-bard-feature-choice-section" hidden>
+        <legend>Bard feature choices</legend>
+        <div class="class-feature-choice-list full-width" id="player-bard-feature-choice-list"></div>
       </fieldset>
 
       ${playerSpellcastingFormMarkup()}
@@ -7885,6 +8308,132 @@ function multiclassSummaryMarkup(classLevels = [], abilities = {}) {
     ${failedPrerequisites.length ? `<strong>${escapeHtml(`Prerequisites: ${failedPrerequisites.join("; ")}`)}</strong>` : ""}`;
 }
 
+function updateBardSubclassControls(form, classLevels = classLevelEntriesFromForm(form)) {
+  const section = form.querySelector("#player-bard-subclass-section");
+  const select = form.querySelector("#player-bard-subclass");
+  const summary = form.querySelector("#player-bard-subclass-summary");
+  const bardLevel = bardLevelForClassLevels(classLevels);
+  const required = bardLevel >= 3;
+  if (section) section.hidden = !required;
+  if (select) {
+    select.required = required;
+    if (!required) select.value = "";
+  }
+  if (summary) {
+    const subclass = bardSubclassById(select?.value);
+    const unlocks = subclass
+      ? subclass.features.filter((feature) => feature.level <= bardLevel).map((feature) => `Level ${feature.level}: ${feature.title}`)
+      : [];
+    summary.innerHTML = required
+      ? `
+        <strong>${escapeHtml(bardSubclassChoiceSummary(select?.value || ""))}</strong>
+        ${unlocks.length ? `<span>${escapeHtml(unlocks.join(" · "))}</span>` : "<span>Choose a college to see unlocked subclass features.</span>"}`
+      : "";
+  }
+}
+
+function skillChoiceCheckboxMarkup(name, skills = [], selected = [], options = {}) {
+  const selectedSet = new Set(selected || []);
+  if (!skills.length) return `<div class="empty-state">${escapeHtml(options.emptyText || "No eligible skills yet.")}</div>`;
+  return `<div class="checkbox-grid compact-checkbox-grid bard-choice-checkbox-grid">${skills.map((skill) => {
+    const disabled = options.disabledSet?.has(skill.key);
+    const checked = selectedSet.has(skill.key) && !disabled;
+    return `
+      <label class="checkbox-row ${disabled ? "is-disabled" : ""}">
+        <input type="checkbox" name="${escapeHtml(name)}" value="${escapeHtml(skill.key)}" ${checked ? "checked" : ""} ${disabled ? "disabled" : ""} />
+        <span>${escapeHtml(skill.label)} <small>(${escapeHtml(skill.ability.slice(0, 3).toUpperCase())})</small></span>
+      </label>`;
+  }).join("")}</div>`;
+}
+
+function bardFeatureChoicesMarkup({ prefix = "player", bardLevel = 0, subclassId = "", skillProficiencies = [], selected = {} } = {}) {
+  const subclass = bardSubclassById(subclassId);
+  const expertiseRequired = bardExpertiseRequiredCount(bardLevel);
+  const selectedLoreSkills = bardChoiceList(selected.loreBonusProficiencies);
+  const baseSkillSet = new Set(skillProficiencies || []);
+  const proficientWithLore = new Set([...baseSkillSet, ...selectedLoreSkills]);
+  const expertiseSkills = SKILLS.filter((skill) => proficientWithLore.has(skill.key));
+  const loreBonusSkills = SKILLS.filter((skill) => !baseSkillSet.has(skill.key));
+  const loreActive = subclass?.id === "college-of-lore" && bardLevel >= 3;
+  const loreDiscoveriesActive = subclass?.id === "college-of-lore" && bardLevel >= 6;
+  const magicalSecretsActive = bardLevel >= 10;
+  const asiActive = [4, 8, 12, 16, 19].some((level) => bardLevel >= level);
+  const parts = [];
+  if (expertiseRequired) {
+    parts.push(`
+      <section class="class-feature-choice-card">
+        <h3>Expertise</h3>
+        <p>Choose ${escapeHtml(expertiseRequired)} proficient skill${expertiseRequired === 1 ? "" : "s"} to double your Proficiency Bonus.</p>
+        ${skillChoiceCheckboxMarkup(`${prefix}-bard-expertise`, expertiseSkills, selected.expertise, { emptyText: "Select Bard skill proficiencies first, then choose Expertise." })}
+      </section>`);
+  }
+  if (loreActive) {
+    parts.push(`
+      <section class="class-feature-choice-card">
+        <h3>College of Lore: Bonus Proficiencies</h3>
+        <p>Choose 3 additional skill proficiencies from skills you do not already have.</p>
+        ${skillChoiceCheckboxMarkup(`${prefix}-bard-lore-bonus-skills`, loreBonusSkills, selectedLoreSkills, { emptyText: "All skills are already proficient." })}
+      </section>`);
+  }
+  if (loreDiscoveriesActive) {
+    parts.push(`
+      <section class="class-feature-choice-card">
+        <h3>College of Lore: Magical Discoveries</h3>
+        <p>Choose 2 extra prepared spells from the Cleric, Druid, or Wizard spell lists.</p>
+        <textarea id="${escapeHtml(prefix)}-bard-lore-magical-discoveries" rows="3" placeholder="One spell per line">${escapeHtml((selected.loreMagicalDiscoveries || []).join("\n"))}</textarea>
+      </section>`);
+  }
+  if (magicalSecretsActive) {
+    parts.push(`
+      <section class="class-feature-choice-card">
+        <h3>Magical Secrets</h3>
+        <p>Track non-Bard spell choices prepared through Magical Secrets.</p>
+        <textarea id="${escapeHtml(prefix)}-bard-magical-secrets" rows="3" placeholder="One spell per line">${escapeHtml((selected.magicalSecrets || []).join("\n"))}</textarea>
+      </section>`);
+  }
+  if (asiActive) {
+    parts.push(`
+      <section class="class-feature-choice-card">
+        <h3>Ability Score Improvements and Feats</h3>
+        <p>Record Bard ASI or feat decisions made at Bard levels 4, 8, 12, 16, and 19.</p>
+        <textarea id="${escapeHtml(prefix)}-bard-asi-notes" rows="3" placeholder="ASI or feat notes">${escapeHtml(selected.asiNotes || "")}</textarea>
+      </section>`);
+  }
+  return parts.join("");
+}
+
+function currentBardChoiceSelectionsFromForm(form) {
+  return {
+    expertise: checkedFormValues(form, "player-bard-expertise"),
+    loreBonusProficiencies: checkedFormValues(form, "player-bard-lore-bonus-skills"),
+    loreMagicalDiscoveries: splitListInput(formValue(form, "#player-bard-lore-magical-discoveries")),
+    magicalSecrets: splitListInput(formValue(form, "#player-bard-magical-secrets")),
+    asiNotes: formValue(form, "#player-bard-asi-notes"),
+  };
+}
+
+function updateBardFeatureChoiceControls(form, classLevels = classLevelEntriesFromForm(form)) {
+  const section = form.querySelector("#player-bard-feature-choice-section");
+  const list = form.querySelector("#player-bard-feature-choice-list");
+  if (!section || !list) return;
+  const bardLevel = bardLevelForClassLevels(classLevels);
+  const subclassId = bardSubclassIdFromForm(form);
+  const baseSkillProficiencies = uniqueTextList([
+    ...checkedFormValues(form, "player-skill-proficiencies"),
+    ...splitListInput(formValue(form, "#player-background-skills")),
+  ]);
+  const selected = currentBardChoiceSelectionsFromForm(form);
+  const markup = bardFeatureChoicesMarkup({
+    prefix: "player",
+    bardLevel,
+    subclassId,
+    skillProficiencies: baseSkillProficiencies,
+    selected,
+  });
+  section.hidden = !markup;
+  list.innerHTML = markup || "";
+}
+
 function updatePlayerFormDerivedFields(form) {
   const classLevels = syncMulticlassControls(form);
   const level = numberFormValue(form, "#player-level") || 1;
@@ -7932,6 +8481,8 @@ function updatePlayerFormDerivedFields(form) {
   if (multiclassTotal) multiclassTotal.textContent = `Level ${totalLevelForClassLevels(classLevels) || level}`;
   const multiclassSummary = document.getElementById("player-multiclass-summary");
   if (multiclassSummary) multiclassSummary.innerHTML = multiclassSummaryMarkup(classLevels, scores);
+  updateBardSubclassControls(form, classLevels);
+  updateBardFeatureChoiceControls(form, classLevels);
   updatePlayerSpellPicker(form);
 }
 
@@ -8335,6 +8886,10 @@ function initPlayerCharacterForm(form) {
       renderEquipmentShop(form, event.target.value);
       return;
     }
+    if (["player-bard-lore-magical-discoveries", "player-bard-magical-secrets", "player-bard-asi-notes"].includes(event.target?.id)) {
+      refreshPlayerSectionSummary(form);
+      return;
+    }
     if (["player-class-role", "player-level", "player-constitution", "player-primary-class-level", "player-multiclass-2-class", "player-multiclass-2-level", "player-multiclass-3-class", "player-multiclass-3-level"].includes(event.target?.id)) clearRolledHitPoints(form);
     if (event.target?.id === "player-class-role" || event.target?.id === "player-race") applyClassRestrictions(form);
     updatePlayerFormDerivedFields(form);
@@ -8364,6 +8919,7 @@ function initPlayerCharacterForm(form) {
 	      || event.target?.id === "player-multiclass-enabled"
 	      || event.target?.id === "player-multiclass-2-class"
 	      || event.target?.id === "player-multiclass-3-class"
+	      || event.target?.id === "player-bard-subclass"
 	      || event.target?.id === "player-race"
 	      || event.target?.name === "player-skill-proficiencies"
 	      || event.target?.name === "player-languages"
@@ -9179,6 +9735,7 @@ function sheetTextBlock(label, value, editPath = "") {
 function sheetSkillGroupsMarkup(player, wildShape = useWildShape(player)) {
   const proficientSaves = player.savingThrowProficiencies || [];
   const proficientSkills = player.skillProficiencies || [];
+  const expertiseSkills = new Set(expertiseSkillKeysForPlayer(player));
   const shape = wildShape.beast;
   const overlay = wildShape.overlay;
   return `
@@ -9205,7 +9762,7 @@ function sheetSkillGroupsMarkup(player, wildShape = useWildShape(player)) {
                 <div class="sheet-skill-row ${overlay ? "is-wild-shape-row" : ""}">
                   <span>${proficientSkills.includes(skill.key) ? "●" : "○"}</span>
                   <strong>${signedModifier(overlay ? wildBonus : skillBonus(player, skill))}</strong>
-                  <em>${escapeHtml(skill.label)}${overlay ? ` <small>Original ${signedModifier(skillBonus(player, skill))}</small>` : ""}</em>
+                  <em>${escapeHtml(skill.label)}${expertiseSkills.has(skill.key) && !overlay ? " <small>Expertise</small>" : ""}${overlay ? ` <small>Original ${signedModifier(skillBonus(player, skill))}</small>` : ""}</em>
                 </div>`;
               }).join("")}
             </div>`;
@@ -9235,6 +9792,95 @@ function sheetTraitButtonsMarkup(player, wildShape = useWildShape(player)) {
               <span>${escapeHtml(block.title)}</span>
             </button>`).join("")}
         </div>` : `<p>—</p>`}
+    </section>`;
+}
+
+function sheetClassFeatureMeta(feature = {}, player = {}) {
+  const details = [
+    `Level ${feature.level}`,
+    feature.subclassName || feature.className || "",
+    feature.choice ? `Choice: ${feature.choice}` : "",
+    feature.cost ? `Cost: ${feature.cost}` : "",
+    ...bardFeatureDynamicDetails(feature, player),
+  ].filter(Boolean);
+  return details;
+}
+
+function sheetClassFeatureChoiceDetails(feature = {}, player = {}) {
+  const choices = bardChoicesForPlayer(player);
+  if (/^bard-expertise/.test(feature.id)) {
+    return choices.expertise.length ? `Expertise: ${choices.expertise.map(skillLabel).join(", ")}` : "Expertise choices not selected.";
+  }
+  if (feature.id === "lore-bonus-proficiencies") {
+    return choices.loreBonusProficiencies.length ? `Bonus skills: ${choices.loreBonusProficiencies.map(skillLabel).join(", ")}` : "Bonus skill choices not selected.";
+  }
+  if (feature.id === "lore-magical-discoveries") {
+    return choices.loreMagicalDiscoveries.length ? `Magical Discoveries: ${choices.loreMagicalDiscoveries.join(", ")}` : "Magical Discoveries not selected.";
+  }
+  if (feature.id === "magical-secrets") {
+    return choices.magicalSecrets.length ? `Magical Secrets: ${choices.magicalSecrets.join(", ")}` : "";
+  }
+  if (/^bard-asi-|^epic-boon$/.test(feature.id)) return choices.asiNotes || "";
+  return "";
+}
+
+function sheetClassFeatureUsageMarkup(feature = {}, player = {}) {
+  if (!feature.usage) {
+    return feature.cost ? `<div class="class-feature-cost">Uses ${escapeHtml(feature.cost)}</div>` : "";
+  }
+  const key = classFeatureUsageKey(feature);
+  const max = classFeatureUsageMaximum(feature, player);
+  const used = Math.min(max, classFeatureUsageUsed(player, feature));
+  const left = Math.max(0, max - used);
+  return `
+    <div class="class-feature-usage">
+      <div>
+        <span>${escapeHtml(feature.usage.label || feature.title)}</span>
+        <strong>${escapeHtml(left)} / ${escapeHtml(max)} left</strong>
+        <small>${escapeHtml(classFeatureUsageRecovery(feature, player))}</small>
+      </div>
+      <div class="class-feature-usage-actions">
+        <button class="btn btn-secondary" type="button" data-class-feature-use="${escapeHtml(key)}" data-class-feature-used="${escapeHtml(Math.min(max, used + 1))}" ${left <= 0 ? "disabled" : ""}>Use</button>
+        <button class="btn btn-secondary" type="button" data-class-feature-use="${escapeHtml(key)}" data-class-feature-used="0" ${used <= 0 ? "disabled" : ""}>Reset</button>
+      </div>
+    </div>`;
+}
+
+function sheetClassFeatureCardMarkup(feature = {}, player = {}) {
+  const meta = sheetClassFeatureMeta(feature, player);
+  const choiceDetails = sheetClassFeatureChoiceDetails(feature, player);
+  const detailText = [feature.summary, choiceDetails, ...meta].filter(Boolean).join("\n");
+  return `
+    <article class="class-feature-card">
+      <button class="class-feature-main" type="button" data-sheet-trait-index="class-${escapeHtml(feature.id)}" data-trait-title="${escapeHtml(feature.title)}" data-trait-details="${escapeHtml(detailText)}" title="${escapeHtml(feature.title)}">
+        <span class="sheet-trait-icon">${escapeHtml(traitIconLabel(feature.title))}</span>
+        <span>
+          <strong>${escapeHtml(feature.title)}</strong>
+          <small>${escapeHtml(meta.join(" · "))}</small>
+        </span>
+      </button>
+      <p>${escapeHtml(feature.summary)}</p>
+      ${choiceDetails ? `<div class="class-feature-choice-summary">${escapeHtml(choiceDetails)}</div>` : ""}
+      ${sheetClassFeatureUsageMarkup(feature, player)}
+    </article>`;
+}
+
+function sheetClassFeaturesMarkup(player = {}, wildShape = useWildShape(player)) {
+  if (wildShape.overlay) return "";
+  const features = classFeaturesForPlayer(player);
+  if (!features.length) return "";
+  const bardSubclass = bardSubclassById(bardSubclassIdForPlayer(player));
+  return `
+    <section class="sheet-box sheet-widget sheet-class-features-widget" data-sheet-widget="classFeatures">
+      <h3><span>Class Features</span><small>${escapeHtml(classLevelSummary(classLevelEntriesForPlayer(player)) || "Adventurer")}</small></h3>
+      ${bardLevelForPlayer(player) >= 3 && !bardSubclass ? `<div class="empty-state">Choose a Bard College to show subclass features.</div>` : ""}
+      <div class="class-feature-grid">
+        ${features.map((feature) => sheetClassFeatureCardMarkup(feature, player)).join("")}
+      </div>
+      <div class="class-feature-rest-actions">
+        <button class="btn btn-secondary" type="button" data-class-feature-rest="short">Short rest</button>
+        <button class="btn btn-secondary" type="button" data-class-feature-rest="long">Long rest</button>
+      </div>
     </section>`;
 }
 
@@ -9658,6 +10304,7 @@ function characterSheetMarkup(player, options = {}) {
           ${sheetTextBlock("Ideals", player.personality?.ideals, "personality.ideals")}
           ${sheetTextBlock("Bonds", player.personality?.bonds, "personality.bonds")}
           ${sheetTextBlock("Flaws", player.personality?.flaws, "personality.flaws")}
+          ${sheetClassFeaturesMarkup(player, wildShape)}
           ${sheetTraitButtonsMarkup(player, wildShape)}
           ${sheetTextBlock("Backstory / Notes", player.notes, "notes")}
         </section>
@@ -9707,6 +10354,17 @@ function updatePlayerWildShapeState(campaignId, playerId, transform) {
 }
 
 function updatePlayerSpellcastingState(campaignId, playerId, transform) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  return upsertCampaign({
+    ...campaign,
+    players: (campaign.players || []).map((player) => (
+      player.id === playerId ? transform(player) : player
+    )),
+  });
+}
+
+function updatePlayerFeatureState(campaignId, playerId, transform) {
   const campaign = getCampaign(campaignId);
   if (!campaign) return null;
   return upsertCampaign({
@@ -9870,6 +10528,24 @@ function bindCharacterSheetInteractions(campaignId, playerId) {
     });
   });
 
+  sheet.querySelectorAll("[data-class-feature-use]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updatePlayerFeatureState(campaignId, playerId, (player) => setPlayerFeatureUsage(
+        player,
+        button.dataset.classFeatureUse,
+        button.dataset.classFeatureUsed
+      ));
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
+  });
+
+  sheet.querySelectorAll("[data-class-feature-rest]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updatePlayerFeatureState(campaignId, playerId, (player) => recoverPlayerClassFeatures(player, button.dataset.classFeatureRest));
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
+  });
+
   sheet.querySelectorAll("[data-edit-sheet-field]").forEach((button) => {
     button.addEventListener("click", () => {
       const campaign = getCampaign(campaignId);
@@ -9953,10 +10629,16 @@ function levelUpAbilityInputsMarkup(player = {}) {
     </div>`;
 }
 
-function levelUpPreviewMarkup(player = {}, selectedClass = "") {
+function levelUpPreviewMarkup(player = {}, selectedClass = "", selectedBardSubclass = "") {
   const preview = levelUpPreviewForPlayer(player, selectedClass);
   const slots = spellSlotSummaryParts(preview.nextSpellcasting).join(", ") || "No spell slots";
   const spellGuidance = preview.nextSpellcasting?.guidance?.join(" | ") || "No class spellcasting at this level.";
+  const currentBardLevel = bardLevelForClassLevels(preview.currentClassLevels);
+  const nextBardLevel = bardLevelForClassLevels(preview.nextClassLevels);
+  const selectedSubclass = bardSubclassById(selectedBardSubclass || player.subclasses?.Bard || player.subclasses?.bard);
+  const unlocks = nextBardLevel > currentBardLevel
+    ? bardFeaturesUnlockedBetween(currentBardLevel, nextBardLevel, selectedSubclass?.id)
+    : [];
   return `
     <div class="level-up-summary-grid" id="level-up-preview">
       ${levelUpSummaryCard("Level", `${preview.currentLevel} -> ${preview.nextLevel}`, classLevelSummary(preview.nextClassLevels))}
@@ -9965,7 +10647,40 @@ function levelUpPreviewMarkup(player = {}, selectedClass = "") {
       ${levelUpSummaryCard("Hit Dice", preview.nextHitDice, "After this level")}
       ${levelUpSummaryCard("Fixed HP", `+${preview.fixedHitPoints}`, "Class average plus current CON modifier")}
       ${levelUpSummaryCard("Spell slots", slots, spellGuidance)}
+      ${levelUpSummaryCard("New Features", unlocks.length ? unlocks.join(", ") : "None", nextBardLevel >= 3 && !selectedSubclass ? "Choose a Bard College below to preview subclass features." : "")}
     </div>`;
+}
+
+function levelUpBardSubclassMarkup(player = {}, preview = levelUpPreviewForPlayer(player)) {
+  const currentBardLevel = bardLevelForPlayer(player);
+  const nextBardLevel = bardLevelForClassLevels(preview.nextClassLevels);
+  if (currentBardLevel < 2 || bardSubclassIdForPlayer(player)) return "";
+  return `
+    <fieldset class="level-up-panel full-width" id="level-up-bard-subclass-panel" ${nextBardLevel >= 3 ? "" : "hidden"}>
+      <legend>Bard College</legend>
+      ${bardSubclassSelectMarkup({ id: "level-up-bard-subclass", required: true })}
+      <p class="level-up-help" id="level-up-bard-subclass-summary">Choose the Bard College unlocked at Bard level 3.</p>
+    </fieldset>`;
+}
+
+function levelUpBardFeatureChoicesMarkup(player = {}, preview = levelUpPreviewForPlayer(player), selectedBardSubclass = "") {
+  const currentBardLevel = bardLevelForPlayer(player);
+  const nextBardLevel = bardLevelForClassLevels(preview.nextClassLevels);
+  if (nextBardLevel <= currentBardLevel || !nextBardLevel) return "";
+  const subclassId = selectedBardSubclass || bardSubclassIdForPlayer(player);
+  const markup = bardFeatureChoicesMarkup({
+    prefix: "level-up",
+    bardLevel: nextBardLevel,
+    subclassId,
+    skillProficiencies: player.skillProficiencies || [],
+    selected: bardChoicesForPlayer(player),
+  });
+  if (!markup) return "";
+  return `
+    <fieldset class="level-up-panel full-width" id="level-up-bard-feature-choice-panel">
+      <legend>Bard choices unlocked now</legend>
+      <div class="class-feature-choice-list">${markup}</div>
+    </fieldset>`;
 }
 
 function playerLevelUpMarkup(player = {}, campaignId = DEFAULT_CAMPAIGN_ID) {
@@ -10003,7 +10718,10 @@ function playerLevelUpMarkup(player = {}, campaignId = DEFAULT_CAMPAIGN_ID) {
           <p class="level-up-help">Default is the fixed class average plus current Constitution modifier. If Constitution increases below, the retroactive HP adjustment is added automatically.</p>
         </fieldset>
 
-        <fieldset class="level-up-panel full-width">
+        ${levelUpBardSubclassMarkup(player, preview)}
+        ${levelUpBardFeatureChoicesMarkup(player, preview)}
+
+        <fieldset class="level-up-panel full-width" id="level-up-asi-panel">
           <legend>Ability Score Increase</legend>
           ${levelUpAbilityInputsMarkup(player)}
           <p class="level-up-help">Use these fields for an ASI gained at this level. Scores are capped at 20.</p>
@@ -10028,6 +10746,8 @@ function levelUpPayloadFromForm(form) {
     className: formValue(form, "#level-up-class"),
     hitPointGain: numberFormValue(form, "#level-up-hp-gain"),
     notes: formValue(form, "#level-up-notes"),
+    bardSubclass: formValue(form, "#level-up-bard-subclass"),
+    bardChoices: bardChoicesFromLevelUpForm(form),
     abilityDeltas: Object.fromEntries(ABILITIES.map((ability) => [ability.key, numberFormValue(form, `#level-up-ability-${ability.key}`) || 0])),
   };
 }
@@ -10036,6 +10756,9 @@ function bindPlayerLevelUpInteractions(campaignId, playerId, player) {
   const form = document.getElementById("level-up-form");
   if (!form) return;
   const classSelect = form.querySelector("#level-up-class");
+  const bardSubclassPanel = form.querySelector("#level-up-bard-subclass-panel");
+  const bardSubclassSelect = form.querySelector("#level-up-bard-subclass");
+  const bardSubclassSummary = form.querySelector("#level-up-bard-subclass-summary");
   const hpInput = form.querySelector("#level-up-hp-gain");
   const rollButton = form.querySelector("#level-up-roll-hp");
   const message = form.querySelector("#level-up-message");
@@ -10043,9 +10766,24 @@ function bindPlayerLevelUpInteractions(campaignId, playerId, player) {
   const refreshPreview = () => {
     const preview = levelUpPreviewForPlayer(player, classSelect?.value);
     const previewContainer = form.querySelector("#level-up-preview");
-    if (previewContainer) previewContainer.outerHTML = levelUpPreviewMarkup(player, classSelect?.value);
+    if (previewContainer) previewContainer.outerHTML = levelUpPreviewMarkup(player, classSelect?.value, bardSubclassSelect?.value);
+    const nextChoiceMarkup = levelUpBardFeatureChoicesMarkup(player, preview, bardSubclassSelect?.value);
+    const featureChoicePanel = form.querySelector("#level-up-bard-feature-choice-panel");
+    const asiPanel = form.querySelector("#level-up-asi-panel");
+    if (featureChoicePanel) {
+      if (nextChoiceMarkup) featureChoicePanel.outerHTML = nextChoiceMarkup;
+      else featureChoicePanel.remove();
+    } else if (nextChoiceMarkup && asiPanel) {
+      asiPanel.insertAdjacentHTML("beforebegin", nextChoiceMarkup);
+    }
     if (hpInput && hpInput.dataset.touched !== "true") hpInput.value = String(preview.fixedHitPoints);
     if (rollButton) rollButton.textContent = `Roll d${preview.hitDieSides}`;
+    const requiresBardSubclass = bardSubclassRequiredForClassLevels(preview.nextClassLevels) && !bardSubclassIdForPlayer(player);
+    if (bardSubclassPanel) bardSubclassPanel.hidden = !requiresBardSubclass;
+    if (bardSubclassSelect) bardSubclassSelect.required = requiresBardSubclass;
+    if (bardSubclassSummary) {
+      bardSubclassSummary.textContent = bardSubclassChoiceSummary(bardSubclassSelect?.value || "");
+    }
   };
 
   classSelect?.addEventListener("change", () => {
@@ -10053,6 +10791,7 @@ function bindPlayerLevelUpInteractions(campaignId, playerId, player) {
     refreshPreview();
   });
   hpInput?.addEventListener("input", () => { hpInput.dataset.touched = "true"; });
+  bardSubclassSelect?.addEventListener("change", refreshPreview);
   rollButton?.addEventListener("click", () => {
     const preview = levelUpPreviewForPlayer(player, classSelect?.value);
     const roll = Math.floor(Math.random() * preview.hitDieSides) + 1;
@@ -10194,6 +10933,247 @@ function initCampaignRoutes() {
   }
   renderNotFoundPage("This campaign route is not available yet.");
   return true;
+}
+
+const WONDROUS_ITEM_RARITY_ORDER = ["Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact", "Unique", "???"];
+
+function wondrousItemCollection() {
+  return Array.isArray(globalThis.DNDUCKS_WONDROUS_ITEMS) ? globalThis.DNDUCKS_WONDROUS_ITEMS : [];
+}
+
+function wondrousItemSearchText(item = {}) {
+  return textForSearch([
+    item.name,
+    item.category,
+    item.rarity,
+    item.sourceCode,
+    item.source,
+    item.attunement,
+    item.cost,
+    item.summary,
+    item.description,
+  ]);
+}
+
+function wondrousItemCardSearchText(item = {}) {
+  return textForSearch([
+    item.name,
+    item.category,
+    item.rarity,
+    item.sourceCode,
+    item.source,
+    item.attunement,
+    item.cost,
+    item.summary,
+  ]);
+}
+
+function wondrousItemRarities() {
+  const rarities = [...new Set(wondrousItemCollection().map((item) => item.rarity).filter(Boolean))];
+  return rarities.sort((left, right) => {
+    const leftIndex = WONDROUS_ITEM_RARITY_ORDER.indexOf(left);
+    const rightIndex = WONDROUS_ITEM_RARITY_ORDER.indexOf(right);
+    if (leftIndex !== -1 || rightIndex !== -1) return (leftIndex === -1 ? 99 : leftIndex) - (rightIndex === -1 ? 99 : rightIndex);
+    return left.localeCompare(right);
+  });
+}
+
+function wondrousItemCostMatches(item = {}, filter = "") {
+  if (!filter) return true;
+  const min = Number(item.costMin);
+  const max = Number(item.costMax);
+  if (filter === "unlisted") return !Number.isFinite(min);
+  if (!Number.isFinite(min)) return false;
+  if (filter === "under-500") return min <= 500;
+  if (filter === "501-5000") return min >= 501 && min <= 5000;
+  if (filter === "5001-plus") return min >= 5001 || (Number.isFinite(max) && max >= 5001);
+  return true;
+}
+
+function filteredWondrousItems() {
+  const query = document.getElementById("wondrous-item-search")?.value.trim().toLowerCase() || "";
+  const rarity = document.getElementById("wondrous-item-rarity-filter")?.value || "";
+  const attunement = document.getElementById("wondrous-item-attunement-filter")?.value || "";
+  const cost = document.getElementById("wondrous-item-cost-filter")?.value || "";
+  const category = document.getElementById("wondrous-item-category-filter")?.value || "";
+  return wondrousItemCollection().filter((item) => {
+    const queryMatches = !query || wondrousItemSearchText(item).includes(query);
+    const rarityMatches = !rarity || item.rarity === rarity;
+    const attunementMatches = !attunement || (attunement === "required" ? item.attunementRequired : !item.attunementRequired);
+    const costMatches = wondrousItemCostMatches(item, cost);
+    const categoryMatches = !category || item.category === category;
+    return queryMatches && rarityMatches && attunementMatches && costMatches && categoryMatches;
+  });
+}
+
+function wondrousItemRarityBadge(item = {}) {
+  const rarityClass = normalizeRulesText(item.rarity || "unknown").replace(/\s+/g, "-") || "unknown";
+  return `<span class="status-badge item-rarity-badge is-${escapeHtml(rarityClass)}">${escapeHtml(item.rarity || "Unknown")}</span>`;
+}
+
+function wondrousItemCostBadge(item = {}) {
+  return `<span class="item-cost-badge ${item.costEstimated ? "is-estimated" : ""}">${escapeHtml(item.cost || "Cost not listed")}</span>`;
+}
+
+function wondrousItemCostBasis(item = {}) {
+  if (item.costEstimated) return "Estimated";
+  if (!item.cost || item.cost === "Cost not listed") return "Unlisted";
+  return "Exact";
+}
+
+function wondrousItemCardMarkup(item = {}) {
+  return `
+    <button class="content-card wondrous-item-card" type="button" data-wondrous-item-id="${escapeHtml(item.id)}" data-searchable="${escapeHtml(wondrousItemCardSearchText(item))}">
+      <span class="spell-card-topline">
+        ${wondrousItemRarityBadge(item)}
+        <span>${escapeHtml(item.category || "Wondrous Item")}</span>
+      </span>
+      <strong>${escapeHtml(item.name)}</strong>
+      <span class="spell-class-tags item-badge-row" aria-label="Item metadata">
+        <span>${escapeHtml(item.attunementRequired ? "Attunement" : "No attunement")}</span>
+        <span>${escapeHtml(item.sourceCode || item.source || "Source")}</span>
+      </span>
+      <span class="spell-card-summary">${escapeHtml(item.summary || "No summary available.")}</span>
+      <span class="spell-card-meta">
+        ${wondrousItemCostBadge(item)}
+        <span>${escapeHtml(wondrousItemCostBasis(item))}</span>
+      </span>
+    </button>`;
+}
+
+function renderWondrousItemTabs() {
+  const tabs = document.getElementById("wondrous-item-rarity-tabs");
+  if (!tabs) return;
+  const currentRarity = document.getElementById("wondrous-item-rarity-filter")?.value || "";
+  const allCount = wondrousItemCollection().length;
+  tabs.innerHTML = [
+    `<button class="chip-button ${currentRarity === "" ? "is-active" : ""}" type="button" data-wondrous-item-rarity-tab="">All <span>${allCount}</span></button>`,
+    ...wondrousItemRarities().map((rarity) => {
+      const count = wondrousItemCollection().filter((item) => item.rarity === rarity).length;
+      return `<button class="chip-button ${currentRarity === rarity ? "is-active" : ""}" type="button" data-wondrous-item-rarity-tab="${escapeHtml(rarity)}">${escapeHtml(rarity)} <span>${count}</span></button>`;
+    }),
+  ].join("");
+  tabs.querySelectorAll("[data-wondrous-item-rarity-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const filter = document.getElementById("wondrous-item-rarity-filter");
+      if (filter) filter.value = button.dataset.wondrousItemRarityTab || "";
+      renderWondrousItems();
+    });
+  });
+}
+
+function populateWondrousItemFilters() {
+  const rarityFilter = document.getElementById("wondrous-item-rarity-filter");
+  const categoryFilter = document.getElementById("wondrous-item-category-filter");
+  if (rarityFilter && rarityFilter.options.length <= 1) {
+    rarityFilter.insertAdjacentHTML("beforeend", wondrousItemRarities().map((rarity) => `<option value="${escapeHtml(rarity)}">${escapeHtml(rarity)}</option>`).join(""));
+  }
+  if (categoryFilter && categoryFilter.options.length <= 1) {
+    const categories = [...new Set(wondrousItemCollection().map((item) => item.category).filter(Boolean))].sort();
+    categoryFilter.insertAdjacentHTML("beforeend", categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join(""));
+  }
+}
+
+function renderWondrousItems() {
+  const list = document.getElementById("wondrous-item-list");
+  const title = document.getElementById("wondrous-item-results-title");
+  const count = document.getElementById("wondrous-item-results-count");
+  if (!list) return;
+
+  const items = filteredWondrousItems();
+  const rarity = document.getElementById("wondrous-item-rarity-filter")?.value || "";
+  const attunement = document.getElementById("wondrous-item-attunement-filter")?.value || "";
+  const cost = document.getElementById("wondrous-item-cost-filter")?.value || "";
+  if (title) {
+    title.textContent = [
+      rarity || "All Wondrous Items",
+      attunement === "required" ? "Requires attunement" : attunement === "none" ? "No attunement" : "",
+      cost ? "Filtered by cost" : "",
+    ].filter(Boolean).join(" - ");
+  }
+  if (count) count.textContent = `${items.length} of ${wondrousItemCollection().length} item widgets`;
+  list.innerHTML = items.length
+    ? items.map(wondrousItemCardMarkup).join("")
+    : `<div class="empty-state">No Wondrous Items match the current filters.</div>`;
+  list.querySelectorAll("[data-wondrous-item-id]").forEach((button) => {
+    button.addEventListener("click", () => openWondrousItemDetail(button.dataset.wondrousItemId));
+  });
+  renderWondrousItemTabs();
+}
+
+function wondrousItemDetailRows(item = {}) {
+  return [
+    ["Rarity", item.rarity],
+    ["Category", item.category],
+    ["Cost", item.cost],
+    ["Cost basis", item.costEstimated ? "Estimated by rarity" : wondrousItemCostBasis(item)],
+    ["Attunement", item.attunement],
+    ["Source", item.sourceCode ? `${item.source} (${item.sourceCode})` : item.source],
+  ].map(([label, value]) => `
+    <div>
+      <dt>${escapeHtml(label)}</dt>
+      <dd>${escapeHtml(value || "Unknown")}</dd>
+    </div>`).join("");
+}
+
+function openWondrousItemDetail(itemId) {
+  const item = wondrousItemCollection().find((entry) => entry.id === itemId);
+  const modal = document.getElementById("wondrous-item-detail-modal");
+  const body = document.getElementById("wondrous-item-detail-body");
+  if (!item || !modal || !body) return;
+  body.innerHTML = `
+    <div class="card-kicker">
+      ${wondrousItemRarityBadge(item)}
+      <span>${escapeHtml(item.category || "Wondrous Item")}</span>
+    </div>
+    <h2 id="wondrous-item-detail-title">${escapeHtml(item.name)}</h2>
+    <dl class="widget-detail-meta spell-detail-meta">${wondrousItemDetailRows(item)}</dl>
+    <section class="widget-detail-section">
+      <h3>Description</h3>
+      <p>${escapeHtml(item.description || item.summary || "No item description available.")}</p>
+    </section>
+    <div class="tag-row spell-detail-actions">
+      <a class="btn btn-secondary" href="${escapeHtml(item.sourceUrl || "https://dnd5e.wikidot.com/wondrous-items")}" target="_blank" rel="noreferrer">Open Source Page</a>
+    </div>`;
+  modal.hidden = false;
+  document.body.classList.add("spell-detail-open");
+  modal.querySelector("[data-close-wondrous-item-modal]")?.focus();
+}
+
+function initWondrousItemsPage() {
+  const list = document.getElementById("wondrous-item-list");
+  if (!list) return;
+  updateTopNavActivePage("items");
+  populateWondrousItemFilters();
+  renderWondrousItemTabs();
+  renderWondrousItems();
+
+  ["wondrous-item-search", "wondrous-item-rarity-filter", "wondrous-item-attunement-filter", "wondrous-item-cost-filter", "wondrous-item-category-filter"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", renderWondrousItems);
+    document.getElementById(id)?.addEventListener("change", renderWondrousItems);
+  });
+
+  document.getElementById("wondrous-item-clear-filters")?.addEventListener("click", () => {
+    ["wondrous-item-search", "wondrous-item-rarity-filter", "wondrous-item-attunement-filter", "wondrous-item-cost-filter", "wondrous-item-category-filter"].forEach((id) => {
+      const field = document.getElementById(id);
+      if (field) field.value = "";
+    });
+    renderWondrousItems();
+  });
+
+  const modal = document.getElementById("wondrous-item-detail-modal");
+  if (modal) {
+    const close = () => {
+      modal.hidden = true;
+      document.body.classList.remove("spell-detail-open");
+    };
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal || event.target.closest("[data-close-wondrous-item-modal]")) close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.hidden) close();
+    });
+  }
 }
 
 const SPELL_LEVEL_LABELS = ["Cantrip", "1st Level", "2nd Level", "3rd Level", "4th Level", "5th Level", "6th Level", "7th Level", "8th Level", "9th Level"];
@@ -11051,6 +12031,7 @@ async function bootApp() {
     initDashboardForms();
     initCalendarPage();
     initMaterials();
+    initWondrousItemsPage();
     initSpellsPage();
     initBeastShapesPage();
     initAiPlaceholder();

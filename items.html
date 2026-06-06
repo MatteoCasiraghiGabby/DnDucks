@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="DnDucks Wondrous Items compendium with searchable D&D 5e magic item widgets by rarity, attunement, cost, and source."
+    />
+    <title>DnDucks | Wondrous Items</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/wondrous-items-data.js" defer></script>
+    <script src="assets/script.js" defer></script>
+  </head>
+  <body data-page="items">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="DnDucks home">
+        <span class="brand-mark" aria-hidden="true">D</span>
+        <span><strong>DnDucks</strong><small>DM Command Center</small></span>
+      </a>
+      <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Toggle navigation</span>
+      </button>
+      <nav class="topnav" id="site-navigation" aria-label="Primary navigation">
+        <a href="index.html">Dashboard</a>
+        <a href="index.html#/media">Media</a>
+        <a href="index.html#/maps">Maps</a>
+        <a href="index.html#/combat">Combat</a>
+        <a href="index.html#/comics">Comics</a>
+        <a href="items.html" aria-current="page">Items</a>
+        <a href="spells.html">Spells</a>
+        <a href="beast-shapes.html">Beast Shapes</a>
+        <a href="calendar.html">Calendar</a>
+        <a href="about.html">About</a>
+      </nav>
+    </header>
+
+    <main class="page-layout section-shell wondrous-items-page">
+      <section class="page-hero wondrous-items-hero">
+        <p class="eyebrow">Wondrous item compendium</p>
+        <h1>Browse magic items by rarity, attunement, cost, and source.</h1>
+        <p>
+          Search Wondrous Items as compact widgets for table reference. Open an item to read the full description,
+          source, attunement requirement, and estimated price range.
+        </p>
+      </section>
+
+      <section class="panel wondrous-item-controls" aria-label="Wondrous Item filters">
+        <label class="search-control wondrous-item-search-control" for="wondrous-item-search">
+          <span aria-hidden="true">Search</span>
+          <input id="wondrous-item-search" type="search" placeholder="Name, description, source..." />
+        </label>
+        <label>
+          Rarity
+          <select id="wondrous-item-rarity-filter">
+            <option value="">All rarities</option>
+          </select>
+        </label>
+        <label>
+          Attunement
+          <select id="wondrous-item-attunement-filter">
+            <option value="">Any attunement</option>
+            <option value="required">Required</option>
+            <option value="none">Not required</option>
+          </select>
+        </label>
+        <label>
+          Cost
+          <select id="wondrous-item-cost-filter">
+            <option value="">Any cost</option>
+            <option value="under-500">Estimated up to 500 gp</option>
+            <option value="501-5000">Estimated 501-5,000 gp</option>
+            <option value="5001-plus">Estimated 5,001+ gp</option>
+            <option value="unlisted">Cost not listed</option>
+          </select>
+        </label>
+        <label>
+          Type
+          <select id="wondrous-item-category-filter">
+            <option value="">All types</option>
+          </select>
+        </label>
+        <button class="btn btn-secondary" type="button" id="wondrous-item-clear-filters">Clear Filters</button>
+      </section>
+
+      <section class="wondrous-item-rarity-tabs" id="wondrous-item-rarity-tabs" aria-label="Wondrous Item rarity quick filters"></section>
+
+      <section class="workspace-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Magic item reference</p>
+            <h2 id="wondrous-item-results-title">All Wondrous Items</h2>
+          </div>
+          <p id="wondrous-item-results-count">Loading item widgets...</p>
+        </div>
+        <div class="wondrous-item-grid" id="wondrous-item-list" aria-live="polite"></div>
+      </section>
+
+      <p class="spell-source-note">
+        Wondrous Item names, metadata, and source descriptions are derived from
+        <a href="https://dnd5e.wikidot.com/wondrous-items" target="_blank" rel="noreferrer">DND 5th Edition community wiki</a>.
+        Exact costs are not listed by that page; visible cost ranges are estimated from rarity and labeled as estimated.
+      </p>
+    </main>
+
+    <div class="modal-backdrop wondrous-item-detail-modal" id="wondrous-item-detail-modal" hidden>
+      <article class="event-detail-dialog wondrous-item-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="wondrous-item-detail-title">
+        <button class="modal-close" type="button" data-close-wondrous-item-modal aria-label="Close item details">×</button>
+        <div id="wondrous-item-detail-body"></div>
+      </article>
+    </div>
+  </body>
+</html>

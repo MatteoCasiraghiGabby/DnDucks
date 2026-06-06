@@ -103,6 +103,9 @@ function createCharacterFormStub(initialValues = {}) {
     "#player-multiclass-enabled", "#player-primary-class-level", "#player-multiclass-2-class", "#player-multiclass-2-level",
     "#player-multiclass-3-class", "#player-multiclass-3-level",
     "#player-background", "#player-alignment", "#player-experience", "#player-equipment",
+    "#player-bard-subclass", "#player-bard-subclass-section", "#player-bard-subclass-summary",
+    "#player-bard-feature-choice-section", "#player-bard-feature-choice-list",
+    "#player-bard-lore-magical-discoveries", "#player-bard-magical-secrets", "#player-bard-asi-notes",
     "#player-equipment-entry", "#player-features", "#player-background-skills", "#player-tool-proficiencies",
     "#player-bonds", "#player-notes",
     "#player-lineage-ability-controls", "#player-lineage-ability-bonuses", "#player-lineage-traits",
@@ -129,7 +132,7 @@ function createCharacterFormStub(initialValues = {}) {
   ].map((value) => ({
     value,
     name: "player-skill-proficiencies",
-    checked: false,
+    checked: (initialValues["player-skill-proficiencies"] || []).includes(value),
     disabled: false,
     dataset: {},
     closest: () => ({ classList: makeClassList() }),
@@ -138,6 +141,22 @@ function createCharacterFormStub(initialValues = {}) {
   const spellInputs = (initialValues["player-spells"] || []).map((value) => ({
     value,
     name: "player-spells",
+    checked: true,
+    disabled: false,
+    dataset: {},
+    closest: () => ({ classList: makeClassList() }),
+  }));
+  const bardExpertiseInputs = (initialValues["player-bard-expertise"] || []).map((value) => ({
+    value,
+    name: "player-bard-expertise",
+    checked: true,
+    disabled: false,
+    dataset: {},
+    closest: () => ({ classList: makeClassList() }),
+  }));
+  const bardLoreBonusInputs = (initialValues["player-bard-lore-bonus-skills"] || []).map((value) => ({
+    value,
+    name: "player-bard-lore-bonus-skills",
     checked: true,
     disabled: false,
     dataset: {},
@@ -160,11 +179,16 @@ function createCharacterFormStub(initialValues = {}) {
       return fields[selector] || null;
     },
     querySelectorAll(selector) {
+      if (selector === 'input[name="player-skill-proficiencies"]:checked') return skillInputs.filter((input) => input.checked);
       if (selector === 'input[name="player-skill-proficiencies"]') return skillInputs;
       if (selector === 'input[name="player-languages"]') return languageInputs;
       if (selector === 'input[name="player-saving-throws"]') return [];
       if (selector === 'input[name="player-spells"]:checked') return spellInputs.filter((input) => input.checked);
       if (selector === 'input[name="player-spells"]') return spellInputs;
+      if (selector === 'input[name="player-bard-expertise"]:checked') return bardExpertiseInputs.filter((input) => input.checked);
+      if (selector === 'input[name="player-bard-expertise"]') return bardExpertiseInputs;
+      if (selector === 'input[name="player-bard-lore-bonus-skills"]:checked') return bardLoreBonusInputs.filter((input) => input.checked);
+      if (selector === 'input[name="player-bard-lore-bonus-skills"]') return bardLoreBonusInputs;
       return [];
     },
   };
@@ -1337,6 +1361,239 @@ test("level up page markup previews advancement and spell slots", () => {
   assert.match(markup, /Spell slots/);
   assert.match(markup, /Level 1: 4, Level 2: 3, Level 3: 2/);
   assert.match(markup, /Apply level up/);
+});
+
+test("bard creation requires a college at Bard level 3 and renders class features", () => {
+  const app = createFrontendSandbox();
+  const missingCollege = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "3",
+    "#player-charisma": "16",
+  }));
+  assert.match(app.validatePlayerCharacter(missingCollege).join(" "), /Choose a Bard College/);
+
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "3",
+    "#player-charisma": "16",
+    "#player-bard-subclass": "college-of-lore",
+    "player-skill-proficiencies": ["performance", "persuasion", "deception"],
+    "player-bard-expertise": ["performance", "persuasion"],
+    "player-bard-lore-bonus-skills": ["arcana", "history", "insight"],
+  }));
+  const markup = app.characterSheetMarkup(player);
+
+  assert.deepEqual(Array.from(app.validatePlayerCharacter(player)), []);
+  assert.equal(player.subclasses.Bard, "college-of-lore");
+  assert.deepEqual(Array.from(player.classChoices.Bard.expertise), ["performance", "persuasion"]);
+  assert.ok(player.skillProficiencies.includes("arcana"));
+  assert.equal(app.skillBonus(player, { key: "performance", ability: "charisma" }), 7);
+  assert.match(markup, /Class Features/);
+  assert.match(markup, /Bardic Inspiration/);
+  assert.match(markup, /3 \/ 3 left/);
+  assert.match(markup, /College of Lore/);
+  assert.match(markup, /Cutting Words/);
+  assert.match(markup, /Expertise: Performance, Persuasion/);
+});
+
+test("bard level up into level 3 requires and stores subclass selection", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "2",
+    "#player-charisma": "16",
+    "#player-constitution": "12",
+    "player-skill-proficiencies": ["performance", "persuasion", "deception"],
+    "player-bard-expertise": ["performance", "persuasion"],
+  }));
+  const missing = app.applyPlayerLevelUp(player, { className: "Bard", hitPointGain: 6 });
+  assert.match(missing.errors.join(" "), /Choose a Bard College/);
+
+  const result = app.applyPlayerLevelUp(player, { className: "Bard", hitPointGain: 6, bardSubclass: "college-of-glamour" });
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.player.level, 3);
+  assert.equal(result.player.subclasses.Bard, "college-of-glamour");
+  assert.match(result.player.features, /Subclass: College of Glamour/);
+  assert.match(result.player.features, /Beguiling Magic/);
+  assert.match(app.playerLevelUpMarkup(player, "local"), /Bard College/);
+});
+
+test("bard level up into Expertise requires skill choices", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "1",
+    "#player-charisma": "16",
+    "#player-constitution": "12",
+    "player-skill-proficiencies": ["performance", "persuasion", "deception"],
+  }));
+  const missing = app.applyPlayerLevelUp(player, { className: "Bard", hitPointGain: 6 });
+  assert.match(missing.errors.join(" "), /Choose exactly 2 Bard Expertise/);
+
+  const result = app.applyPlayerLevelUp(player, {
+    className: "Bard",
+    hitPointGain: 6,
+    bardChoices: { expertise: ["performance", "persuasion"] },
+  });
+
+  assert.equal(result.errors.length, 0);
+  assert.deepEqual(Array.from(result.player.classChoices.Bard.expertise), ["performance", "persuasion"]);
+  assert.equal(app.skillBonus(result.player, { key: "performance", ability: "charisma" }), 7);
+});
+
+test("college of lore level up requires bonus proficiency choices", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "2",
+    "#player-charisma": "16",
+    "#player-constitution": "12",
+    "player-skill-proficiencies": ["performance", "persuasion", "deception"],
+    "player-bard-expertise": ["performance", "persuasion"],
+  }));
+  const missing = app.applyPlayerLevelUp(player, { className: "Bard", hitPointGain: 6, bardSubclass: "college-of-lore" });
+  assert.match(missing.errors.join(" "), /Choose exactly 3 College of Lore bonus skill/);
+
+  const result = app.applyPlayerLevelUp(player, {
+    className: "Bard",
+    hitPointGain: 6,
+    bardSubclass: "college-of-lore",
+    bardChoices: { loreBonusProficiencies: ["arcana", "history", "insight"] },
+  });
+
+  assert.equal(result.errors.length, 0);
+  assert.equal(result.player.subclasses.Bard, "college-of-lore");
+  assert.ok(result.player.skillProficiencies.includes("arcana"));
+  assert.match(app.characterSheetMarkup(result.player), /Bonus skills: Arcana, History, Insight/);
+});
+
+test("bard class feature usage tracks Bardic Inspiration and rest recovery", () => {
+  const app = createFrontendSandbox();
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "5",
+    "#player-charisma": "18",
+    "#player-bard-subclass": "college-of-lore",
+    "player-skill-proficiencies": ["performance", "persuasion", "deception"],
+    "player-bard-expertise": ["performance", "persuasion"],
+    "player-bard-lore-bonus-skills": ["arcana", "history", "insight"],
+  }));
+  const feature = app.classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  const used = app.setPlayerFeatureUsage(player, app.classFeatureUsageKey(feature), 2);
+  const shortRested = app.recoverPlayerClassFeatures(used, "short");
+  const markup = app.characterSheetMarkup(used);
+
+  assert.equal(app.classFeatureUsageMaximum(feature, player), 4);
+  assert.equal(app.classFeatureUsageUsed(used, feature), 2);
+  assert.equal(app.classFeatureUsageUsed(shortRested, feature), 0);
+  assert.match(markup, /2 \/ 4 left/);
+  assert.match(markup, /Short or Long Rest/);
+  assert.match(markup, /data-class-feature-use="bardic-inspiration"/);
+});
+
+test("wondrous item data asset exposes structured Wikidot items", () => {
+  const sandbox = { window: {} };
+  vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(process.cwd(), "assets/wondrous-items-data.js"), "utf8"), sandbox);
+  const items = sandbox.window.DNDUCKS_WONDROUS_ITEMS;
+
+  assert.ok(Array.isArray(items));
+  assert.equal(items.length, 520);
+  assert.ok(items.every((item) => item.category === "Wondrous Item"));
+  assert.ok(items.some((item) => item.name === "Alchemy Jug" && item.rarity === "Uncommon"));
+  assert.ok(items.some((item) => item.costEstimated && /Estimated/.test(item.cost)));
+  assert.ok(items.every((item) => item.sourceUrl.startsWith("https://dnd5e.wikidot.com/wondrous-items:")));
+});
+
+test("wondrous item helpers render cards, costs, and details", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_WONDROUS_ITEMS = [
+    {
+      id: "alchemy-jug",
+      name: "Alchemy Jug",
+      category: "Wondrous Item",
+      rarity: "Uncommon",
+      sourceCode: "DMG",
+      source: "Dungeon Master's Guide",
+      sourceUrl: "https://dnd5e.wikidot.com/wondrous-items:alchemy-jug",
+      attunementRequired: false,
+      attunement: "No attunement required",
+      cost: "Estimated 101-500 gp",
+      costEstimated: true,
+      costMin: 101,
+      costMax: 500,
+      summary: "A ceramic jug that creates liquids.",
+      description: "Full alchemy jug description.",
+    },
+    {
+      id: "artifact",
+      name: "Artifact Bowl",
+      category: "Wondrous Item",
+      rarity: "Artifact",
+      sourceCode: "TCE",
+      source: "Tasha's Cauldron of Everything",
+      sourceUrl: "https://dnd5e.wikidot.com/wondrous-items:artifact-bowl",
+      attunementRequired: true,
+      attunement: "Requires attunement",
+      cost: "Cost not listed",
+      costEstimated: false,
+      costMin: null,
+      costMax: null,
+      summary: "A priceless artifact.",
+      description: "Full artifact description.",
+    },
+  ];
+  const card = app.wondrousItemCardMarkup(app.DNDUCKS_WONDROUS_ITEMS[0]);
+  const rows = app.wondrousItemDetailRows(app.DNDUCKS_WONDROUS_ITEMS[1]);
+
+  assert.match(card, /Alchemy Jug/);
+  assert.match(card, /Estimated 101-500 gp/);
+  assert.match(card, /No attunement/);
+  assert.match(rows, /Cost not listed/);
+  assert.match(rows, /Unlisted/);
+});
+
+test("wondrous item filters support search, rarity, attunement, and cost ranges", () => {
+  const app = createFrontendSandbox();
+  app.DNDUCKS_WONDROUS_ITEMS = [
+    { id: "alchemy-jug", name: "Alchemy Jug", category: "Wondrous Item", rarity: "Uncommon", attunementRequired: false, attunement: "No attunement required", cost: "Estimated 101-500 gp", costEstimated: true, costMin: 101, costMax: 500, summary: "Creates liquids", description: "Creates liquids", source: "DMG" },
+    { id: "cloak", name: "Cloak of Stars", category: "Wondrous Item", rarity: "Rare", attunementRequired: true, attunement: "Requires attunement", cost: "Estimated 501-5,000 gp", costEstimated: true, costMin: 501, costMax: 5000, summary: "Starry cloak", description: "Starry cloak", source: "Test" },
+  ];
+  const fields = {
+    "wondrous-item-search": { value: "cloak" },
+    "wondrous-item-rarity-filter": { value: "Rare" },
+    "wondrous-item-attunement-filter": { value: "required" },
+    "wondrous-item-cost-filter": { value: "501-5000" },
+    "wondrous-item-category-filter": { value: "" },
+  };
+  app.document.getElementById = (id) => fields[id] || { value: "" };
+
+  const filtered = app.filteredWondrousItems();
+
+  assert.equal(filtered.length, 1);
+  assert.equal(filtered[0].name, "Cloak of Stars");
+});
+
+test("wondrous items page includes data asset, navigation, filters, and modal shell", () => {
+  const html = fs.readFileSync(path.join(process.cwd(), "items.html"), "utf8");
+
+  assert.match(html, /assets\/wondrous-items-data\.js/);
+  assert.match(html, /id="wondrous-item-search"/);
+  assert.match(html, /id="wondrous-item-rarity-filter"/);
+  assert.match(html, /id="wondrous-item-detail-modal"/);
+  assert.match(html, /https:\/\/dnd5e\.wikidot\.com\/wondrous-items/);
 });
 
 test("character sheet divides equipment into item widgets with homebrew detail links", () => {
