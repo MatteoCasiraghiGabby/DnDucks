@@ -113,6 +113,7 @@ class ImageStorageService {
       mimeType,
       title: cleanMetadataText(fields.title || fields.name || safeOriginal),
       mediaType: cleanOptionalMetadataText(fields.mediaType),
+      campaignId: cleanOptionalMetadataText(fields.campaignId),
       uploadedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -141,8 +142,10 @@ class ImageStorageService {
     }
   }
 
-  async list() {
-    return this.readIndex();
+  async list(filters = {}) {
+    const images = await this.readIndex();
+    if (!filters.campaignId) return images;
+    return images.filter((image) => (image.campaignId || "local") === filters.campaignId);
   }
 
   async get(id) {
@@ -158,6 +161,7 @@ class ImageStorageService {
       ...images[index],
       ...(fields.title !== undefined ? { title: cleanMetadataText(fields.title || images[index].originalFilename) } : {}),
       ...(fields.mediaType !== undefined ? { mediaType: cleanOptionalMetadataText(fields.mediaType) } : {}),
+      ...(fields.campaignId !== undefined ? { campaignId: cleanOptionalMetadataText(fields.campaignId) } : {}),
       updatedAt: new Date().toISOString(),
     };
     await this.writeIndex(images);

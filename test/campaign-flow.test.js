@@ -6,6 +6,7 @@ const vm = require("node:vm");
 
 function createFrontendSandbox(options = {}) {
   const storage = new Map();
+  const windowListeners = new Map();
   Object.entries(options.initialStorage || {}).forEach(([key, value]) => {
     storage.set(key, String(value));
   });
@@ -62,7 +63,11 @@ function createFrontendSandbox(options = {}) {
     document: documentStub,
     window: {
       location,
-      addEventListener: () => {},
+      addEventListener: (type, listener) => {
+        const listeners = windowListeners.get(type) || [];
+        listeners.push(listener);
+        windowListeners.set(type, listeners);
+      },
       name: options.name || "",
       DNDUCKS_DISABLE_CANONICAL_REDIRECT: options.disableCanonicalRedirect !== false,
       DNDUCKS_SKIP_AUTO_BOOT: options.skipAutoBoot !== false,
@@ -87,6 +92,7 @@ function createFrontendSandbox(options = {}) {
     vm.runInContext(fs.readFileSync(path.join(process.cwd(), "assets/spells-data.js"), "utf8"), sandbox);
   }
   vm.runInContext(fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8"), sandbox);
+  sandbox.windowListeners = windowListeners;
   return sandbox;
 }
 
@@ -538,7 +544,7 @@ test("campaign setup links use hash routes that static servers can serve", () =>
   assert.equal(app.campaignSetupHref("local"), "index.html#/campaigns/local/setup");
   assert.equal(app.campaignStartNoteHref("local"), "index.html#/campaigns/local/start-note");
   assert.equal(app.playerSpellbookHref("local", "player-mira"), "index.html#/campaigns/local/players/player-mira/spells");
-  assert.equal(app.dashboardHref(), "index.html#dashboard");
+  assert.equal(app.dashboardHref(), "index.html#/campaigns/local/dashboard");
   assert.match(app.playerCharacterFormMarkup({ saveLabel: "ADD PLAYER", continueLabel: "BACK TO CAMPAIGN" }), /ADD PLAYER[\s\S]*BACK TO CAMPAIGN/);
   app.window.location.hash = "#/campaigns/local/setup";
   assert.deepEqual(Array.from(app.routeParts()), ["campaigns", "local", "setup"]);
@@ -558,6 +564,32 @@ test("campaign setup links use hash routes that static servers can serve", () =>
   assert.match(script, /button\.hidden = !campaignReady\(campaign\)/);
   assert.match(script, /Open sheet/);
   assert.doesNotMatch(script, /data-player-card-href/);
+});
+
+test("widgets are saved and returned only for the active campaign", () => {
+  const app = createFrontendSandbox();
+  app.saveCollection("notes", [{ id: "note-local", title: "Local note" }]);
+
+  const secondCampaign = app.createCampaign({
+    name: "Moonlit Vale",
+    description: "A separate campaign.",
+  });
+  app.saveCollection("notes", [{ id: "note-vale", title: "Vale note" }]);
+
+  assert.equal(app.getActiveCampaignId(), secondCampaign.id);
+  assert.deepEqual(Array.from(app.getStoredCollection("notes").map((note) => note.id)), ["note-vale"]);
+
+  app.setActiveCampaign("local");
+  assert.deepEqual(Array.from(app.getStoredCollection("notes").map((note) => note.id)), ["note-local"]);
+  assert.equal(app.getAllStoredCollection("notes").length, 2);
+});
+
+test("root campaign library registers hash routing before returning from boot", async () => {
+  const app = createFrontendSandbox();
+
+  await app.bootApp();
+
+  assert.equal(app.windowListeners.get("hashchange")?.length, 1);
 });
 
 test("notes are returned in campaign chronology order", () => {

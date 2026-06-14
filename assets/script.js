@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   calendarSettings: "dnducks.calendarSettings",
   weather: "dnducks.weather",
   campaigns: "dnducks.campaigns",
+  activeCampaign: "dnducks.activeCampaign",
   comics: "dnducks.comics",
   dmOnly: "dnducks.dmOnly",
   combatEncounter: "dnducks.combatEncounter",
@@ -663,6 +664,19 @@ function getCampaign(campaignId = DEFAULT_CAMPAIGN_ID) {
   return getCampaigns().find((campaign) => campaign.id === campaignId) || null;
 }
 
+function getActiveCampaignId() {
+  const savedId = localStorage.getItem(STORAGE_KEYS.activeCampaign);
+  if (savedId && getCampaign(savedId)) return savedId;
+  return getCampaigns()[0]?.id || DEFAULT_CAMPAIGN_ID;
+}
+
+function setActiveCampaign(campaignId) {
+  const campaign = getCampaign(campaignId);
+  if (!campaign) return null;
+  setStoredText(STORAGE_KEYS.activeCampaign, campaign.id);
+  return campaign;
+}
+
 function upsertCampaign(nextCampaign) {
   const normalized = normalizeCampaign({ ...nextCampaign, updatedAt: readableDate() });
   const campaigns = getCampaigns();
@@ -674,16 +688,54 @@ function upsertCampaign(nextCampaign) {
 }
 
 function currentCampaign() {
-  return getCampaign(DEFAULT_CAMPAIGN_ID) || upsertCampaign(DEFAULT_CAMPAIGN);
+  return getCampaign(getActiveCampaignId()) || upsertCampaign(DEFAULT_CAMPAIGN);
+}
+
+function uniqueCampaignId(name = "campaign") {
+  const base = storageIdSegment(name) || "campaign";
+  const existingIds = new Set(getCampaigns().map((campaign) => campaign.id));
+  if (!existingIds.has(base)) return base;
+  let suffix = 2;
+  while (existingIds.has(`${base}-${suffix}`)) suffix += 1;
+  return `${base}-${suffix}`;
+}
+
+function createCampaign(campaignData = {}) {
+  const name = String(campaignData.name || "").trim() || "Untitled campaign";
+  const campaign = upsertCampaign({
+    ...DEFAULT_CAMPAIGN,
+    id: uniqueCampaignId(name),
+    name,
+    description: String(campaignData.description || "").trim() || "A new campaign workspace.",
+    workspaceLabel: "Local campaign",
+    players: [],
+    setupCompleted: false,
+    campaignStartNoteId: "",
+    createdAt: readableDate(),
+  });
+  setActiveCampaign(campaign.id);
+  return campaign;
+}
+
+function deleteCampaign(campaignId) {
+  const campaigns = getCampaigns().filter((campaign) => campaign.id !== campaignId);
+  saveCampaigns(campaigns.length ? campaigns : [normalizeCampaign(DEFAULT_CAMPAIGN)]);
+  USER_WIDGET_COLLECTIONS.forEach((key) => {
+    const remaining = getAllStoredCollection(key).filter((entry) => entry.campaignId !== campaignId);
+    setStoredJson(STORAGE_KEYS[key], remaining);
+  });
+  const nextCampaign = getCampaigns()[0];
+  setActiveCampaign(nextCampaign.id);
+  return nextCampaign;
 }
 
 function resetCampaign(campaignId = DEFAULT_CAMPAIGN_ID) {
   const campaign = getCampaign(campaignId);
   const noteIdsToRemove = new Set([campaign?.campaignStartNoteId].filter(Boolean));
-  const notes = getStoredCollection("notes").filter((note) => (
+  const notes = getStoredCollection("notes", campaignId).filter((note) => (
     !noteIdsToRemove.has(note.id) && !(note.campaignId === campaignId && note.generatedBy === "campaign-setup-start")
   ));
-  saveCollection("notes", notes);
+  saveCollection("notes", notes, campaignId);
   return upsertCampaign({ ...DEFAULT_CAMPAIGN, id: campaignId });
 }
 
@@ -3131,7 +3183,11 @@ function prerequisiteGroupLabel(group = []) {
 function savePlayerToCampaign(campaignId, player) {
   const campaign = getCampaign(campaignId);
   if (!campaign) return null;
-  const savedPlayer = { ...player, avatarUrl: player.avatarUrl || player.imageDataUrl || "" };
+  const savedPlayer = {
+    ...player,
+    campaignId,
+    avatarUrl: player.avatarUrl || player.imageDataUrl || "",
+  };
   return upsertCampaign({ ...campaign, players: [...campaign.players, savedPlayer] });
 }
 
@@ -3174,7 +3230,7 @@ function campaignStartContent(description = "") {
 }
 
 function getCampaignStartNote(campaign) {
-  const notes = getStoredCollection("notes");
+  const notes = getStoredCollection("notes", campaign.id);
   const existingId = campaign.campaignStartNoteId;
   return notes.find((note) => note.id === existingId || (note.campaignId === campaign.id && note.generatedBy === "campaign-setup-start"));
 }
@@ -3184,7 +3240,7 @@ function campaignReady(campaign) {
 }
 
 function saveCampaignStartNote(campaign, noteData = {}) {
-  const notes = getStoredCollection("notes");
+  const notes = getStoredCollection("notes", campaign.id);
   const existing = getCampaignStartNote(campaign);
   const startDate = noteData.startDate || currentIsoDate();
   const title = noteData.title?.trim() || campaign.name;
@@ -3204,7 +3260,7 @@ function saveCampaignStartNote(campaign, noteData = {}) {
   const nextNotes = existing
     ? notes.map((item) => item.id === existing.id ? note : item)
     : [...notes, note];
-  saveCollection("notes", nextNotes);
+  saveCollection("notes", nextNotes, campaign.id);
   return { notes: nextNotes, noteId: note.id };
 }
 
@@ -3238,8 +3294,12 @@ function playerLevelUpHref(campaignId, playerId) {
   return `index.html#/campaigns/${encodeURIComponent(campaignId)}/players/${encodeURIComponent(playerId)}/level-up`;
 }
 
-function dashboardHref() {
-  return "index.html#dashboard";
+function campaignLibraryHref() {
+  return "index.html";
+}
+
+function dashboardHref(campaignId = getActiveCampaignId()) {
+  return `index.html#/campaigns/${encodeURIComponent(campaignId)}/dashboard`;
 }
 
 function combatHref() {
@@ -3417,7 +3477,7 @@ function normalizeUserCollectionEntry(key, entry, index = 0) {
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
   const id = String(entry.id || "").trim();
   if (id.startsWith("demo-")) return null;
-  if (id) return { ...entry, id };
+  if (id) return { ...entry, id, campaignId: String(entry.campaignId || DEFAULT_CAMPAIGN_ID) };
 
   const identity = [
     entry.name,
@@ -3426,10 +3486,14 @@ function normalizeUserCollectionEntry(key, entry, index = 0) {
     entry.category,
     entry.createdAt,
   ].map(storageIdSegment).filter(Boolean).join("-");
-  return { ...entry, id: `legacy-${key}-${identity || "entry"}-${index + 1}` };
+  return {
+    ...entry,
+    id: `legacy-${key}-${identity || "entry"}-${index + 1}`,
+    campaignId: String(entry.campaignId || DEFAULT_CAMPAIGN_ID),
+  };
 }
 
-function getStoredCollection(key) {
+function getAllStoredCollection(key) {
   const raw = localStorage.getItem(STORAGE_KEYS[key]);
   if (!raw) return [];
   try {
@@ -3444,11 +3508,25 @@ function getStoredCollection(key) {
   }
 }
 
-function saveCollection(key, collection) {
+function getStoredCollection(key, campaignId = getActiveCampaignId()) {
+  const collection = getAllStoredCollection(key);
+  if (!USER_WIDGET_COLLECTIONS.has(key)) return collection;
+  return collection.filter((entry) => entry.campaignId === campaignId);
+}
+
+function saveCollection(key, collection, campaignId = getActiveCampaignId()) {
   const nextCollection = USER_WIDGET_COLLECTIONS.has(key)
-    ? collection.map((entry, index) => normalizeUserCollectionEntry(key, entry, index)).filter(Boolean)
+    ? collection.map((entry, index) => normalizeUserCollectionEntry(key, {
+      ...entry,
+      campaignId: entry?.campaignId || campaignId,
+    }, index)).filter(Boolean)
     : collection;
-  setStoredJson(STORAGE_KEYS[key], nextCollection);
+  if (!USER_WIDGET_COLLECTIONS.has(key)) {
+    setStoredJson(STORAGE_KEYS[key], nextCollection);
+    return;
+  }
+  const otherCampaigns = getAllStoredCollection(key).filter((entry) => entry.campaignId !== campaignId);
+  setStoredJson(STORAGE_KEYS[key], [...otherCampaigns, ...nextCollection]);
 }
 
 function numberOrBlank(value) {
@@ -3820,6 +3898,8 @@ function mergeImportedStorage(storage = {}) {
       const existingCampaigns = parseStoredJsonValue(existingValue, []);
       const incomingCampaigns = parseStoredJsonValue(incomingValue, []);
       localStorage.setItem(storageKey, JSON.stringify(mergeCampaignCollections(existingCampaigns, incomingCampaigns)));
+    } else if (key === "activeCampaign") {
+      if (!existingValue) localStorage.setItem(storageKey, incomingValue);
     } else if (key === "calendarSettings") {
       localStorage.setItem(storageKey, incomingValue);
     } else {
@@ -3860,6 +3940,15 @@ function isQuotaExceededError(error) {
 function setStoredJson(storageKey, value) {
   try {
     localStorage.setItem(storageKey, JSON.stringify(value));
+  } catch (error) {
+    if (!isQuotaExceededError(error)) throw error;
+    throw new Error("Browser storage is full. Start the backend with npm start for file-backed image uploads, delete some local widgets, or choose a smaller image.");
+  }
+}
+
+function setStoredText(storageKey, value) {
+  try {
+    localStorage.setItem(storageKey, String(value));
   } catch (error) {
     if (!isQuotaExceededError(error)) throw error;
     throw new Error("Browser storage is full. Start the backend with npm start for file-backed image uploads, delete some local widgets, or choose a smaller image.");
@@ -4146,7 +4235,7 @@ async function uploadImages(files, metadata = {}) {
   if (!selected.length) return [];
   const formData = new FormData();
   selected.forEach((file) => formData.append("images", file));
-  Object.entries(metadata).forEach(([key, value]) => {
+  Object.entries({ campaignId: getActiveCampaignId(), ...metadata }).forEach(([key, value]) => {
     if (value !== undefined && value !== null && String(value).trim()) formData.append(key, value);
   });
   const payload = await fetchJson("/api/uploads/images", { method: "POST", body: formData });
@@ -4154,8 +4243,9 @@ async function uploadImages(files, metadata = {}) {
 }
 
 async function listImages(filters = {}) {
-  const payload = await fetchJson("/api/uploads/images");
-  return payload.images || [];
+  const campaignId = filters.campaignId || getActiveCampaignId();
+  const payload = await fetchJson(`/api/uploads/images?campaignId=${encodeURIComponent(campaignId)}`);
+  return (payload.images || []).filter((image) => String(image.campaignId || DEFAULT_CAMPAIGN_ID) === campaignId);
 }
 
 async function deleteImage(imageId) {
@@ -5418,9 +5508,11 @@ function initCommandInterface() {
 
   if (deleteCampaignButton) {
     deleteCampaignButton.addEventListener("click", () => {
-      resetCampaign(DEFAULT_CAMPAIGN_ID);
-      renderDashboard();
-      renderCampaignCalendar();
+      const campaign = currentCampaign();
+      if (!confirm(`Delete "${campaign.name}" and all of its widgets?`)) return;
+      deleteCampaign(campaign.id);
+      window.location.href = campaignLibraryHref();
+      window.location.reload();
     });
   }
 }
@@ -6357,7 +6449,7 @@ function updateSummaryCards() {
   if (statPlayers) statPlayers.textContent = campaign.players.length;
   document.querySelectorAll(".campaign-action-button").forEach((button) => {
     if (campaignReady(campaign)) {
-      button.href = "#dashboard";
+      button.href = dashboardHref(campaign.id);
       button.textContent = "Open Campaign";
     } else if (campaign.players.length) {
       button.href = campaignStartNoteHref(campaign.id);
@@ -6373,6 +6465,9 @@ function updateSummaryCards() {
   });
   const widgetTitle = document.getElementById("campaign-widget-title");
   if (widgetTitle) widgetTitle.textContent = campaign.name;
+  document.querySelectorAll("[data-campaign-library-link]").forEach((link) => {
+    link.href = campaignLibraryHref();
+  });
   const featureRune = document.getElementById("campaign-feature-rune");
   if (featureRune) featureRune.textContent = "🦆";
 }
@@ -6595,7 +6690,8 @@ async function loadMaterials() {
   if (!list) return;
 
   try {
-    const materials = await fetchJson("/api/materials");
+    const campaignId = getActiveCampaignId();
+    const materials = await fetchJson(`/api/materials?campaignId=${encodeURIComponent(campaignId)}`);
     if (count) count.textContent = `${materials.length} saved material${materials.length === 1 ? "" : "s"}`;
     if (!materials.length) {
       list.innerHTML = `<div class="empty-state">No uploaded materials yet. Upload a map, NPC portrait, PDF handout, or campaign note to persist it locally.</div>`;
@@ -6658,6 +6754,7 @@ function initMaterials() {
       return;
     }
     const formData = new FormData(form);
+    formData.set("campaignId", getActiveCampaignId());
     if (status) {
       status.textContent = "Uploading material...";
       status.classList.remove("error");
@@ -7253,16 +7350,22 @@ function cityDetailHref(mapId, cityId) {
 }
 
 async function uploadInteractiveMap(formData) {
+  formData.set("campaignId", getActiveCampaignId());
   return fetchJson("/api/maps", { method: "POST", body: formData });
 }
 
 async function listInteractiveMaps() {
-  const payload = await fetchJson("/api/maps");
-  return payload.maps || [];
+  const campaignId = getActiveCampaignId();
+  const payload = await fetchJson(`/api/maps?campaignId=${encodeURIComponent(campaignId)}`);
+  return (payload.maps || []).filter((map) => String(map.campaignId || DEFAULT_CAMPAIGN_ID) === campaignId);
 }
 
 async function getInteractiveMap(mapId) {
-  return fetchJson(`/api/maps/${encodeURIComponent(mapId)}`);
+  const result = await fetchJson(`/api/maps/${encodeURIComponent(mapId)}`);
+  if (String(result.map?.campaignId || DEFAULT_CAMPAIGN_ID) !== getActiveCampaignId()) {
+    throw new Error("That map belongs to a different campaign.");
+  }
+  return result;
 }
 
 async function deleteInteractiveMap(mapId) {
@@ -7911,6 +8014,113 @@ function initAiPlaceholder() {
       </ul>
       <p class="muted">Question received: "${escapeHtml(asked)}"</p>
     `;
+  });
+}
+
+function campaignDestinationHref(campaign) {
+  if (campaignReady(campaign)) return dashboardHref(campaign.id);
+  if ((campaign.players || []).length) return campaignStartNoteHref(campaign.id);
+  return campaignSetupHref(campaign.id);
+}
+
+function campaignWidgetCounts(campaignId) {
+  const counts = Object.fromEntries(Array.from(USER_WIDGET_COLLECTIONS).map((key) => [
+    key,
+    getAllStoredCollection(key).filter((entry) => entry.campaignId === campaignId).length,
+  ]));
+  return {
+    widgets: Object.values(counts).reduce((total, count) => total + count, 0),
+    notes: counts.notes || 0,
+    characters: counts.characters || 0,
+    events: counts.events || 0,
+  };
+}
+
+function campaignLibraryCardMarkup(campaign) {
+  const counts = campaignWidgetCounts(campaign.id);
+  const ready = campaignReady(campaign);
+  const status = ready ? "Active campaign" : (campaign.players.length ? "Setup in progress" : "New campaign");
+  return `
+    <article class="content-card campaign-library-card" data-campaign-card="${escapeHtml(campaign.id)}">
+      <div class="card-kicker">
+        <span class="status-badge ${ready ? "status-active" : "status-prepared"}">${escapeHtml(status)}</span>
+        <span>${escapeHtml(campaign.workspaceLabel || "Local campaign")}</span>
+      </div>
+      <h2>${escapeHtml(campaign.name)}</h2>
+      <p>${escapeHtml(campaign.description || "Campaign workspace")}</p>
+      <dl class="campaign-library-stats">
+        <div><dt>Widgets</dt><dd>${counts.widgets}</dd></div>
+        <div><dt>Players</dt><dd>${campaign.players.length}</dd></div>
+        <div><dt>Notes</dt><dd>${counts.notes}</dd></div>
+        <div><dt>NPCs</dt><dd>${counts.characters}</dd></div>
+      </dl>
+      <div class="entry-actions">
+        <a class="btn btn-primary" href="${escapeHtml(campaignDestinationHref(campaign))}" data-open-campaign="${escapeHtml(campaign.id)}">${ready ? "Open dashboard" : "Continue setup"}</a>
+        <button class="btn btn-danger" type="button" data-delete-campaign="${escapeHtml(campaign.id)}">Delete</button>
+      </div>
+    </article>`;
+}
+
+function renderCampaignLibraryPage() {
+  updateTopNavActivePage("dashboard");
+  const main = document.querySelector("main");
+  if (!main) return;
+  const campaigns = getCampaigns();
+  main.innerHTML = `
+    <section class="page-layout section-shell campaign-library-page">
+      <div class="page-hero campaign-library-hero">
+        <p class="eyebrow">Campaign library</p>
+        <h1>Choose the world you want to run.</h1>
+        <p>Each campaign has its own dashboard, players, notes, NPCs, encounters, locations, items, events, and comics. New widgets are saved only to the campaign you open.</p>
+      </div>
+      <div class="campaign-library-layout">
+        <section>
+          <div class="section-heading">
+            <div><p class="eyebrow">Saved campaigns</p><h2>Your campaign sections</h2></div>
+          </div>
+          <div class="campaign-library-grid" id="campaign-library-grid">
+            ${campaigns.map(campaignLibraryCardMarkup).join("")}
+          </div>
+        </section>
+        <aside class="panel campaign-create-panel">
+          <div>
+            <p class="eyebrow">New campaign</p>
+            <h2>Create a separate workspace</h2>
+            <p>After creation, only that campaign's widgets will appear while it is active.</p>
+          </div>
+          <form class="form-grid" id="campaign-create-form">
+            <label>Campaign name<input id="new-campaign-name" type="text" placeholder="The Ashen Crown" required /></label>
+            <label class="full-width">Description<textarea id="new-campaign-description" rows="4" placeholder="Premise, setting, or table context..."></textarea></label>
+            <button class="btn btn-primary" type="submit">Create campaign</button>
+          </form>
+        </aside>
+      </div>
+    </section>`;
+
+  document.getElementById("campaign-create-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const campaign = createCampaign({
+      name: document.getElementById("new-campaign-name")?.value,
+      description: document.getElementById("new-campaign-description")?.value,
+    });
+    window.location.href = campaignSetupHref(campaign.id);
+  });
+
+  document.querySelectorAll("[data-open-campaign]").forEach((link) => {
+    link.addEventListener("click", () => setActiveCampaign(link.dataset.openCampaign));
+  });
+  document.querySelectorAll("[data-delete-campaign]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const campaign = getCampaign(button.dataset.deleteCampaign);
+      if (!campaign || !confirm(`Delete "${campaign.name}" and all of its widgets?`)) return;
+      deleteCampaign(campaign.id);
+      renderCampaignLibraryPage();
+    });
   });
 }
 
@@ -11233,6 +11443,17 @@ function initCampaignRoutes() {
   if (parts[0] !== "campaigns") return false;
   updateTopNavActivePage("dashboard");
   const campaignId = parts[1] || DEFAULT_CAMPAIGN_ID;
+  if (!setActiveCampaign(campaignId)) {
+    renderNotFoundPage("The requested campaign does not exist in local storage.");
+    return true;
+  }
+  if (parts[2] === "dashboard") {
+    if (document.querySelector(".campaign-library-page")) {
+      window.location.reload();
+      return true;
+    }
+    return false;
+  }
   if (parts[2] === "setup") {
     renderCampaignSetupPage(campaignId);
     return true;
@@ -12345,8 +12566,16 @@ async function bootApp() {
   importCanonicalLocalStoragePayload();
   initMobileNavigation();
   initWeaponPropertyInfo();
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash.startsWith("#/")) initAppRoutes();
+    else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page, .comic-page")) window.location.reload();
+  });
   if (!initAppRoutes()) {
     updateTopNavActivePage(document.body?.dataset?.page || "dashboard");
+    if (document.body?.dataset?.page === "dashboard" && !window.location.hash) {
+      renderCampaignLibraryPage();
+      return;
+    }
     initCommandInterface();
     initImagePickers();
     populateCalendarFormDefaults();
@@ -12359,10 +12588,6 @@ async function bootApp() {
     initAiPlaceholder();
     renderDashboard();
   }
-  window.addEventListener("hashchange", () => {
-    if (window.location.hash.startsWith("#/")) initAppRoutes();
-    else if (document.querySelector(".character-page, .setup-page, .media-page, .map-page, .map-detail-page, .city-page, .comic-page")) window.location.reload();
-  });
 }
 
 window.DNDUCKS_BOOT_PROMISE = window.DNDUCKS_SKIP_AUTO_BOOT ? Promise.resolve(false) : bootApp();

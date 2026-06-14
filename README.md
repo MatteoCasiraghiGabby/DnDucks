@@ -12,6 +12,8 @@ npm run dev
 
 Open <http://localhost:3000>. `npm start` runs the same server. The backend serves the existing HTML/CSS/JS and exposes the materials, media image, map, and character suggestion APIs under `/api/*`.
 
+The root page is the campaign library. Create or choose a campaign there before entering its dashboard. User-created widgets, player characters, uploaded materials, media images, maps, events, and comics are assigned to the active campaign and hidden from every other campaign.
+
 If you serve the frontend from Live Server or Vite, open the repository root so `index.html` is the app entry point. Keep the Node backend running on port `3000` for file-backed uploads and maps. When that backend is reachable, local static origins hand off to `http://127.0.0.1:3000` so browser-stored widgets use one localStorage origin. The frontend also resolves backend-owned URLs (`/api/*`, `/uploads/images/*`, and `/uploads/maps/*`) through the same backend origin, so widgets and uploaded media do not get saved under one local server and loaded from another.
 
 ## Local campaign material uploads
@@ -90,7 +92,7 @@ If `IMAGE_UPLOAD_MAX_BYTES` is not set, the image service falls back to `UPLOAD_
 - The response is normalized as `{ images, count }`. Each image includes `id`, `originalFilename`, `savedFilename`, `url`, `path`, `fileSize`, `mimeType`, `title`, and upload/update timestamps.
 - Public image display is limited to generated filenames under `/uploads/images/:savedFilename`; arbitrary local filesystem paths are never exposed.
 - Image metadata is persisted in `uploads/images/index.json`.
-- `GET /api/uploads/images` lists uploaded images.
+- `GET /api/uploads/images` lists uploaded images. Use `campaignId` to filter the library.
 - `GET /api/uploads/images/:id` returns one image metadata record.
 - `PATCH /api/uploads/images/:id` updates `title`.
 - `DELETE /api/uploads/images/:id` removes metadata and deletes the stored image file.
@@ -159,7 +161,7 @@ The map index stores three dedicated record groups: `maps`, `cities`, and `notes
 ### Maps API
 
 - `POST /api/maps` uploads one multipart map image field named `map`, `image`, or `file`, creates a map record, and runs the map processing service.
-- `GET /api/maps` lists maps.
+- `GET /api/maps` lists maps. Use `campaignId` to filter the map studio.
 - `GET /api/maps/:mapId` returns one map with its cities.
 - `DELETE /api/maps/:mapId` deletes the map image, map record, cities, and city notes.
 - `POST /api/maps/:mapId/process` runs map processing again.

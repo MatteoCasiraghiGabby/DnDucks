@@ -38,9 +38,10 @@ function pngHeader(width = 800, height = 600) {
   return buffer;
 }
 
-async function uploadMap(baseUrl, filename = "world.png") {
+async function uploadMap(baseUrl, filename = "world.png", campaignId = "") {
   const form = new FormData();
   form.set("title", "Ashen Coast");
+  if (campaignId) form.set("campaignId", campaignId);
   form.set("map", new Blob([pngHeader(1000, 500)], { type: "image/png" }), filename);
   const response = await fetch(`${baseUrl}/api/maps`, { method: "POST", body: form });
   return { response, body: await response.json() };
@@ -170,6 +171,7 @@ test("image upload endpoint accepts multiple images and serves public URLs", asy
   const form = new FormData();
   form.set("title", "Encounter Splash");
   form.set("mediaType", "Character");
+  form.set("campaignId", "ashen-crown");
   form.append("images", new Blob([Buffer.from([0x89, 0x50, 0x4e, 0x47])], { type: "image/png" }), "map.png");
   form.append("images", new Blob(["portrait"], { type: "image/webp" }), "npc.webp");
 
@@ -182,6 +184,7 @@ test("image upload endpoint accepts multiple images and serves public URLs", asy
   assert.equal(payload.images[0].originalFilename, "map.png");
   assert.equal(payload.images[0].title, "Encounter Splash");
   assert.equal(payload.images[0].mediaType, "Character");
+  assert.equal(payload.images[0].campaignId, "ashen-crown");
   assert.equal(payload.images[0].category, undefined);
   assert.equal(payload.images[0].altText, undefined);
   assert.equal(payload.images[0].description, undefined);
@@ -192,6 +195,11 @@ test("image upload endpoint accepts multiple images and serves public URLs", asy
   const served = await fetch(`${baseUrl}${payload.images[0].url}`);
   assert.equal(served.status, 200);
   assert.equal(served.headers.get("content-type"), "image/png");
+
+  const matching = await fetch(`${baseUrl}/api/uploads/images?campaignId=ashen-crown`).then((res) => res.json());
+  const hidden = await fetch(`${baseUrl}/api/uploads/images?campaignId=other-campaign`).then((res) => res.json());
+  assert.equal(matching.count, 2);
+  assert.equal(hidden.count, 0);
 });
 
 test("image library lists, updates title, gets, and deletes image records", async (t) => {
@@ -254,7 +262,7 @@ test("image upload returns a clear error when no image file is provided", async 
 
 test("dedicated map upload processes to manual-ready status without using media routes", async (t) => {
   const { baseUrl, mapUploadDir } = await withServer(t);
-  const { response, body } = await uploadMap(baseUrl);
+  const { response, body } = await uploadMap(baseUrl, "world.png", "ashen-crown");
 
   assert.equal(response.status, 201);
   assert.equal(response.headers.get("x-route-branch"), "maps-route");
@@ -263,12 +271,17 @@ test("dedicated map upload processes to manual-ready status without using media 
   assert.equal(body.map.imageWidth, 1000);
   assert.equal(body.map.imageHeight, 500);
   assert.equal(body.map.status, "ready");
+  assert.equal(body.map.campaignId, "ashen-crown");
   assert.equal(body.processing.detectionImplemented, false);
   assert.match(body.map.imageUrl, /^\/uploads\/maps\//);
   assert.ok(await fs.readFile(path.join(mapUploadDir, body.map.savedFilename)));
 
   const mediaList = await fetch(`${baseUrl}/api/uploads/images`).then((res) => res.json());
   assert.equal(mediaList.count, 0);
+  const matchingMaps = await fetch(`${baseUrl}/api/maps?campaignId=ashen-crown`).then((res) => res.json());
+  const hiddenMaps = await fetch(`${baseUrl}/api/maps?campaignId=other-campaign`).then((res) => res.json());
+  assert.equal(matchingMaps.count, 1);
+  assert.equal(hiddenMaps.count, 0);
 
   const served = await fetch(`${baseUrl}${body.map.imageUrl}`);
   assert.equal(served.status, 200);

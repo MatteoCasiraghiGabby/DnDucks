@@ -171,7 +171,9 @@ async function handleImageUploadsApi(req, res, uploadedImageStore, requestUrl) {
   }
 
   if (req.method === "GET" && requestUrl.pathname === "/api/uploads/images") {
-    const images = await uploadedImageStore.list();
+    const images = await uploadedImageStore.list({
+      campaignId: requestUrl.searchParams.get("campaignId"),
+    });
     sendJson(res, 200, { images, count: images.length });
     return;
   }
@@ -239,7 +241,9 @@ async function handleMapsApi(req, res, requestUrl, interactiveMapStore) {
   }
 
   if (req.method === "GET" && requestUrl.pathname === "/api/maps") {
-    const maps = await interactiveMapStore.listMaps();
+    const maps = await interactiveMapStore.listMaps({
+      campaignId: requestUrl.searchParams.get("campaignId"),
+    });
     sendJson(res, 200, { maps, count: maps.length });
     return;
   }

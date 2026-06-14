@@ -220,6 +220,7 @@ class MapStorageService {
       imageHeight: dimensions.height,
       fileSize: size,
       mimeType,
+      campaignId: cleanText(fields.campaignId, 80) || undefined,
       status: "uploaded",
       createdAt: now,
       updatedAt: now,
@@ -239,9 +240,10 @@ class MapStorageService {
     return map;
   }
 
-  async listMaps() {
+  async listMaps(filters = {}) {
     const records = await this.readAll();
-    return records.maps;
+    if (!filters.campaignId) return records.maps;
+    return records.maps.filter((map) => (map.campaignId || "local") === filters.campaignId);
   }
 
   async getMap(id) {
