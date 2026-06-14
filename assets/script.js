@@ -273,7 +273,7 @@ const BARD_SUBCLASSES = [
     features: [
       { id: "dance-dazzling-footwork", level: 3, title: "Dazzling Footwork", summary: "Your dancing style improves performance, unarmed strikes, and defense while you move without armor or a shield. Your Bardic die supports the damage scaling." },
       { id: "dance-inspiring-movement", level: 6, title: "Inspiring Movement", summary: "Spend Bardic Inspiration to help yourself and an ally move through danger without provoking opportunity attacks.", cost: "Bardic Inspiration" },
-      { id: "dance-tandem-footwork", level: 6, title: "Tandem Footwork", summary: "Your performance helps the party move first, improving group initiative." },
+      { id: "dance-tandem-footwork", level: 6, title: "Tandem Footwork", summary: "When you roll Initiative, spend Bardic Inspiration and roll the die. You and nearby allies who can see or hear you add the result to Initiative.", cost: "Bardic Inspiration" },
       { id: "dance-leading-evasion", level: 14, title: "Leading Evasion", summary: "Your reflexive movement helps you and nearby allies avoid area effects more reliably." },
     ],
   },
@@ -283,7 +283,7 @@ const BARD_SUBCLASSES = [
     source: "Player's Handbook 2024",
     theme: "Fey enchantment, charm, and ally support",
     features: [
-      { id: "glamour-beguiling-magic", level: 3, title: "Beguiling Magic", summary: "Charm Person and Mirror Image are always prepared. After casting an Enchantment or Illusion spell with a slot, you can try to charm or frighten a creature that saw you cast it.", usage: { key: "glamour-beguiling-magic", label: "Beguiling Magic", max: 1, recovery: "long" } },
+      { id: "glamour-beguiling-magic", level: 3, title: "Beguiling Magic", summary: "Charm Person and Mirror Image are always prepared. After casting an Enchantment or Illusion spell with a slot, you can try to charm or frighten a creature that saw you cast it.", usage: { key: "glamour-beguiling-magic", label: "Beguiling Magic", max: 1, recovery: "long" }, recoveryCost: "Bardic Inspiration" },
       { id: "glamour-mantle-of-inspiration", level: 3, title: "Mantle of Inspiration", summary: "Spend Bardic Inspiration as a Bonus Action to grant nearby allies Temporary Hit Points and let them move as a Reaction without opportunity attacks.", cost: "Bardic Inspiration" },
       { id: "glamour-mantle-of-majesty", level: 6, title: "Mantle of Majesty", summary: "Wrap yourself in commanding fey magic to direct enemies with magically forceful words.", usage: { key: "glamour-mantle-of-majesty", label: "Mantle of Majesty", max: 1, recovery: "long" } },
       { id: "glamour-unbreakable-majesty", level: 14, title: "Unbreakable Majesty", summary: "Your presence makes it difficult for enemies to attack you, and failed attempts can leave them vulnerable to your magic." },
@@ -838,6 +838,21 @@ function bardFeatureDynamicDetails(feature = {}, player = {}) {
       `Spell slots: ${spellSlotSummaryParts(runtime).join(", ") || "none"}.`,
     ];
   }
+  if (feature.id === "jack-of-all-trades") {
+    return [`Unproficient ability checks and Initiative: ${signedModifier(jackOfAllTradesBonusForPlayer(player))}.`];
+  }
+  if (feature.id === "valor-martial-training") {
+    return ["Armor training: Medium armor and Shields.", "Weapon proficiency: Martial weapons."];
+  }
+  if (feature.id === "valor-extra-attack") {
+    return [`Attacks per Attack action: ${attacksPerActionForPlayer(player)}.`];
+  }
+  if (feature.id === "glamour-beguiling-magic") {
+    return ["Always prepared: Charm Person and Mirror Image."];
+  }
+  if (feature.id === "words-of-creation") {
+    return ["Always prepared: Power Word Heal and Power Word Kill."];
+  }
   return [];
 }
 
@@ -917,6 +932,53 @@ function recoverPlayerClassFeatures(player = {}, restType = "long") {
   return { ...player, featureUsage: nextUsage };
 }
 
+function recoverBardicInspirationWithSpellSlot(player = {}, level = 1) {
+  if (bardLevelForPlayer(player) < 5) return player;
+  const feature = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  const slotLevel = Math.max(1, Math.floor(Number(level) || 1));
+  const runtime = spellcastingRuntimeForPlayer(player);
+  const maximum = runtime?.normalSlots?.[slotLevel - 1] || 0;
+  const currentSlotUsage = runtime?.slotUsage?.normal?.[slotLevel] || 0;
+  const inspirationUsed = feature ? classFeatureUsageUsed(player, feature) : 0;
+  if (!feature || inspirationUsed <= 0 || currentSlotUsage >= maximum) return player;
+  return setPlayerFeatureUsage(
+    setPlayerSpellSlotUsage(player, "normal", slotLevel, currentSlotUsage + 1),
+    classFeatureUsageKey(feature),
+    inspirationUsed - 1
+  );
+}
+
+function applySuperiorInspiration(player = {}) {
+  if (bardLevelForPlayer(player) < 18) return player;
+  const feature = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  if (!feature) return player;
+  const maximum = classFeatureUsageMaximum(feature, player);
+  const used = classFeatureUsageUsed(player, feature);
+  return setPlayerFeatureUsage(player, classFeatureUsageKey(feature), Math.min(used, Math.max(0, maximum - 2)));
+}
+
+function spendBardicInspiration(player = {}) {
+  const feature = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  if (!feature) return player;
+  const maximum = classFeatureUsageMaximum(feature, player);
+  const used = classFeatureUsageUsed(player, feature);
+  return used >= maximum ? player : setPlayerFeatureUsage(player, classFeatureUsageKey(feature), used + 1);
+}
+
+function restoreClassFeatureWithBardicInspiration(player = {}, featureKey = "") {
+  const feature = classFeaturesForPlayer(player).find((item) => classFeatureUsageKey(item) === featureKey);
+  const inspiration = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  if (!feature || feature.recoveryCost !== "Bardic Inspiration" || !inspiration || classFeatureUsageUsed(player, feature) <= 0) return player;
+  const inspirationUsed = classFeatureUsageUsed(player, inspiration);
+  const inspirationMaximum = classFeatureUsageMaximum(inspiration, player);
+  if (inspirationUsed >= inspirationMaximum) return player;
+  return setPlayerFeatureUsage(
+    setPlayerFeatureUsage(player, classFeatureUsageKey(inspiration), inspirationUsed + 1),
+    classFeatureUsageKey(feature),
+    0
+  );
+}
+
 function bardSubclassSelectMarkup({ id = "player-bard-subclass", value = "", required = false } = {}) {
   const normalizedValue = bardSubclassById(value)?.id || "";
   return `
@@ -956,15 +1018,37 @@ function bardChoiceList(value) {
   return uniqueTextList(Array.isArray(value) ? value : splitListInput(value));
 }
 
+function bardSpellChoiceId(value = "") {
+  const normalized = normalizeRulesText(value);
+  if (!normalized) return "";
+  const spell = spellById(value) || spellCollection().find((item) => normalizeRulesText(item.name) === normalized);
+  return spell?.id || String(value).trim();
+}
+
+function bardSpellChoiceIds(value) {
+  return uniqueTextList(bardChoiceList(value).map(bardSpellChoiceId).filter(Boolean));
+}
+
+function bardSpellChoiceNames(value) {
+  return bardSpellChoiceIds(value).map((spellId) => spellById(spellId)?.name || spellId);
+}
+
 function bardChoicesForPlayer(player = {}) {
   const choices = player.classChoices?.Bard || player.classChoices?.bard || {};
   return {
     expertise: bardChoiceList(choices.expertise),
     loreBonusProficiencies: bardChoiceList(choices.loreBonusProficiencies),
-    loreMagicalDiscoveries: bardChoiceList(choices.loreMagicalDiscoveries),
-    magicalSecrets: bardChoiceList(choices.magicalSecrets),
+    loreMagicalDiscoveries: bardSpellChoiceIds(choices.loreMagicalDiscoveries),
+    magicalSecrets: bardSpellChoiceIds(choices.magicalSecrets),
     asiNotes: String(choices.asiNotes || "").trim(),
   };
+}
+
+function selectedBardSpellChoicesFromForm(form, prefix, legacySelector) {
+  const selectValues = [1, 2]
+    .map((index) => formValue(form, `#${prefix}-${index}`))
+    .filter(Boolean);
+  return bardSpellChoiceIds(selectValues.length ? selectValues : splitListInput(formValue(form, legacySelector)));
 }
 
 function bardChoicesFromForm(form, classLevels = classLevelEntriesFromForm(form)) {
@@ -972,7 +1056,7 @@ function bardChoicesFromForm(form, classLevels = classLevelEntriesFromForm(form)
   const choices = {
     expertise: checkedFormValues(form, "player-bard-expertise"),
     loreBonusProficiencies: checkedFormValues(form, "player-bard-lore-bonus-skills"),
-    loreMagicalDiscoveries: splitListInput(formValue(form, "#player-bard-lore-magical-discoveries")),
+    loreMagicalDiscoveries: selectedBardSpellChoicesFromForm(form, "player-bard-lore-magical-discovery", "#player-bard-lore-magical-discoveries"),
     magicalSecrets: splitListInput(formValue(form, "#player-bard-magical-secrets")),
     asiNotes: formValue(form, "#player-bard-asi-notes"),
   };
@@ -983,7 +1067,7 @@ function bardChoicesFromLevelUpForm(form) {
   return {
     expertise: checkedFormValues(form, "level-up-bard-expertise"),
     loreBonusProficiencies: checkedFormValues(form, "level-up-bard-lore-bonus-skills"),
-    loreMagicalDiscoveries: splitListInput(formValue(form, "#level-up-bard-lore-magical-discoveries")),
+    loreMagicalDiscoveries: selectedBardSpellChoicesFromForm(form, "level-up-bard-lore-magical-discovery", "#level-up-bard-lore-magical-discoveries"),
     magicalSecrets: splitListInput(formValue(form, "#level-up-bard-magical-secrets")),
     asiNotes: formValue(form, "#level-up-bard-asi-notes"),
   };
@@ -993,8 +1077,8 @@ function mergeBardChoices(existing = {}, incoming = {}) {
   return {
     expertise: uniqueTextList([...(existing.expertise || []), ...(incoming.expertise || [])]),
     loreBonusProficiencies: uniqueTextList([...(existing.loreBonusProficiencies || []), ...(incoming.loreBonusProficiencies || [])]),
-    loreMagicalDiscoveries: uniqueTextList([...(existing.loreMagicalDiscoveries || []), ...(incoming.loreMagicalDiscoveries || [])]),
-    magicalSecrets: uniqueTextList([...(existing.magicalSecrets || []), ...(incoming.magicalSecrets || [])]),
+    loreMagicalDiscoveries: bardSpellChoiceIds([...(existing.loreMagicalDiscoveries || []), ...(incoming.loreMagicalDiscoveries || [])]),
+    magicalSecrets: bardSpellChoiceIds([...(existing.magicalSecrets || []), ...(incoming.magicalSecrets || [])]),
     asiNotes: [existing.asiNotes, incoming.asiNotes].filter(hasText).join("\n"),
   };
 }
@@ -1029,6 +1113,69 @@ function expertiseSkillKeysForPlayer(player = {}) {
   return bardChoicesForPlayer(player).expertise.filter((skillKey) => proficient.has(skillKey));
 }
 
+function bardLoreMagicalDiscoverySpells(level = 0) {
+  const bardLevel = Math.max(0, Math.floor(Number(level) || 0));
+  const maxLevel = maxSpellLevelForClassEntry({
+    className: "Bard",
+    level: bardLevel,
+    rule: spellcastingRule("Bard"),
+  });
+  return spellCollection()
+    .filter((spell) => {
+      const spellLevel = Number(spell.level) || 0;
+      const eligibleClass = ["Cleric", "Druid", "Wizard"].some((className) => spellClassMatches(spell, className));
+      return eligibleClass && (spellLevel === 0 || spellLevel <= maxLevel);
+    })
+    .sort((a, b) => (Number(a.level) - Number(b.level)) || a.name.localeCompare(b.name));
+}
+
+function bardBonusSpellIds(player = {}) {
+  const bardLevel = bardLevelForPlayer(player);
+  if (!bardLevel) return [];
+  const ids = [];
+  const subclassId = bardSubclassIdForPlayer(player);
+  if (subclassId === "college-of-lore" && bardLevel >= 6) {
+    ids.push(...bardChoicesForPlayer(player).loreMagicalDiscoveries);
+  }
+  if (subclassId === "college-of-glamour" && bardLevel >= 3) {
+    ["Charm Person", "Mirror Image"].forEach((name) => {
+      const spell = spellCollection().find((item) => normalizeRulesText(item.name) === normalizeRulesText(name));
+      if (spell) ids.push(spell.id);
+    });
+  }
+  if (bardLevel >= 20) {
+    ["Power Word: Heal", "Power Word: Kill"].forEach((name) => {
+      const spell = spellCollection().find((item) => normalizeRulesText(item.name) === normalizeRulesText(name));
+      if (spell) ids.push(spell.id);
+    });
+  }
+  return uniqueTextList(ids);
+}
+
+function bardArmorTrainingForPlayer(player = {}) {
+  return bardSubclassIdForPlayer(player) === "college-of-valor" && bardLevelForPlayer(player) >= 3
+    ? ["Medium armor", "Shields"]
+    : [];
+}
+
+function bardWeaponProficienciesForPlayer(player = {}) {
+  return bardSubclassIdForPlayer(player) === "college-of-valor" && bardLevelForPlayer(player) >= 3
+    ? ["Martial weapons"]
+    : [];
+}
+
+function attacksPerActionForPlayer(player = {}) {
+  return bardSubclassIdForPlayer(player) === "college-of-valor" && bardLevelForPlayer(player) >= 6 ? 2 : 1;
+}
+
+function jackOfAllTradesBonusForPlayer(player = {}) {
+  return bardLevelForPlayer(player) >= 2 ? Math.floor(proficiencyBonusForLevel(player.level || 1) / 2) : 0;
+}
+
+function initiativeBonusForPlayer(player = {}) {
+  return abilityModifier(abilityScore(player, "dexterity")) + jackOfAllTradesBonusForPlayer(player);
+}
+
 function bardChoiceValidationErrors(player = {}) {
   const errors = [];
   const bardLevel = bardLevelForPlayer(player);
@@ -1047,8 +1194,15 @@ function bardChoiceValidationErrors(player = {}) {
     const duplicated = choices.loreBonusProficiencies.filter((skillKey, index, list) => list.indexOf(skillKey) !== index);
     if (duplicated.length) errors.push("College of Lore bonus skill proficiencies cannot be duplicated.");
   }
-  if (subclass?.id === "college-of-lore" && bardLevel >= 6 && choices.loreMagicalDiscoveries.length !== 2) {
-    errors.push("Choose exactly 2 College of Lore Magical Discoveries spells.");
+  if (subclass?.id === "college-of-lore" && bardLevel >= 6) {
+    if (choices.loreMagicalDiscoveries.length !== 2) {
+      errors.push("Choose exactly 2 College of Lore Magical Discoveries spells.");
+    } else {
+      const eligibleIds = new Set(bardLoreMagicalDiscoverySpells(bardLevel).map((spell) => spell.id));
+      if (choices.loreMagicalDiscoveries.some((spellId) => !eligibleIds.has(spellId))) {
+        errors.push("College of Lore Magical Discoveries must be eligible Cleric, Druid, or Wizard spells.");
+      }
+    }
   }
   return errors;
 }
@@ -1147,9 +1301,12 @@ function availableSpellsForClassLevels(classLevels = []) {
   entries.forEach((entry) => {
     const maxLevel = maxSpellLevelForClassEntry(entry);
     const cantripsAllowed = Number(progressionValueAtLevel(entry.rule.cantrips || {}, entry.level)) > 0;
+    const bardMagicalSecrets = entry.className === "Bard" && Number(entry.level) >= 10;
     spellCollection().forEach((spell) => {
       const spellLevel = Number(spell.level) || 0;
-      if (!spellClassMatches(spell, entry.className)) return;
+      const classMatch = spellClassMatches(spell, entry.className)
+        || (bardMagicalSecrets && ["Cleric", "Druid", "Wizard"].some((className) => spellClassMatches(spell, className)));
+      if (!classMatch) return;
       if (spellLevel === 0 && !cantripsAllowed) return;
       if (spellLevel > 0 && spellLevel > maxLevel) return;
       byId.set(spell.id, spell);
@@ -1167,7 +1324,10 @@ function spellById(spellId = "") {
 }
 
 function selectedSpellsForPlayer(player = {}) {
-  return uniqueTextList(player.spellcasting?.spells || []).map(spellById).filter(Boolean);
+  return uniqueTextList([
+    ...(player.spellcasting?.spells || []),
+    ...bardBonusSpellIds(player),
+  ]).map(spellById).filter(Boolean);
 }
 
 function abilityScoresFromForm(form) {
@@ -1238,12 +1398,17 @@ function selectedSpellCounts(spellIds = []) {
   }, { cantrips: 0, leveled: 0 });
 }
 
-function spellSelectionErrors(spellIds = [], classLevels = [], abilities = {}) {
+function spellSelectionErrors(spellIds = [], classLevels = [], abilities = {}, player = {}) {
   const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
   if (!summary) return spellIds.length ? ["This character class does not have spellcasting."] : [];
   const budget = spellSelectionBudgetForClassLevels(classLevels, abilities);
-  const counts = selectedSpellCounts(spellIds);
-  const availableIds = new Set(availableSpellsForClassLevels(classLevels).map((spell) => spell.id));
+  const bonusIds = new Set(bardBonusSpellIds(player));
+  const budgetedSpellIds = uniqueTextList(spellIds).filter((spellId) => !bonusIds.has(spellId));
+  const counts = selectedSpellCounts(budgetedSpellIds);
+  const availableIds = new Set([
+    ...availableSpellsForClassLevels(classLevels).map((spell) => spell.id),
+    ...bonusIds,
+  ]);
   const errors = [];
   if (counts.cantrips > budget.cantrips) errors.push(`Choose no more than ${budget.cantrips} cantrip${budget.cantrips === 1 ? "" : "s"}.`);
   if (counts.leveled > budget.leveled) errors.push(`Choose no more than ${budget.leveled} leveled spell${budget.leveled === 1 ? "" : "s"} for this class and level.`);
@@ -1278,9 +1443,17 @@ function spellcastingSummaryForClassLevels(classLevels = [], abilities = {}) {
   };
 }
 
-function buildSpellcastingFromForm(form, classLevels = [], abilities = {}) {
+function buildSpellcastingFromForm(form, classLevels = [], abilities = {}, bardContext = {}) {
   const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
-  const spells = selectedSpellIdsFromForm(form);
+  const spells = uniqueTextList([
+    ...selectedSpellIdsFromForm(form),
+    ...bardBonusSpellIds({
+      level: totalLevelForClassLevels(classLevels),
+      classLevels,
+      subclasses: bardContext.subclasses || {},
+      classChoices: bardContext.classChoices || {},
+    }),
+  ]);
   if (!summary && !spells.length) return null;
   return {
     classes: (summary?.entries || []).map((entry) => ({
@@ -1489,9 +1662,18 @@ function applyAbilityDeltasForLevelUp(scores = {}, deltas = {}) {
   }));
 }
 
-function levelUpSpellcastingForPlayer(player = {}, classLevels = [], abilities = {}) {
+function levelUpSpellcastingForPlayer(player = {}, classLevels = [], abilities = {}, bardContext = {}) {
   const summary = spellcastingSummaryForClassLevels(classLevels, abilities);
-  const spells = uniqueTextList(player.spellcasting?.spells || []);
+  const spells = uniqueTextList([
+    ...(player.spellcasting?.spells || []),
+    ...bardBonusSpellIds({
+      ...player,
+      level: totalLevelForClassLevels(classLevels),
+      classLevels,
+      subclasses: bardContext.subclasses || player.subclasses || {},
+      classChoices: bardContext.classChoices || player.classChoices || {},
+    }),
+  ]);
   if (!summary && !spells.length) return null;
   return {
     classes: (summary?.entries || []).map((entry) => ({
@@ -1614,6 +1796,13 @@ function applyPlayerLevelUp(player = {}, options = {}) {
     unlockedFeatures,
     notes: String(options.notes || "").trim(),
   };
+  const nextBardContext = {
+    ...player,
+    level: preview.nextLevel,
+    classLevels: preview.nextClassLevels,
+    subclasses: nextSubclasses,
+    classChoices: nextClassChoices,
+  };
   const nextPlayer = {
     ...player,
     classRole: nextClassRole,
@@ -1625,9 +1814,14 @@ function applyPlayerLevelUp(player = {}, options = {}) {
     baseAbilities: nextBaseAbilities,
     proficiencyBonus: nextProficiencyBonus,
     skillProficiencies: nextSkillProficiencies,
+    armorTraining: uniqueTextList([...(player.armorTraining || []), ...bardArmorTrainingForPlayer(nextBardContext)]),
+    weaponProficiencies: uniqueTextList([...(player.weaponProficiencies || []), ...bardWeaponProficienciesForPlayer(nextBardContext)]),
     combat: nextCombat,
     attacks: [...generatedAttacks, ...manualAttacks],
-    spellcasting: levelUpSpellcastingForPlayer(player, preview.nextClassLevels, nextAbilities),
+    spellcasting: levelUpSpellcastingForPlayer(player, preview.nextClassLevels, nextAbilities, {
+      subclasses: nextSubclasses,
+      classChoices: nextClassChoices,
+    }),
     features: appendUniqueTextBlock(player.features, levelUpFeatureBlock({
       ...advancement,
       nextLevel: preview.nextLevel,
@@ -1650,7 +1844,8 @@ function skillBonus(player, skill) {
   const proficient = (player.skillProficiencies || []).includes(skill.key);
   const expertise = expertiseSkillKeysForPlayer(player).includes(skill.key);
   const proficiency = proficiencyBonusForLevel(player.level);
-  return bonus + (proficient ? proficiency : 0) + (expertise ? proficiency : 0);
+  const jackOfAllTrades = !proficient ? jackOfAllTradesBonusForPlayer(player) : 0;
+  return bonus + (proficient ? proficiency : 0) + (expertise ? proficiency : 0) + jackOfAllTrades;
 }
 
 function playerPassivePerception(player) {
@@ -2762,7 +2957,7 @@ function derivedCombatStats({ level, classRole, race, abilities, equipment, hitP
   const hitPoints = Number.isFinite(savedHitPoints) && savedHitPoints > 0 ? savedHitPoints : fixedHitPoints;
   return {
     armorClass: armorClassFromEquipment(abilities?.dexterity, equipment, classRole, abilities, levels),
-    initiative: dexMod,
+    initiative: dexMod + (bardLevelForClassLevels(levels) >= 2 ? Math.floor(proficiencyBonusForLevel(level) / 2) : 0),
     speed: raceSpeed(race),
     hitPointMaximum: hitPoints,
     currentHitPoints: hitPoints,
@@ -2842,7 +3037,8 @@ function buildPlayerCharacter(form) {
     ),
     homebrewFeatureTextForEquipment(equipment)
   );
-  const spellcasting = buildSpellcastingFromForm(form, classLevels, abilities);
+  const spellcasting = buildSpellcastingFromForm(form, classLevels, abilities, { subclasses, classChoices });
+  const bardPlayerContext = { level, classLevels, subclasses, classChoices };
   return {
     id: createId("player"),
     campaignId: DEFAULT_CAMPAIGN_ID,
@@ -2869,6 +3065,8 @@ function buildPlayerCharacter(form) {
       ...derivedToolProficienciesForClassLevels(classLevels),
       ...splitListInput(formValue(form, "#player-tool-proficiencies")),
     ]),
+    armorTraining: bardArmorTrainingForPlayer(bardPlayerContext),
+    weaponProficiencies: bardWeaponProficienciesForPlayer(bardPlayerContext),
     combat,
     attacks: [...equipmentAttacks, ...manualAttacks],
     spellcasting,
@@ -2910,7 +3108,7 @@ function validatePlayerCharacter(player, requireData = true) {
   if (subclassError) errors.push(subclassError);
   errors.push(...bardChoiceValidationErrors(player));
   if (player.spellcasting?.spells?.length) {
-    errors.push(...spellSelectionErrors(player.spellcasting.spells, classLevels, player.abilities || {}));
+    errors.push(...spellSelectionErrors(player.spellcasting.spells, classLevels, player.abilities || {}, player));
   }
   return errors;
 }
@@ -3086,10 +3284,10 @@ function combatantFromPlayer(player = {}, campaignId = DEFAULT_CAMPAIGN_ID, enco
     type: "player",
     name,
     avatarUrl: combatantAvatarUrl({ ...player, imageUrl: player.avatarUrl, imageDataUrl: player.avatarUrl }),
-    armorClass: numberOrBlank(combat.armorClass),
+    armorClass: armorClassForPlayer(player),
     currentHp: numberOrBlank(combat.currentHitPoints) || maxHp,
     maxHp,
-    initiativeModifier: Number.isFinite(Number(combat.initiative)) ? Number(combat.initiative) : abilityModifier(player.abilities?.dexterity),
+    initiativeModifier: initiativeBonusForPlayer(player),
     status: "active",
     conditions: [],
     detailRoute: playerCharacterHref(campaignId, player.id),
@@ -8346,7 +8544,22 @@ function skillChoiceCheckboxMarkup(name, skills = [], selected = [], options = {
   }).join("")}</div>`;
 }
 
-function bardFeatureChoicesMarkup({ prefix = "player", bardLevel = 0, subclassId = "", skillProficiencies = [], selected = {} } = {}) {
+function bardSpellChoiceSelectMarkup(prefix = "player", spells = [], selected = []) {
+  if (!spells.length) return `<div class="empty-state">Spell data is still loading.</div>`;
+  const selectedIds = bardSpellChoiceIds(selected);
+  return `<div class="bard-spell-choice-grid">${[0, 1].map((index) => `
+    <label>Discovery ${index + 1}
+      <select id="${escapeHtml(prefix)}-bard-lore-magical-discovery-${index + 1}">
+        <option value="">Choose an eligible spell</option>
+        ${spells.map((spell) => `
+          <option value="${escapeHtml(spell.id)}" ${selectedIds[index] === spell.id ? "selected" : ""}>
+            ${escapeHtml(`${spellLevelLabel(spell.level)} · ${spell.name}`)}
+          </option>`).join("")}
+      </select>
+    </label>`).join("")}</div>`;
+}
+
+function bardFeatureChoicesMarkup({ prefix = "player", bardLevel = 0, minimumLevel = 0, subclassId = "", skillProficiencies = [], selected = {} } = {}) {
   const subclass = bardSubclassById(subclassId);
   const expertiseRequired = bardExpertiseRequiredCount(bardLevel);
   const selectedLoreSkills = bardChoiceList(selected.loreBonusProficiencies);
@@ -8358,8 +8571,10 @@ function bardFeatureChoicesMarkup({ prefix = "player", bardLevel = 0, subclassId
   const loreDiscoveriesActive = subclass?.id === "college-of-lore" && bardLevel >= 6;
   const magicalSecretsActive = bardLevel >= 10;
   const asiActive = [4, 8, 12, 16, 19].some((level) => bardLevel >= level);
+  const expertiseUnlocked = (bardLevel >= 2 && minimumLevel < 2) || (bardLevel >= 9 && minimumLevel < 9);
+  const asiUnlocked = [4, 8, 12, 16, 19].some((level) => level > minimumLevel && level <= bardLevel);
   const parts = [];
-  if (expertiseRequired) {
+  if (expertiseRequired && expertiseUnlocked) {
     parts.push(`
       <section class="class-feature-choice-card">
         <h3>Expertise</h3>
@@ -8367,7 +8582,7 @@ function bardFeatureChoicesMarkup({ prefix = "player", bardLevel = 0, subclassId
         ${skillChoiceCheckboxMarkup(`${prefix}-bard-expertise`, expertiseSkills, selected.expertise, { emptyText: "Select Bard skill proficiencies first, then choose Expertise." })}
       </section>`);
   }
-  if (loreActive) {
+  if (loreActive && minimumLevel < 3) {
     parts.push(`
       <section class="class-feature-choice-card">
         <h3>College of Lore: Bonus Proficiencies</h3>
@@ -8375,23 +8590,22 @@ function bardFeatureChoicesMarkup({ prefix = "player", bardLevel = 0, subclassId
         ${skillChoiceCheckboxMarkup(`${prefix}-bard-lore-bonus-skills`, loreBonusSkills, selectedLoreSkills, { emptyText: "All skills are already proficient." })}
       </section>`);
   }
-  if (loreDiscoveriesActive) {
+  if (loreDiscoveriesActive && minimumLevel < 6) {
     parts.push(`
       <section class="class-feature-choice-card">
         <h3>College of Lore: Magical Discoveries</h3>
         <p>Choose 2 extra prepared spells from the Cleric, Druid, or Wizard spell lists.</p>
-        <textarea id="${escapeHtml(prefix)}-bard-lore-magical-discoveries" rows="3" placeholder="One spell per line">${escapeHtml((selected.loreMagicalDiscoveries || []).join("\n"))}</textarea>
+        ${bardSpellChoiceSelectMarkup(prefix, bardLoreMagicalDiscoverySpells(bardLevel), selected.loreMagicalDiscoveries)}
       </section>`);
   }
-  if (magicalSecretsActive) {
+  if (magicalSecretsActive && minimumLevel < 10) {
     parts.push(`
       <section class="class-feature-choice-card">
         <h3>Magical Secrets</h3>
-        <p>Track non-Bard spell choices prepared through Magical Secrets.</p>
-        <textarea id="${escapeHtml(prefix)}-bard-magical-secrets" rows="3" placeholder="One spell per line">${escapeHtml((selected.magicalSecrets || []).join("\n"))}</textarea>
+        <p>The main spell picker now includes eligible Cleric, Druid, and Wizard spells. These choices use your normal prepared-spell limit.</p>
       </section>`);
   }
-  if (asiActive) {
+  if (asiActive && asiUnlocked) {
     parts.push(`
       <section class="class-feature-choice-card">
         <h3>Ability Score Improvements and Feats</h3>
@@ -8406,7 +8620,7 @@ function currentBardChoiceSelectionsFromForm(form) {
   return {
     expertise: checkedFormValues(form, "player-bard-expertise"),
     loreBonusProficiencies: checkedFormValues(form, "player-bard-lore-bonus-skills"),
-    loreMagicalDiscoveries: splitListInput(formValue(form, "#player-bard-lore-magical-discoveries")),
+    loreMagicalDiscoveries: selectedBardSpellChoicesFromForm(form, "player-bard-lore-magical-discovery", "#player-bard-lore-magical-discoveries"),
     magicalSecrets: splitListInput(formValue(form, "#player-bard-magical-secrets")),
     asiNotes: formValue(form, "#player-bard-asi-notes"),
   };
@@ -9815,7 +10029,7 @@ function sheetClassFeatureChoiceDetails(feature = {}, player = {}) {
     return choices.loreBonusProficiencies.length ? `Bonus skills: ${choices.loreBonusProficiencies.map(skillLabel).join(", ")}` : "Bonus skill choices not selected.";
   }
   if (feature.id === "lore-magical-discoveries") {
-    return choices.loreMagicalDiscoveries.length ? `Magical Discoveries: ${choices.loreMagicalDiscoveries.join(", ")}` : "Magical Discoveries not selected.";
+    return choices.loreMagicalDiscoveries.length ? `Magical Discoveries: ${bardSpellChoiceNames(choices.loreMagicalDiscoveries).join(", ")}` : "Magical Discoveries not selected.";
   }
   if (feature.id === "magical-secrets") {
     return choices.magicalSecrets.length ? `Magical Secrets: ${choices.magicalSecrets.join(", ")}` : "";
@@ -9824,14 +10038,61 @@ function sheetClassFeatureChoiceDetails(feature = {}, player = {}) {
   return "";
 }
 
+function fontOfInspirationControlsMarkup(player = {}) {
+  if (bardLevelForPlayer(player) < 5) return "";
+  const feature = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  const used = feature ? classFeatureUsageUsed(player, feature) : 0;
+  const runtime = spellcastingRuntimeForPlayer(player);
+  if (!feature || used <= 0 || !runtime) return "";
+  const availableLevels = runtime.normalSlots
+    .map((total, index) => ({ level: index + 1, available: total - (runtime.slotUsage.normal[index + 1] || 0) }))
+    .filter((entry) => entry.available > 0);
+  if (!availableLevels.length) return `<div class="class-feature-cost">No available spell slot can restore Bardic Inspiration.</div>`;
+  return `
+    <div class="class-feature-usage-actions">
+      ${availableLevels.map((entry) => `
+        <button class="btn btn-secondary" type="button" data-font-inspiration-slot="${escapeHtml(entry.level)}">
+          Spend level ${escapeHtml(entry.level)} slot
+        </button>`).join("")}
+    </div>`;
+}
+
+function superiorInspirationControlsMarkup(player = {}) {
+  if (bardLevelForPlayer(player) < 18) return "";
+  const feature = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  if (!feature) return "";
+  const max = classFeatureUsageMaximum(feature, player);
+  const available = Math.max(0, max - classFeatureUsageUsed(player, feature));
+  return `<button class="btn btn-secondary" type="button" data-superior-inspiration ${available >= Math.min(2, max) ? "disabled" : ""}>Apply initiative recovery</button>`;
+}
+
 function sheetClassFeatureUsageMarkup(feature = {}, player = {}) {
   if (!feature.usage) {
-    return feature.cost ? `<div class="class-feature-cost">Uses ${escapeHtml(feature.cost)}</div>` : "";
+    const bardicInspiration = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+    const bardicUsed = bardicInspiration ? classFeatureUsageUsed(player, bardicInspiration) : 0;
+    const bardicMaximum = bardicInspiration ? classFeatureUsageMaximum(bardicInspiration, player) : 0;
+    const bardicCost = feature.cost === "Bardic Inspiration"
+      ? `
+        <div class="class-feature-usage">
+          <div class="class-feature-cost">${escapeHtml(Math.max(0, bardicMaximum - bardicUsed))} / ${escapeHtml(bardicMaximum)} Bardic Inspiration left</div>
+          <button class="btn btn-secondary" type="button" data-spend-bardic-inspiration ${bardicUsed >= bardicMaximum ? "disabled" : ""}>Spend</button>
+        </div>`
+      : "";
+    return [
+      feature.cost && !bardicCost ? `<div class="class-feature-cost">Uses ${escapeHtml(feature.cost)}</div>` : "",
+      bardicCost,
+      feature.id === "font-of-inspiration" ? fontOfInspirationControlsMarkup(player) : "",
+      feature.id === "superior-inspiration" ? superiorInspirationControlsMarkup(player) : "",
+    ].join("");
   }
   const key = classFeatureUsageKey(feature);
   const max = classFeatureUsageMaximum(feature, player);
   const used = Math.min(max, classFeatureUsageUsed(player, feature));
   const left = Math.max(0, max - used);
+  const inspiration = classFeaturesForPlayer(player).find((item) => item.id === "bardic-inspiration");
+  const inspirationLeft = inspiration
+    ? classFeatureUsageMaximum(inspiration, player) - classFeatureUsageUsed(player, inspiration)
+    : 0;
   return `
     <div class="class-feature-usage">
       <div>
@@ -9842,6 +10103,7 @@ function sheetClassFeatureUsageMarkup(feature = {}, player = {}) {
       <div class="class-feature-usage-actions">
         <button class="btn btn-secondary" type="button" data-class-feature-use="${escapeHtml(key)}" data-class-feature-used="${escapeHtml(Math.min(max, used + 1))}" ${left <= 0 ? "disabled" : ""}>Use</button>
         <button class="btn btn-secondary" type="button" data-class-feature-use="${escapeHtml(key)}" data-class-feature-used="0" ${used <= 0 ? "disabled" : ""}>Reset</button>
+        ${feature.recoveryCost === "Bardic Inspiration" ? `<button class="btn btn-secondary" type="button" data-restore-feature-with-inspiration="${escapeHtml(key)}" ${used <= 0 || inspirationLeft <= 0 ? "disabled" : ""}>Restore with Inspiration</button>` : ""}
       </div>
     </div>`;
 }
@@ -10168,7 +10430,27 @@ function playerSheetAttacks(player = {}) {
     level: player.level || 1,
   });
   const manualAttacks = (player.attacks || []).filter((attack) => !attack.generatedFromEquipment);
-  return [...equipmentAttacks, ...manualAttacks];
+  const danceAttack = bardSubclassIdForPlayer(player) === "college-of-dance" && bardLevelForPlayer(player) >= 3
+    ? [{
+      name: "Dazzling Footwork (Unarmed)",
+      attackBonus: signedModifier(proficiencyBonusForLevel(player.level || 1) + abilityModifier(player.abilities?.dexterity)),
+      damageType: `${bardicInspirationDie(bardLevelForPlayer(player))} ${signedModifier(abilityModifier(player.abilities?.dexterity))} Bludgeoning`,
+      generatedFromBardFeature: true,
+    }]
+    : [];
+  return [...equipmentAttacks, ...danceAttack, ...manualAttacks];
+}
+
+function armorClassForPlayer(player = {}) {
+  const saved = numberOrBlank(player.combat?.armorClass);
+  const danceActive = bardSubclassIdForPlayer(player) === "college-of-dance" && bardLevelForPlayer(player) >= 3;
+  const hasArmor = armorFormulaFromEquipment(player.equipment).base !== 10;
+  const hasShield = /\bshield\b/i.test(String(player.equipment || ""));
+  if (!danceActive || hasArmor || hasShield) return saved === "" ? 10 + abilityModifier(player.abilities?.dexterity) : saved;
+  return Math.max(
+    saved === "" ? 0 : saved,
+    10 + abilityModifier(player.abilities?.dexterity) + abilityModifier(player.abilities?.charisma)
+  );
 }
 
 function wildShapeAttackRows(wildShape = {}) {
@@ -10220,7 +10502,7 @@ function WildShapeMechanicCard(label, currentValue, sourceLabel, originalValue =
 function WildShapeMechanicsGrid(player = {}, wildShape = useWildShape(player), combat = player.combat || {}) {
   const overlay = wildShape.overlay;
   if (!overlay) return "";
-  const originalInitiative = signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity")));
+  const originalInitiative = signedModifier(initiativeBonusForPlayer(player));
   const beastInitiative = signedModifier(abilityModifier(overlay.abilities.dexterity));
   return `
     <section class="sheet-box wild-shape-mechanics-widget">
@@ -10252,6 +10534,12 @@ function characterSheetMarkup(player, options = {}) {
   const proficiencyText = [
     (player.languages || []).length ? `Languages: ${(player.languages || []).map(languageLabel).join(", ")}` : "",
     (player.toolProficiencies || []).length ? `Tools: ${(player.toolProficiencies || []).map(toolLabel).join(", ")}` : "",
+    uniqueTextList([...(player.armorTraining || []), ...bardArmorTrainingForPlayer(player)]).length
+      ? `Armor training: ${uniqueTextList([...(player.armorTraining || []), ...bardArmorTrainingForPlayer(player)]).join(", ")}`
+      : "",
+    uniqueTextList([...(player.weaponProficiencies || []), ...bardWeaponProficienciesForPlayer(player)]).length
+      ? `Weapons: ${uniqueTextList([...(player.weaponProficiencies || []), ...bardWeaponProficienciesForPlayer(player)]).join(", ")}`
+      : "",
   ].filter(hasText).join("\n");
   return `
     <article class="character-sheet-paper ${overlay ? "is-wild-shape-active" : ""}">
@@ -10278,9 +10566,10 @@ function characterSheetMarkup(player, options = {}) {
         <section class="sheet-column">
           ${overlay ? WildShapeMechanicsGrid(player, wildShape, combat) : `
           <div class="combat-sheet-grid">
-            ${sheetField("Armor Class", combat.armorClass)}
-            ${sheetField("Initiative", signedModifier(combat.initiative ?? abilityModifier(abilityScore(player, "dexterity"))))}
+            ${sheetField("Armor Class", armorClassForPlayer(player))}
+            ${sheetField("Initiative", signedModifier(initiativeBonusForPlayer(player)))}
             ${sheetField("Speed", combat.speed ? `${combat.speed} ft.` : "")}
+            ${attacksPerActionForPlayer(player) > 1 ? sheetField("Attacks / Action", attacksPerActionForPlayer(player)) : ""}
           </div>
           <div class="hit-point-grid">
             ${sheetField("Hit Points", combat.hitPointMaximum)}
@@ -10546,6 +10835,38 @@ function bindCharacterSheetInteractions(campaignId, playerId) {
     });
   });
 
+  sheet.querySelectorAll("[data-font-inspiration-slot]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updatePlayerFeatureState(campaignId, playerId, (player) => recoverBardicInspirationWithSpellSlot(
+        player,
+        button.dataset.fontInspirationSlot
+      ));
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
+  });
+
+  sheet.querySelector("[data-superior-inspiration]")?.addEventListener("click", () => {
+    updatePlayerFeatureState(campaignId, playerId, applySuperiorInspiration);
+    renderPlayerCharacterPage(campaignId, playerId);
+  });
+
+  sheet.querySelectorAll("[data-spend-bardic-inspiration]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updatePlayerFeatureState(campaignId, playerId, spendBardicInspiration);
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
+  });
+
+  sheet.querySelectorAll("[data-restore-feature-with-inspiration]").forEach((button) => {
+    button.addEventListener("click", () => {
+      updatePlayerFeatureState(campaignId, playerId, (player) => restoreClassFeatureWithBardicInspiration(
+        player,
+        button.dataset.restoreFeatureWithInspiration
+      ));
+      renderPlayerCharacterPage(campaignId, playerId);
+    });
+  });
+
   sheet.querySelectorAll("[data-edit-sheet-field]").forEach((button) => {
     button.addEventListener("click", () => {
       const campaign = getCampaign(campaignId);
@@ -10671,6 +10992,7 @@ function levelUpBardFeatureChoicesMarkup(player = {}, preview = levelUpPreviewFo
   const markup = bardFeatureChoicesMarkup({
     prefix: "level-up",
     bardLevel: nextBardLevel,
+    minimumLevel: currentBardLevel,
     subclassId,
     skillProficiencies: player.skillProficiencies || [],
     selected: bardChoicesForPlayer(player),

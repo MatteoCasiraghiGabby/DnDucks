@@ -83,6 +83,9 @@ function createFrontendSandbox(options = {}) {
   };
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
+  if (options.loadSpells) {
+    vm.runInContext(fs.readFileSync(path.join(process.cwd(), "assets/spells-data.js"), "utf8"), sandbox);
+  }
   vm.runInContext(fs.readFileSync(path.join(process.cwd(), "assets/script.js"), "utf8"), sandbox);
   return sandbox;
 }
@@ -106,6 +109,7 @@ function createCharacterFormStub(initialValues = {}) {
     "#player-bard-subclass", "#player-bard-subclass-section", "#player-bard-subclass-summary",
     "#player-bard-feature-choice-section", "#player-bard-feature-choice-list",
     "#player-bard-lore-magical-discoveries", "#player-bard-magical-secrets", "#player-bard-asi-notes",
+    "#player-bard-lore-magical-discovery-1", "#player-bard-lore-magical-discovery-2",
     "#player-equipment-entry", "#player-features", "#player-background-skills", "#player-tool-proficiencies",
     "#player-bonds", "#player-notes",
     "#player-lineage-ability-controls", "#player-lineage-ability-bonuses", "#player-lineage-traits",
@@ -1392,6 +1396,12 @@ test("bard creation requires a college at Bard level 3 and renders class feature
   assert.deepEqual(Array.from(player.classChoices.Bard.expertise), ["performance", "persuasion"]);
   assert.ok(player.skillProficiencies.includes("arcana"));
   assert.equal(app.skillBonus(player, { key: "performance", ability: "charisma" }), 7);
+  assert.match(app.bardFeatureChoicesMarkup({
+    bardLevel: 3,
+    subclassId: "college-of-lore",
+    skillProficiencies: ["performance", "persuasion", "deception"],
+    selected: player.classChoices.Bard,
+  }), /name="player-bard-expertise"/);
   assert.match(markup, /Class Features/);
   assert.match(markup, /Bardic Inspiration/);
   assert.match(markup, /3 \/ 3 left/);
@@ -1447,6 +1457,7 @@ test("bard level up into Expertise requires skill choices", () => {
   assert.equal(result.errors.length, 0);
   assert.deepEqual(Array.from(result.player.classChoices.Bard.expertise), ["performance", "persuasion"]);
   assert.equal(app.skillBonus(result.player, { key: "performance", ability: "charisma" }), 7);
+  assert.match(app.characterSheetMarkup(result.player), /Expertise: Performance, Persuasion/);
 });
 
 test("college of lore level up requires bonus proficiency choices", () => {
@@ -1474,7 +1485,167 @@ test("college of lore level up requires bonus proficiency choices", () => {
   assert.equal(result.errors.length, 0);
   assert.equal(result.player.subclasses.Bard, "college-of-lore");
   assert.ok(result.player.skillProficiencies.includes("arcana"));
+  assert.deepEqual(Array.from(result.player.classChoices.Bard.loreBonusProficiencies), ["arcana", "history", "insight"]);
   assert.match(app.characterSheetMarkup(result.player), /Bonus skills: Arcana, History, Insight/);
+});
+
+test("bard passive and subclass mechanics update derived sheet values", () => {
+  const app = createFrontendSandbox();
+  const bard = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "2",
+    "#player-dexterity": "14",
+    "#player-intelligence": "10",
+    "#player-charisma": "16",
+    "player-skill-proficiencies": ["performance", "persuasion"],
+    "player-bard-expertise": ["performance", "persuasion"],
+  }));
+
+  assert.equal(app.skillBonus(bard, { key: "arcana", ability: "intelligence" }), 1);
+  assert.equal(app.initiativeBonusForPlayer(bard), 3);
+  assert.match(app.characterSheetMarkup(bard), /Jack of All Trades/);
+  assert.match(app.characterSheetMarkup(bard), /Unproficient ability checks and Initiative: \+1/);
+
+  const valor = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Cael",
+    "#player-class-role": "Bard",
+    "#player-level": "6",
+    "#player-dexterity": "16",
+    "#player-charisma": "16",
+    "#player-bard-subclass": "college-of-valor",
+    "player-skill-proficiencies": ["performance", "persuasion"],
+    "player-bard-expertise": ["performance", "persuasion"],
+  }));
+  const valorMarkup = app.characterSheetMarkup(valor);
+
+  assert.ok(valor.armorTraining.includes("Medium armor"));
+  assert.ok(valor.weaponProficiencies.includes("Martial weapons"));
+  assert.equal(app.attacksPerActionForPlayer(valor), 2);
+  assert.match(valorMarkup, /Armor training: Medium armor, Shields/);
+  assert.match(valorMarkup, /Weapons: Martial weapons/);
+  assert.match(valorMarkup, /Attacks \/ Action/);
+  assert.match(valorMarkup, /Extra Attack/);
+});
+
+test("bard granted spells and Lore Magical Discoveries are applied without consuming normal limits", () => {
+  const app = createFrontendSandbox({ loadSpells: true });
+  const eligible = app.bardLoreMagicalDiscoverySpells(6).slice(0, 2);
+  assert.equal(eligible.length, 2);
+  const lore = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "6",
+    "#player-charisma": "18",
+    "#player-bard-subclass": "college-of-lore",
+    "#player-bard-lore-magical-discovery-1": eligible[0].id,
+    "#player-bard-lore-magical-discovery-2": eligible[1].id,
+    "player-skill-proficiencies": ["performance", "persuasion", "deception"],
+    "player-bard-expertise": ["performance", "persuasion"],
+    "player-bard-lore-bonus-skills": ["arcana", "history", "insight"],
+  }));
+
+  assert.deepEqual(Array.from(app.validatePlayerCharacter(lore)), []);
+  assert.deepEqual(Array.from(lore.classChoices.Bard.loreMagicalDiscoveries), Array.from(eligible, (spell) => spell.id));
+  assert.ok(eligible.every((spell) => lore.spellcasting.spells.includes(spell.id)));
+  assert.match(app.characterSheetMarkup(lore), new RegExp(eligible[0].name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  const glamour = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Mira",
+    "#player-class-role": "Bard",
+    "#player-level": "3",
+    "#player-charisma": "16",
+    "#player-bard-subclass": "college-of-glamour",
+    "player-skill-proficiencies": ["performance", "persuasion"],
+    "player-bard-expertise": ["performance", "persuasion"],
+  }));
+  const grantedNames = app.selectedSpellsForPlayer(glamour).map((spell) => spell.name);
+  assert.ok(grantedNames.includes("Charm Person"));
+  assert.ok(grantedNames.includes("Mirror Image"));
+  assert.deepEqual(Array.from(app.validatePlayerCharacter(glamour)), []);
+
+  const levelTwenty = {
+    ...glamour,
+    level: 20,
+    classLevels: [{ className: "Bard", level: 20 }],
+  };
+  const capstoneSpells = app.selectedSpellsForPlayer(levelTwenty).map((spell) => spell.name);
+  assert.ok(capstoneSpells.includes("Power Word: Heal"));
+  assert.ok(capstoneSpells.includes("Power Word: Kill"));
+});
+
+test("Lore Bard level up into Magical Discoveries requires and applies spell choices", () => {
+  const app = createFrontendSandbox({ loadSpells: true });
+  const player = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "5",
+    "#player-charisma": "18",
+    "#player-constitution": "12",
+    "#player-bard-subclass": "college-of-lore",
+    "player-skill-proficiencies": ["performance", "persuasion", "deception"],
+    "player-bard-expertise": ["performance", "persuasion"],
+    "player-bard-lore-bonus-skills": ["arcana", "history", "insight"],
+  }));
+  const missing = app.applyPlayerLevelUp(player, { className: "Bard", hitPointGain: 6 });
+  assert.match(missing.errors.join(" "), /Choose exactly 2 College of Lore Magical Discoveries/);
+
+  const discoveries = app.bardLoreMagicalDiscoverySpells(6).slice(0, 2);
+  const result = app.applyPlayerLevelUp(player, {
+    className: "Bard",
+    hitPointGain: 6,
+    bardChoices: { loreMagicalDiscoveries: Array.from(discoveries, (spell) => spell.id) },
+  });
+
+  assert.deepEqual(Array.from(result.errors), []);
+  assert.ok(discoveries.every((spell) => result.player.spellcasting.spells.includes(spell.id)));
+  assert.match(app.characterSheetMarkup(result.player), /Magical Discoveries:/);
+  assert.match(app.levelUpBardFeatureChoicesMarkup(player, app.levelUpPreviewForPlayer(player)), /Discovery 1/);
+});
+
+test("Font and Superior Inspiration update spell slots and Bardic Inspiration usage", () => {
+  const app = createFrontendSandbox();
+  const bard = app.buildPlayerCharacter(createCharacterFormStub({
+    "#player-name": "Riley",
+    "#player-character-name": "Lyra",
+    "#player-class-role": "Bard",
+    "#player-level": "5",
+    "#player-charisma": "18",
+    "#player-bard-subclass": "college-of-glamour",
+    "player-skill-proficiencies": ["performance", "persuasion"],
+    "player-bard-expertise": ["performance", "persuasion"],
+  }));
+  const spent = app.setPlayerFeatureUsage(bard, "bardic-inspiration", 2);
+  const restored = app.recoverBardicInspirationWithSpellSlot(spent, 1);
+
+  assert.equal(restored.featureUsage["bardic-inspiration"], 1);
+  assert.equal(restored.spellcasting.slotUsage.normal[1], 1);
+  assert.match(app.characterSheetMarkup(spent), /data-font-inspiration-slot="1"/);
+
+  const beguilingSpent = app.setPlayerFeatureUsage(
+    app.setPlayerFeatureUsage(bard, "bardic-inspiration", 1),
+    "glamour-beguiling-magic",
+    1
+  );
+  const beguilingRestored = app.restoreClassFeatureWithBardicInspiration(beguilingSpent, "glamour-beguiling-magic");
+  assert.equal(beguilingRestored.featureUsage["bardic-inspiration"], 2);
+  assert.equal(beguilingRestored.featureUsage["glamour-beguiling-magic"], 0);
+  assert.match(app.characterSheetMarkup(beguilingSpent), /Restore with Inspiration/);
+
+  const superior = {
+    ...bard,
+    level: 18,
+    classLevels: [{ className: "Bard", level: 18 }],
+    featureUsage: { "bardic-inspiration": 4 },
+  };
+  const recovered = app.applySuperiorInspiration(superior);
+  assert.equal(recovered.featureUsage["bardic-inspiration"], 2);
+  assert.match(app.characterSheetMarkup(superior), /Apply initiative recovery/);
 });
 
 test("bard class feature usage tracks Bardic Inspiration and rest recovery", () => {
@@ -1501,6 +1672,8 @@ test("bard class feature usage tracks Bardic Inspiration and rest recovery", () 
   assert.match(markup, /2 \/ 4 left/);
   assert.match(markup, /Short or Long Rest/);
   assert.match(markup, /data-class-feature-use="bardic-inspiration"/);
+  assert.match(markup, /data-spend-bardic-inspiration/);
+  assert.equal(app.spendBardicInspiration(used).featureUsage["bardic-inspiration"], 3);
 });
 
 test("wondrous item data asset exposes structured Wikidot items", () => {
@@ -1640,7 +1813,7 @@ test("spellcasting classes choose starting spells and render slot tracking", () 
   const sheetMarkup = app.characterSheetMarkup(player);
   const runtime = app.spellcastingRuntimeForPlayer(player);
 
-  assert.deepEqual(player.spellcasting.spells, ["0-fire-bolt", "1-magic-missile"]);
+  assert.deepEqual(Array.from(player.spellcasting.spells), ["0-fire-bolt", "1-magic-missile"]);
   assert.deepEqual(Array.from(runtime.normalSlots), [2]);
   assert.match(sheetMarkup, /Spellcasting/);
   assert.match(sheetMarkup, /sheet-spellbook-page/);
