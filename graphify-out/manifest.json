@@ -1,0 +1,182 @@
+{
+  ".codex/hooks.json": {
+    "mtime": 1781468702.5011494,
+    "ast_hash": "8e9dba1d6e9bb139c1882c4fa97b62c0",
+    "semantic_hash": "8e9dba1d6e9bb139c1882c4fa97b62c0"
+  },
+  "assets/beast-shapes-data.js": {
+    "mtime": 1781468688.1938872,
+    "ast_hash": "8606120201bed9da7093f3782808879f",
+    "semantic_hash": "8606120201bed9da7093f3782808879f"
+  },
+  "assets/script.js": {
+    "mtime": 1781468688.1964495,
+    "ast_hash": "bd13b7af2e715835c73e29343c7afe30",
+    "semantic_hash": "bd13b7af2e715835c73e29343c7afe30"
+  },
+  "assets/spells-data.js": {
+    "mtime": 1781468688.1973226,
+    "ast_hash": "3876ec22f6872c8c6044abde225bd98a",
+    "semantic_hash": "3876ec22f6872c8c6044abde225bd98a"
+  },
+  "assets/wondrous-items-data.js": {
+    "mtime": 1781468688.2012641,
+    "ast_hash": "75d573f582470cdfe608959338f767a9",
+    "semantic_hash": "75d573f582470cdfe608959338f767a9"
+  },
+  "package.json": {
+    "mtime": 1781468688.2043629,
+    "ast_hash": "b88550059cf92d28e2eb9925ffe2ed50",
+    "semantic_hash": "b88550059cf92d28e2eb9925ffe2ed50"
+  },
+  "server.js": {
+    "mtime": 1781468688.204632,
+    "ast_hash": "8731fd62153b75ccc7268c6e5ceeb3ed",
+    "semantic_hash": "8731fd62153b75ccc7268c6e5ceeb3ed"
+  },
+  "src/characterSuggestionData.js": {
+    "mtime": 1781468688.205578,
+    "ast_hash": "1c21f2b3e12b87f78262c72c5166fd4a",
+    "semantic_hash": "1c21f2b3e12b87f78262c72c5166fd4a"
+  },
+  "src/imageStorageService.js": {
+    "mtime": 1781468688.205847,
+    "ast_hash": "e16898cfd8aada8cf41f27e8717f6ae5",
+    "semantic_hash": "e16898cfd8aada8cf41f27e8717f6ae5"
+  },
+  "src/mapProcessingService.js": {
+    "mtime": 1781468688.206025,
+    "ast_hash": "3068845e0cab4ad5f036593c340b64b5",
+    "semantic_hash": "3068845e0cab4ad5f036593c340b64b5"
+  },
+  "src/mapStorageService.js": {
+    "mtime": 1781468688.206257,
+    "ast_hash": "032bdd2038b6cf39ca85b3c5f473e45e",
+    "semantic_hash": "032bdd2038b6cf39ca85b3c5f473e45e"
+  },
+  "src/materialStore.js": {
+    "mtime": 1781468688.206694,
+    "ast_hash": "4cd5d11d55afeb4801aa4005fbd2c415",
+    "semantic_hash": "4cd5d11d55afeb4801aa4005fbd2c415"
+  },
+  "test/campaign-flow.test.js": {
+    "mtime": 1781468688.2076924,
+    "ast_hash": "269aa28bb4b84f9dbb784d651d14a1da",
+    "semantic_hash": "269aa28bb4b84f9dbb784d651d14a1da"
+  },
+  "test/character-suggestions.test.js": {
+    "mtime": 1781468688.207927,
+    "ast_hash": "059b5340c61805e79147beaf2c3d1a45",
+    "semantic_hash": "059b5340c61805e79147beaf2c3d1a45"
+  },
+  "test/materials.test.js": {
+    "mtime": 1781468688.2081907,
+    "ast_hash": "2a01bc22a142afeeb57232242f97e7a5",
+    "semantic_hash": "2a01bc22a142afeeb57232242f97e7a5"
+  },
+  "uploads/maps/index.json": {
+    "mtime": 1781468688.212119,
+    "ast_hash": "6ca016972ce53719a627364dd2c16af0",
+    "semantic_hash": "6ca016972ce53719a627364dd2c16af0"
+  },
+  "vite.config.js": {
+    "mtime": 1781468688.212465,
+    "ast_hash": "e16df7ae1a5fe8901104d9b0e48d69b4",
+    "semantic_hash": "e16df7ae1a5fe8901104d9b0e48d69b4"
+  },
+  ".codex/skills/graphify/SKILL.md": {
+    "mtime": 1781468702.4983625,
+    "ast_hash": "5c72924d8902cf334936c5827ff65349",
+    "semantic_hash": "5c72924d8902cf334936c5827ff65349"
+  },
+  ".codex/skills/graphify/references/add-watch.md": {
+    "mtime": 1781468543.5756102,
+    "ast_hash": "0df0589623217ca38a12bdcabfb42f4c",
+    "semantic_hash": "0df0589623217ca38a12bdcabfb42f4c"
+  },
+  ".codex/skills/graphify/references/exports.md": {
+    "mtime": 1781468543.5759249,
+    "ast_hash": "c04ddf8f1f5ef5e262ebec491a523c74",
+    "semantic_hash": "c04ddf8f1f5ef5e262ebec491a523c74"
+  },
+  ".codex/skills/graphify/references/extraction-spec.md": {
+    "mtime": 1781468543.5764658,
+    "ast_hash": "a86a7321597b23cc2b22e011b3dc6e1d",
+    "semantic_hash": "a86a7321597b23cc2b22e011b3dc6e1d"
+  },
+  ".codex/skills/graphify/references/github-and-merge.md": {
+    "mtime": 1781468543.576711,
+    "ast_hash": "cde13df085e4c492aeb7ba298a996d0d",
+    "semantic_hash": "cde13df085e4c492aeb7ba298a996d0d"
+  },
+  ".codex/skills/graphify/references/hooks.md": {
+    "mtime": 1781468543.57696,
+    "ast_hash": "3f545db6ce646650bb9de588f5512a27",
+    "semantic_hash": "3f545db6ce646650bb9de588f5512a27"
+  },
+  ".codex/skills/graphify/references/query.md": {
+    "mtime": 1781468543.577249,
+    "ast_hash": "c2a8e798674a81b02aa9975f43023819",
+    "semantic_hash": "c2a8e798674a81b02aa9975f43023819"
+  },
+  ".codex/skills/graphify/references/transcribe.md": {
+    "mtime": 1781468543.5777423,
+    "ast_hash": "70f6aa30d6211f3a2c7e9fc45479f50c",
+    "semantic_hash": "70f6aa30d6211f3a2c7e9fc45479f50c"
+  },
+  ".codex/skills/graphify/references/update.md": {
+    "mtime": 1781468543.5782514,
+    "ast_hash": "0dad167a95bdb389f02fecffb60b1bc8",
+    "semantic_hash": "0dad167a95bdb389f02fecffb60b1bc8"
+  },
+  "AGENTS.md": {
+    "mtime": 1781469506.2069304,
+    "ast_hash": "8a8241c7cc3cd078039053d1dd323e2f",
+    "semantic_hash": "8a8241c7cc3cd078039053d1dd323e2f"
+  },
+  "README.md": {
+    "mtime": 1781468688.192936,
+    "ast_hash": "e4a1a77079b5e0044317d4cd45ad08f9",
+    "semantic_hash": "e4a1a77079b5e0044317d4cd45ad08f9"
+  },
+  "about.html": {
+    "mtime": 1781468688.1933823,
+    "ast_hash": "64c28974378f6b9f2d666b2a4077d1f1",
+    "semantic_hash": "64c28974378f6b9f2d666b2a4077d1f1"
+  },
+  "beast-shapes.html": {
+    "mtime": 1781468688.2023478,
+    "ast_hash": "54e661092a06c94b7cf6783107bb7049",
+    "semantic_hash": "54e661092a06c94b7cf6783107bb7049"
+  },
+  "calendar.html": {
+    "mtime": 1781468688.2028544,
+    "ast_hash": "7ba9f0ed0e5eb82af7a8765548d18689",
+    "semantic_hash": "7ba9f0ed0e5eb82af7a8765548d18689"
+  },
+  "data/README.md": {
+    "mtime": 1781468688.2031324,
+    "ast_hash": "a9b2d0b0617490c37bb8241792c5f036",
+    "semantic_hash": "a9b2d0b0617490c37bb8241792c5f036"
+  },
+  "index.html": {
+    "mtime": 1781468688.203766,
+    "ast_hash": "46793fe0243c8fb06891df4fbf3ae999",
+    "semantic_hash": "46793fe0243c8fb06891df4fbf3ae999"
+  },
+  "items.html": {
+    "mtime": 1781468688.2041957,
+    "ast_hash": "2b42c1215c038985c727b1c867daae9a",
+    "semantic_hash": "2b42c1215c038985c727b1c867daae9a"
+  },
+  "spells.html": {
+    "mtime": 1781468688.2050743,
+    "ast_hash": "1f1668612a2f402f3b541308f9a19ab5",
+    "semantic_hash": "1f1668612a2f402f3b541308f9a19ab5"
+  },
+  "uploads/maps/1780061832547-504ba237-8868-4a41-82ac-7c5cda4e4352.jpeg": {
+    "mtime": 1781468688.2117455,
+    "ast_hash": "8fe575dc4dcc7f7ba31b86fd2330fa0e",
+    "semantic_hash": "8fe575dc4dcc7f7ba31b86fd2330fa0e"
+  }
+}
